@@ -1,4 +1,6 @@
-from core.activation import sigmoid
+import numpy as np
+
+from core.activation import sigmoid, softmax
 from core.layer import Layer
 
 
@@ -19,6 +21,15 @@ class Net:
         for i in range(len(sizes) - 1):
             layer = Layer(sizes[i], sizes[i + 1])
             self.layers.append(layer)
+
+    def predict(self, init_x: np.ndarray) -> np.ndarray:
+        size = len(self.layers)
+        x = init_x
+
+        for i in range(size - 1):
+            x = self.layers[i].predict(x, self.activation_func)
+
+        return self.layers[size - 1].predict(x, softmax)
 
 
 class NetInitException(Exception):

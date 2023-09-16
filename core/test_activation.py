@@ -19,3 +19,12 @@ def test_sigmoid():
     actual = activation.sigmoid(test_input)
 
     assert np.allclose(actual, expected)
+
+
+def test_softmax():
+    test_input = np.array([0.3, 1.5, 1])
+
+    expected = np.array([0.15788136769202, 0.52418460065905, 0.31793403164894])
+    actual = activation.softmax(test_input)
+
+    assert np.allclose(actual, expected)
