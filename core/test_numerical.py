@@ -15,3 +15,17 @@ def func1(x: np.ndarray) -> np.ndarray:
 def test_gradient(test_input, expected):
     actual = numerical.gradient(func1, test_input)
     assert np.allclose(expected, actual)
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        (np.array([3.0, 4.0]), np.array([0.0, 0.0])),
+        (np.array([0.0, 0.0]), np.array([0.0, 0.0])),
+        (np.array([[3.0, 4.0], [2.0, 3.0]]), np.array([[0.0, 0.0], [0.0, 0.0]])),
+        (np.array([[0.0, 0.0], [0.0, 0.0]]), np.array([[0.0, 0.0], [0.0, 0.0]])),
+    ]
+)
+def test_gradient_descent(test_input, expected):
+    actual = numerical.gradient_descent(func1, test_input, lr=0.1)
+    assert np.allclose(actual, expected)
