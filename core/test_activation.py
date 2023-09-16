@@ -11,3 +11,11 @@ def test_step():
 
     assert np.all(actual == expected)
 
+
+def test_sigmoid():
+    test_input = np.array([10.0, 0.0, -1.5])
+
+    expected = np.array([0.9999546021312978, 0.5, 0.18242552380627775])
+    actual = activation.sigmoid(test_input)
+
+    assert np.allclose(actual, expected)

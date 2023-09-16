@@ -14,5 +14,6 @@ class Layer:
         self.W = weight_init * np.random.randn(input_size, output_size)
         self.b = np.zeros(output_size)
 
-    def predict(self, x):
-        return np.dot(x, self.W) + self.b
+    def predict(self, x, activation_func):
+        a = np.dot(x, self.W) + self.b
+        return activation_func(a)

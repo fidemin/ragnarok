@@ -8,3 +8,7 @@ def step(x: np.ndarray) -> np.ndarray:
     """
     y = x > 0
     return y.astype(np.int_)
+
+
+def sigmoid(x: np.ndarray) -> np.ndarray:
+    return 1 / (1 + np.exp(-x))
