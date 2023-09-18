@@ -5,7 +5,7 @@ from core.layer import Layer
 
 
 def func1(x: np.ndarray) -> np.ndarray:
-    return np.power(x, 2)
+    return np.sum(np.power(x, 2))
 
 
 def test_predict():

@@ -48,3 +48,20 @@ def test_loss(net_size, t):
     net = Net(net_size)
     actual = net.loss(init_x, t)
     assert actual >= 0.0
+
+
+@pytest.mark.parametrize(
+    "net_size,t",
+    [([2, 3], np.array([0, 1, 0])), ([2, 3, 10], np.array([0, 0, 1, 0, 0, 0, 0, 0, 0, 0]))]
+)
+def test_gradient(net_size, t):
+    init_x = np.array([[3.0, 1.0], [5.0, 2.0]])
+    net = Net(net_size)
+    net.gradient(init_x, t)
+
+    for i in range(len(net_size) - 1):
+        layer = net.layers[i]
+        assert layer.W_grad.shape == (net_size[i], net_size[i + 1])
+        assert np.all(layer.W_grad != 0)
+        assert layer.b_grad.shape == (net_size[i + 1],)
+        assert np.all(layer.b_grad != 0)

@@ -36,6 +36,12 @@ class Net:
 
         return loss.cross_entropy(y, t)
 
+    def gradient(self, x, t):
+        loss_func = lambda W: self.loss(x, t)
+
+        for i in range(len(self.layers)):
+            self.layers[i].gradient(loss_func)
+
 
 class NetInitException(Exception):
     pass

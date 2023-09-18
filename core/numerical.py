@@ -10,11 +10,27 @@ def gradient(func, x: np.ndarray) -> np.ndarray:
     :return: gradient at the position
     """
     h = 1e-4
+    grad = np.zeros_like(x)
 
-    f_for_plus_h = func(x + h)
-    f_for_minus_h = func(x - h)
+    it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
+    while not it.finished:
+        # calculate gradient value for one idx in x
+        idx = it.multi_index
+        origin_val = x[idx]
 
-    return (f_for_plus_h - f_for_minus_h) / (2 * h)
+        x[idx] = float(origin_val) + h
+        f_plus_h = func(x)
+
+        x[idx] = float(origin_val) - h
+        f_minus_h = func(x)
+
+        grad[idx] = (f_plus_h - f_minus_h) / (2 * h)
+
+        # recover original value
+        x[idx] = origin_val
+        it.iternext()
+
+    return grad
 
 
 def gradient_descent(func, init_x: np.ndarray, lr=0.01, n_iter=100) -> np.ndarray:

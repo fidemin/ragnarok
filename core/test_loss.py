@@ -13,5 +13,4 @@ from core import loss
 )
 def test_cross_entropy(y, t, expected):
     actual = loss.cross_entropy(y, t)
-    print(actual)
     assert np.allclose(actual, expected)
