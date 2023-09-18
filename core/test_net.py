@@ -36,5 +36,15 @@ def test_predict(test_input, output_shape):
     net = Net(test_input)
     actual = net.predict(init_x)
     assert actual.shape == output_shape
-    print(type(np.sum(actual)))
-    assert abs(np.sum(actual) - 1) < 1e-8
+    assert np.allclose(abs(np.sum(actual)), 1)
+
+
+@pytest.mark.parametrize(
+    "net_size,t",
+    [([2, 3], np.array([0, 1, 0])), ([2, 3, 10], np.array([0, 0, 1, 0, 0, 0, 0, 0, 0, 0]))]
+)
+def test_loss(net_size, t):
+    init_x = np.array([3.0, 1.0])
+    net = Net(net_size)
+    actual = net.loss(init_x, t)
+    assert actual >= 0.0

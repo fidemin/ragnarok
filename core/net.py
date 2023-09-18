@@ -1,5 +1,6 @@
 import numpy as np
 
+from core import loss
 from core.activation import sigmoid, softmax
 from core.layer import Layer
 
@@ -22,14 +23,18 @@ class Net:
             layer = Layer(sizes[i], sizes[i + 1])
             self.layers.append(layer)
 
-    def predict(self, init_x: np.ndarray) -> np.ndarray:
+    def predict(self, x: np.ndarray) -> np.ndarray:
         size = len(self.layers)
-        x = init_x
 
         for i in range(size - 1):
             x = self.layers[i].predict(x, self.activation_func)
 
         return self.layers[size - 1].predict(x, softmax)
+
+    def loss(self, x, t):
+        y = self.predict(x)
+
+        return loss.cross_entropy(y, t)
 
 
 class NetInitException(Exception):
