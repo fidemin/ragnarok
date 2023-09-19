@@ -50,11 +50,16 @@ class Net:
         for i in range(len(self.layers)):
             self.layers[i].gradient(loss_func)
 
-    def gradient_descent(self, x: np.ndarray, t: np.ndarray, lr=0.01, n_iter=100):
+    def gradient_descent(self, x: np.ndarray, t: np.ndarray, lr=0.01):
         loss_func = lambda W: self.loss(x, t)
 
+        # first calculate gradient for each layer with CURRENT W, b of layers.
         for i in range(len(self.layers)):
-            self.layers[i].gradient_descent(loss_func, lr=lr, n_iter=n_iter)
+            self.layers[i].gradient(loss_func)
+
+        # second update parameter W, b in layers.
+        for i in range(len(self.layers)):
+            self.layers[i].update_params_from_gradient_descent(lr)
 
 
 class NetInitException(Exception):
