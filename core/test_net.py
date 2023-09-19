@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import pytest
 
@@ -41,6 +43,20 @@ def test_predict(test_input, output_shape):
 
 @pytest.mark.parametrize(
     "net_size,t",
+    [
+        ([2, 3], np.array([[0, 1, 0], [1, 0, 0]])),
+        ([2, 3, 10], np.array([[0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]]))
+    ]
+)
+def test_accuracy(net_size, t):
+    x = np.array([[3.0, 1.0], [5.0, 2.0]])
+    net = Net(net_size)
+
+    assert 1.0 >= net.accuracy(x, t) >= 0.0
+
+
+@pytest.mark.parametrize(
+    "net_size,t",
     [([2, 3], np.array([0, 1, 0])), ([2, 3, 10], np.array([0, 0, 1, 0, 0, 0, 0, 0, 0, 0]))]
 )
 def test_loss(net_size, t):
@@ -74,11 +90,23 @@ def test_gradient(net_size, t):
     "net_size,t",
     [
         ([2, 3], np.array([[0, 1, 0], [1, 0, 0]])),
-        ([2, 3, 10], np.array([[0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]]))
+        ([2, 3, 10], np.array([[0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]]))
     ]
 )
-def test_accuracy(net_size, t):
-    x = np.array([[3.0, 1.0], [5.0, 2.0]])
+def test_gradient_descent(net_size, t):
+    init_x = np.array([[3.0, 1.0], [5.0, 2.0]])
     net = Net(net_size)
 
-    assert 1.0 >= net.accuracy(x, t) >= 0.0
+    init_W_list = []
+    init_b_list = []
+
+    for i in range(len(net_size) - 1):
+        init_W_list.append(copy.deepcopy(net.layers[i].W))
+        init_b_list.append(copy.deepcopy(net.layers[i].b))
+
+    net.gradient_descent(init_x, t)
+
+    for i in range(len(net_size) - 1):
+        layer = net.layers[i]
+        assert not np.allclose(layer.W, init_W_list[i])
+        assert not np.allclose(layer.b, init_b_list[i])
