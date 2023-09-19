@@ -31,10 +31,18 @@ class Net:
 
         return self.layers[size - 1].predict(x, softmax)
 
-    def loss(self, x, t):
+    def loss(self, x: np.ndarray, t: np.ndarray):
         y = self.predict(x)
 
         return loss.cross_entropy(y, t)
+
+    def accuracy(self, x: np.ndarray, t: np.ndarray):
+        y = self.predict(x)
+
+        y_max_idx = np.argmax(y, axis=1)
+        t_max_idx = np.argmax(t, axis=1)
+
+        return np.sum(y_max_idx == t_max_idx) / float(x.shape[0])
 
     def gradient(self, x, t):
         loss_func = lambda W: self.loss(x, t)

@@ -52,7 +52,10 @@ def test_loss(net_size, t):
 
 @pytest.mark.parametrize(
     "net_size,t",
-    [([2, 3], np.array([0, 1, 0])), ([2, 3, 10], np.array([0, 0, 1, 0, 0, 0, 0, 0, 0, 0]))]
+    [
+        ([2, 3], np.array([[0, 1, 0], [1, 0, 0]])),
+        ([2, 3, 10], np.array([[0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]]))
+    ]
 )
 def test_gradient(net_size, t):
     init_x = np.array([[3.0, 1.0], [5.0, 2.0]])
@@ -65,3 +68,17 @@ def test_gradient(net_size, t):
         assert np.all(layer.W_grad != 0)
         assert layer.b_grad.shape == (net_size[i + 1],)
         assert np.all(layer.b_grad != 0)
+
+
+@pytest.mark.parametrize(
+    "net_size,t",
+    [
+        ([2, 3], np.array([[0, 1, 0], [1, 0, 0]])),
+        ([2, 3, 10], np.array([[0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]]))
+    ]
+)
+def test_accuracy(net_size, t):
+    x = np.array([[3.0, 1.0], [5.0, 2.0]])
+    net = Net(net_size)
+
+    assert 1.0 >= net.accuracy(x, t) >= 0.0
