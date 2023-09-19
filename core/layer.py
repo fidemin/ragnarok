@@ -25,3 +25,7 @@ class Layer:
     def gradient(self, loss_func):
         self.W_grad = numerical.gradient(loss_func, self.W)
         self.b_grad = numerical.gradient(loss_func, self.b)
+
+    def gradient_descent(self, loss_func, lr=0.1, n_iter=100):
+        self.W = numerical.gradient_descent(loss_func, self.W, lr=lr, n_iter=n_iter)
+        self.b = numerical.gradient_descent(loss_func, self.b, lr=lr, n_iter=n_iter)
