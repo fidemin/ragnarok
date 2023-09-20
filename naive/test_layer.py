@@ -1,7 +1,7 @@
 import numpy as np
 
 from core.activation import sigmoid
-from core.layer import Layer
+from naive.layer import Layer
 
 
 def func1(x: np.ndarray) -> np.ndarray:

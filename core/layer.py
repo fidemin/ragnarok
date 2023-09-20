@@ -1,31 +1,93 @@
+import copy
+
 import numpy as np
 
-from core import numerical
+from core import activation, loss
 
 
-class Layer:
-    def __init__(self, input_size, output_size, weight_init=0.01):
-        """
-        The layer object of neural network
+class Multiply:
+    def __init__(self):
+        self.x = None
+        self.y = None
 
-        :param input_size: size of input for the layer
-        :param output_size: size of output for the layer
-        :param weight_init: initialization variable
-        """
+    def forward(self, x, y):
+        self.x = x
+        self.y = y
+        return self.x * self.y
 
-        self.W = weight_init * np.random.randn(input_size, output_size)
-        self.b = np.zeros(output_size)
-        self.W_grad = np.zeros_like(self.W)
-        self.b_grad = np.zeros_like(self.b)
+    def backward(self, dout):
+        dx = dout * self.y
+        dy = dout * self.x
 
-    def predict(self, x, activation_func):
-        a = np.dot(x, self.W) + self.b
-        return activation_func(a)
+        return dx, dy
 
-    def gradient(self, loss_func):
-        self.W_grad = numerical.gradient(loss_func, self.W)
-        self.b_grad = numerical.gradient(loss_func, self.b)
 
-    def update_params_from_gradient_descent(self, lr=0.01):
-        self.W -= self.W_grad * lr
-        self.b -= self.b_grad * lr
+class Add:
+    def forward(self, x, y):
+        return x, y
+
+    def backward(self, dout):
+        return dout, dout
+
+
+class ReLu:
+    def __init__(self):
+        self.x = None
+        self.mask = None
+
+    def forward(self, x: np.ndarray):
+        self.mask = self.x <= 0
+        out = copy.deepcopy(x)
+        out[self.mask] = 0
+        return out
+
+    def backward(self, dout):
+        dout[self.mask] = 0
+        return dout
+
+
+class Sigmoid:
+    def __init__(self):
+        self.x = None
+        self.out = None
+
+    def forward(self, x: np.ndarray):
+        self.out = activation.sigmoid(x)
+        return self.out
+
+    def backward(self, dout):
+        return dout * self.out * (1 - self.out)
+
+
+class Affine:
+    def __init__(self, W: np.ndarray, b: np.ndarray):
+        self.W = W
+        self.b = b
+        self.dW = None
+        self.db = None
+        self.x = None
+
+    def forward(self, x: np.ndarray):
+        self.x = x
+        return np.dot(self.x, self.W) + self.b
+
+    def backward(self, dout: np.ndarray):
+        self.dW = np.dot(self.x.T)
+        self.db = np.sum(dout, axis=0)
+        dx = np.dot(dout, self.W.T)
+        return dx
+
+
+class SoftmaxWithLoss:
+    def __init__(self):
+        self.y = None
+        self.t = None
+
+    def forward(self, x, t):
+        self.y = activation.softmax(x)
+        self.t = t
+        return loss.cross_entropy(self.y, self.t)
+
+    def backward(self, dout=1):
+        batch_size = self.y.shape[0]
+        return dout * (self.y - self.t) / batch_size

@@ -1,7 +1,7 @@
 import numpy as np
 from keras.datasets import mnist
 
-from core import net
+from naive import net
 
 
 def convert_to_one_hot_encoding(y: np.ndarray):

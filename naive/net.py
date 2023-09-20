@@ -2,7 +2,7 @@ import numpy as np
 
 from core import loss
 from core.activation import sigmoid, softmax
-from core.layer import Layer
+from naive.layer import Layer
 
 
 class Net:

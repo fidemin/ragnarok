@@ -3,8 +3,8 @@ import copy
 import numpy as np
 import pytest
 
-from .activation import sigmoid
-from .net import Net, NetInitException
+from core.activation import sigmoid
+from naive.net import Net, NetInitException
 
 
 @pytest.mark.parametrize(
