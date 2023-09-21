@@ -24,7 +24,13 @@ def gradient(func, x: np.ndarray) -> np.ndarray:
         x[idx] = float(origin_val) - h
         f_minus_h = func(x)
 
-        grad[idx] = (f_plus_h - f_minus_h) / (2 * h)
+        if isinstance(f_plus_h, np.ndarray) \
+                and isinstance(f_minus_h, np.ndarray) \
+                and f_plus_h.shape == x.shape \
+                and f_minus_h.shape == x.shape:
+            grad[idx] = (f_plus_h[idx] - f_minus_h[idx]) / (2 * h)
+        else:
+            grad[idx] = (f_plus_h - f_minus_h) / (2 * h)
 
         # recover original value
         x[idx] = origin_val

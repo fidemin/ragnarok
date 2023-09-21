@@ -22,7 +22,7 @@ class Relu(Layer):
         self.x = None
         self.mask = None
 
-    def forward(self, x: np.ndarray):
+    def forward(self, x: np.ndarray) -> np.ndarray:
         self.x = x
         self.mask = self.x <= 0
         out = copy.deepcopy(x)
