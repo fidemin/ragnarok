@@ -48,7 +48,7 @@ if __name__ == '__main__':
         loss = two_layer_net.loss(x_batch, y_batch)
         loss_list.append(loss)
 
-    print(loss_list)
+    # print(loss_list)
     y = loss_list
     x = list(range(1, len(loss_list) + 1))
 
