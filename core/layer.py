@@ -1,20 +1,48 @@
 import copy
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
+from typing import Optional
 
 import numpy as np
 
 from core import activation, loss
+from core.updater import SGD, Updater
 
 
 class Layer(metaclass=ABCMeta):
+    @property
+    def updater(self) -> Optional[Updater]:
+        if hasattr(self, '_updater'):
+            return self._updater
+
+        return None
+
+    @updater.setter
+    def updater(self, updater: Updater):
+        if hasattr(self, '_updater'):
+            self._updater = updater
+
+    @property
+    def grads(self) -> Optional[list[np.ndarray]]:
+        if hasattr(self, '_grads'):
+            return self._grads
+
+        return None
+
+    @abstractmethod
     def forward(self, x: np.ndarray):
-        raise NotImplementedError("Layer.forward should be implemented")
+        pass
 
+    @abstractmethod
     def backward(self, dout: np.ndarray):
-        raise NotImplementedError("Layer.backward should be implemented")
+        pass
 
-    def update_params_from_gradient(self, lr=0.01):
-        raise NotImplementedError("Layer.update_params_from_gradient should be implemented")
+    @abstractmethod
+    def has_params(self):
+        pass
+
+    @abstractmethod
+    def update_params(self):
+        pass
 
 
 class Relu(Layer):
@@ -33,7 +61,10 @@ class Relu(Layer):
         dout[self.mask] = 0
         return dout
 
-    def update_params_from_gradient(self, lr=0.01):
+    def has_params(self):
+        return False
+
+    def update_params(self):
         pass
 
 
@@ -49,7 +80,10 @@ class Sigmoid(Layer):
     def backward(self, dout):
         return dout * self.out * (1 - self.out)
 
-    def update_params_from_gradient(self, lr=0.01):
+    def has_params(self):
+        return False
+
+    def update_params(self, lr=0.01):
         pass
 
 
@@ -60,6 +94,9 @@ class Affine(Layer):
         self.dW = np.zeros_like(self.W)
         self.db = np.zeros_like(self.b)
         self.x = None
+
+        # default updater
+        self._updater = SGD()
 
     @classmethod
     def from_sizes(cls, input_size: int, output_size: int, weight_init=0.01):
@@ -77,9 +114,13 @@ class Affine(Layer):
         dx = np.dot(dout, self.W.T)
         return dx
 
-    def update_params_from_gradient(self, lr=0.01):
-        self.W -= lr * self.dW
-        self.b -= lr * self.db
+    def has_params(self):
+        return True
+
+    def update_params(self):
+        params = self._updater.update([self.W, self.b], [self.dW, self.db])
+        self.W = params[0]
+        self.b = params[1]
 
 
 class SoftmaxWithLoss:

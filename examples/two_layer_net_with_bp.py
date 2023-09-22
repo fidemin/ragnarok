@@ -3,6 +3,7 @@ import numpy as np
 from keras.datasets import mnist
 
 from core import net, layer
+from core.updater import SGD
 
 
 def convert_to_one_hot_encoding(y: np.ndarray):
@@ -26,7 +27,7 @@ if __name__ == '__main__':
 
     loss_list = []
 
-    iter_num = 5000
+    iter_num = 500
     train_size = train_X.shape[0]
     batch_size = 100
     learning_rate = 0.1
@@ -41,7 +42,8 @@ if __name__ == '__main__':
 
     layers = [layer1, layer2, layer3]
 
-    two_layer_net = net.Net(layers)
+    updater = SGD(lr=0.05)
+    two_layer_net = net.Net(layers, updater=updater)
 
     for i in range(iter_num):
         print("iter_num: {} starts".format(i))
@@ -49,7 +51,7 @@ if __name__ == '__main__':
         x_batch = train_X[batch_mask]
         y_batch = train_y[batch_mask]
 
-        two_layer_net.gradient_descent(x_batch, y_batch, lr=0.05)
+        two_layer_net.gradient_descent(x_batch, y_batch)
 
         loss = two_layer_net.loss(x_batch, y_batch)
         loss_list.append(loss)

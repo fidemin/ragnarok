@@ -1,11 +1,19 @@
+from typing import Optional
+
 import numpy as np
 
 from core.layer import Layer, SoftmaxWithLoss
+from core.updater import Updater
 
 
 class Net:
-    def __init__(self, layers: list[Layer]):
+    def __init__(self, layers: list[Layer], updater: Optional[Updater] = None):
         self._layers = layers
+
+        if updater is not None:
+            for layer in layers:
+                layer.updater = updater.copy()
+
         self._last_layer = SoftmaxWithLoss()
 
     def predict(self, x: np.ndarray) -> np.ndarray:
@@ -26,7 +34,7 @@ class Net:
 
         return np.sum(y_max_idx == t_max_idx) / float(x.shape[0])
 
-    def gradient_descent(self, x: np.ndarray, t: np.ndarray, dout=1, lr=0.01):
+    def gradient_descent(self, x: np.ndarray, t: np.ndarray, dout=1):
         self.loss(x, t)
 
         dout = self._last_layer.backward(dout)
@@ -35,6 +43,6 @@ class Net:
             dout = layer.backward(dout)
 
         for layer in reversed(self._layers):
-            layer.update_params_from_gradient(lr)
+            layer.update_params()
 
         return dout
