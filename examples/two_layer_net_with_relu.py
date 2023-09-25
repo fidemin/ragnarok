@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
-from keras.datasets import mnist
 
 from core import net, layer
 from core.updater import *
+from examples.common import mnist_load_data
 
 
 def convert_to_one_hot_encoding(y: np.ndarray):
@@ -12,17 +12,7 @@ def convert_to_one_hot_encoding(y: np.ndarray):
 
 
 if __name__ == '__main__':
-    (train_X_origin, train_y_origin), (test_X_origin, test_y_origin) = mnist.load_data()
-    train_X_temp = train_X_origin.reshape(train_X_origin.shape[0], train_X_origin.shape[1] * train_X_origin.shape[2])
-    train_y = convert_to_one_hot_encoding(train_y_origin)
-    test_X_temp = test_X_origin.reshape(test_X_origin.shape[0], test_X_origin.shape[1] * test_X_origin.shape[2])
-    test_y = convert_to_one_hot_encoding(test_y_origin)
-
-    avg_X = np.average(train_X_temp)
-    std_X = np.std(train_X_temp)
-
-    train_X = (train_X_temp - avg_X) / std_X
-    test_X = (test_X_temp - avg_X) / std_X
+    (train_X, train_y), (test_X, test_y) = mnist_load_data()
 
     loss_list = []
 
@@ -44,12 +34,12 @@ if __name__ == '__main__':
     # updater2 = AdaGrad(lr=0.1)
     updater2 = Adam()
 
-    # xavier init
-    init_weight1 = 1 / np.sqrt(input_size)
+    # He init
+    init_weight1 = 2 / np.sqrt(input_size)
     layer1 = layer.Affine.from_sizes(input_size, hidden_size, updater1, init_weight=init_weight1)
-    layer2 = layer.Sigmoid()
-    init_weight1 = 1 / np.sqrt(hidden_size)
-    layer3 = layer.Affine.from_sizes(hidden_size, output_size, updater2)
+    layer2 = layer.Relu()
+    init_weight2 = 2 / np.sqrt(hidden_size)
+    layer3 = layer.Affine.from_sizes(hidden_size, output_size, updater2, init_weight=init_weight2)
 
     layers = [layer1, layer2, layer3]
 

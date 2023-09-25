@@ -1,6 +1,6 @@
 import numpy as np
-from keras.datasets import mnist
 
+from examples.common import mnist_load_data
 from naive import net
 
 
@@ -11,11 +11,7 @@ def convert_to_one_hot_encoding(y: np.ndarray):
 
 
 if __name__ == '__main__':
-    (train_X_origin, train_y_origin), (test_X_origin, test_y_origin) = mnist.load_data()
-    train_X = train_X_origin.reshape(train_X_origin.shape[0], train_X_origin.shape[1] * train_X_origin.shape[2])
-    train_y = convert_to_one_hot_encoding(train_y_origin)
-    test_X = test_X_origin.reshape(test_X_origin.shape[0], test_X_origin.shape[1] * test_X_origin.shape[2])
-    test_y = convert_to_one_hot_encoding(test_y_origin)
+    (train_X, train_y), (test_X, test_y) = mnist_load_data()
 
     loss_list = []
 
