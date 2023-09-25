@@ -89,8 +89,8 @@ class Affine(Layer):
         self._updater = updater
 
     @classmethod
-    def from_sizes(cls, input_size: int, output_size: int, updater: Updater, weight_init=0.01):
-        W = weight_init * np.random.randn(input_size, output_size)
+    def from_sizes(cls, input_size: int, output_size: int, updater: Updater, init_weight=0.01):
+        W = init_weight * np.random.randn(input_size, output_size)
         b = np.zeros(output_size)
         return cls(W, b, updater)
 

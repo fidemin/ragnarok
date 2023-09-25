@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     loss_list = []
 
-    iter_num = 500
+    iter_num = 2000
     train_size = train_X.shape[0]
     batch_size = 100
     learning_rate = 0.1
@@ -44,8 +44,11 @@ if __name__ == '__main__':
     # updater2 = AdaGrad(lr=0.1)
     updater2 = Adam()
 
-    layer1 = layer.Affine.from_sizes(input_size, hidden_size, updater1)
+    # xavier init
+    init_weight1 = 1 / np.sqrt(input_size)
+    layer1 = layer.Affine.from_sizes(input_size, hidden_size, updater1, init_weight=init_weight1)
     layer2 = layer.Sigmoid()
+    init_weight1 = 1 / np.sqrt(hidden_size)
     layer3 = layer.Affine.from_sizes(hidden_size, output_size, updater2)
 
     layers = [layer1, layer2, layer3]
