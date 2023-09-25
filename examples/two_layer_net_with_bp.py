@@ -37,10 +37,12 @@ if __name__ == '__main__':
 
     # updater1 = SGD(lr=0.05)
     # updater1 = Momentum(lr=0.05, momentum=0.9)
-    updater1 = AdaGrad(lr=0.1)
+    # updater1 = AdaGrad(lr=0.1)
+    updater1 = Adam()
     # updater2 = SGD(lr=0.05)
     # updater2 = Momentum(lr=0.05, momentum=0.9)
-    updater2 = AdaGrad(lr=0.1)
+    # updater2 = AdaGrad(lr=0.1)
+    updater2 = Adam()
 
     layer1 = layer.Affine.from_sizes(input_size, hidden_size, updater1)
     layer2 = layer.Sigmoid()
