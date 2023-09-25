@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
-import numpy as np
 from keras.datasets import mnist
 
 from core import net, layer
-from core.updater import Momentum
+from core.updater import *
 
 
 def convert_to_one_hot_encoding(y: np.ndarray):
@@ -37,9 +36,11 @@ if __name__ == '__main__':
     hidden_size = 50
 
     # updater1 = SGD(lr=0.05)
-    updater1 = Momentum(lr=0.05, momentum=0.9)
+    # updater1 = Momentum(lr=0.05, momentum=0.9)
+    updater1 = AdaGrad(lr=0.1)
     # updater2 = SGD(lr=0.05)
-    updater2 = Momentum(lr=0.05, momentum=0.9)
+    # updater2 = Momentum(lr=0.05, momentum=0.9)
+    updater2 = AdaGrad(lr=0.1)
 
     layer1 = layer.Affine.from_sizes(input_size, hidden_size, updater1)
     layer2 = layer.Sigmoid()

@@ -37,3 +37,21 @@ class Momentum(Updater):
             params[i] += self._v[i]
 
         return params
+
+
+class AdaGrad(Updater):
+    def __init__(self, lr=0.01):
+        self._lr = lr
+        self._h = None
+
+    def update(self, params: list, grads: list):
+        if self._h is None:
+            self._h = []
+            for param in params:
+                self._h.append(np.zeros_like(param))
+
+        for i in range(len(params)):
+            self._h[i] += grads[i] * grads[i]
+            params[i] -= self._lr / (np.sqrt(self._h[i]) + 1e-7) * grads[i]
+
+        return params
