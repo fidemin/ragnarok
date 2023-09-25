@@ -36,14 +36,13 @@ if __name__ == '__main__':
     output_size = train_y.shape[1]
     hidden_size = 50
 
-    layer1 = layer.Affine.from_sizes(input_size, hidden_size)
+    layer1 = layer.Affine.from_sizes(input_size, hidden_size, SGD(lr=0.05))
     layer2 = layer.Sigmoid()
-    layer3 = layer.Affine.from_sizes(hidden_size, output_size)
+    layer3 = layer.Affine.from_sizes(hidden_size, output_size, SGD(lr=0.05))
 
     layers = [layer1, layer2, layer3]
 
-    updater = SGD(lr=0.05)
-    two_layer_net = net.Net(layers, updater=updater)
+    two_layer_net = net.Net(layers)
 
     for i in range(iter_num):
         print("iter_num: {} starts".format(i))

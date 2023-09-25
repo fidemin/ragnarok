@@ -1,19 +1,11 @@
-from typing import Optional
-
 import numpy as np
 
 from core.layer import Layer, SoftmaxWithLoss
-from core.updater import Updater
 
 
 class Net:
-    def __init__(self, layers: list[Layer], updater: Optional[Updater] = None):
+    def __init__(self, layers: list[Layer]):
         self._layers = layers
-
-        if updater is not None:
-            for layer in layers:
-                layer.updater = updater.copy()
-
         self._last_layer = SoftmaxWithLoss()
 
     def predict(self, x: np.ndarray) -> np.ndarray:

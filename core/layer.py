@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 
 from core import activation, loss
-from core.updater import SGD, Updater
+from core.updater import Updater
 
 
 class Layer(metaclass=ABCMeta):
@@ -37,10 +37,6 @@ class Layer(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def has_params(self):
-        pass
-
-    @abstractmethod
     def update_params(self):
         pass
 
@@ -61,9 +57,6 @@ class Relu(Layer):
         dout[self.mask] = 0
         return dout
 
-    def has_params(self):
-        return False
-
     def update_params(self):
         pass
 
@@ -80,15 +73,12 @@ class Sigmoid(Layer):
     def backward(self, dout):
         return dout * self.out * (1 - self.out)
 
-    def has_params(self):
-        return False
-
     def update_params(self, lr=0.01):
         pass
 
 
 class Affine(Layer):
-    def __init__(self, W: np.ndarray, b: np.ndarray):
+    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Updater):
         self.W = W
         self.b = b
         self.dW = np.zeros_like(self.W)
@@ -96,13 +86,13 @@ class Affine(Layer):
         self.x = None
 
         # default updater
-        self._updater = SGD()
+        self._updater = updater
 
     @classmethod
-    def from_sizes(cls, input_size: int, output_size: int, weight_init=0.01):
+    def from_sizes(cls, input_size: int, output_size: int, updater: Updater, weight_init=0.01):
         W = weight_init * np.random.randn(input_size, output_size)
         b = np.zeros(output_size)
-        return cls(W, b)
+        return cls(W, b, updater)
 
     def forward(self, x: np.ndarray):
         self.x = x
@@ -113,9 +103,6 @@ class Affine(Layer):
         self.db = np.sum(dout, axis=0)
         dx = np.dot(dout, self.W.T)
         return dx
-
-    def has_params(self):
-        return True
 
     def update_params(self):
         params = self._updater.update([self.W, self.b], [self.dW, self.db])
