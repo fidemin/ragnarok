@@ -3,7 +3,7 @@ import numpy as np
 from keras.datasets import mnist
 
 from core import net, layer
-from core.updater import SGD
+from core.updater import Momentum
 
 
 def convert_to_one_hot_encoding(y: np.ndarray):
@@ -36,9 +36,14 @@ if __name__ == '__main__':
     output_size = train_y.shape[1]
     hidden_size = 50
 
-    layer1 = layer.Affine.from_sizes(input_size, hidden_size, SGD(lr=0.05))
+    # updater1 = SGD(lr=0.05)
+    updater1 = Momentum(lr=0.05, momentum=0.9)
+    # updater2 = SGD(lr=0.05)
+    updater2 = Momentum(lr=0.05, momentum=0.9)
+
+    layer1 = layer.Affine.from_sizes(input_size, hidden_size, updater1)
     layer2 = layer.Sigmoid()
-    layer3 = layer.Affine.from_sizes(hidden_size, output_size, SGD(lr=0.05))
+    layer3 = layer.Affine.from_sizes(hidden_size, output_size, updater2)
 
     layers = [layer1, layer2, layer3]
 
