@@ -1,6 +1,6 @@
 import numpy as np
 
-from core import layer, numerical, activation
+from core import layer, numerical, activation, updater
 
 
 class TestRelu:
@@ -48,3 +48,36 @@ class TestSigmoid:
         expected = numerical.gradient(activation.sigmoid, x)
 
         assert np.allclose(actual, expected)
+
+
+class TestBatchNorm:
+    def test_forward(self):
+        batch_norm = layer.BatchNorm(updater.SGD())
+        x = np.array([
+            [[10.0, 0.0], [1.0, 2.0]],
+            [[2.0, 4.0], [3.0, 8.0]],
+            [[3.0, 6.0], [1.0, 4.0]],
+        ])
+
+        actual = batch_norm.forward(x)
+
+        expected = np.array([
+            [[2.80975743, -2.67261242], [-1.41421355, -2.13808993]],
+            [[-1.68585446, 0.53452248], [2.82842711, 2.67261242]],
+            [[-1.12390297, 2.13808993], [-1.41421355, -0.53452248]]
+        ])
+
+        assert np.allclose(actual, expected)
+
+    def test_backward(self):
+        batch_norm = layer.BatchNorm(updater.SGD())
+        x = np.array([
+            [[10.0, 0.0], [1.0, 2.0]],
+            [[2.0, 4.0], [3.0, 8.0]],
+            [[3.0, 6.0], [1.0, 4.0]],
+        ])
+
+        batch_norm.forward(x)
+        dout = np.ones(x.shape)
+
+        batch_norm.backward(dout)

@@ -33,15 +33,17 @@ if __name__ == '__main__':
     # updater2 = Momentum(lr=0.05, momentum=0.9)
     # updater2 = AdaGrad(lr=0.1)
     updater2 = Adam()
+    updater3 = Adam()
 
     # xavier init
     init_weight1 = 1 / np.sqrt(input_size)
     layer1 = layer.Affine.from_sizes(input_size, hidden_size, updater1, init_weight=init_weight1)
-    layer2 = layer.Sigmoid()
+    layer2 = layer.BatchNorm(updater2)
+    layer3 = layer.Sigmoid()
     init_weight2 = 1 / np.sqrt(hidden_size)
-    layer3 = layer.Affine.from_sizes(hidden_size, output_size, updater2, init_weight=init_weight2)
+    layer4 = layer.Affine.from_sizes(hidden_size, output_size, updater3, init_weight=init_weight2)
 
-    layers = [layer1, layer2, layer3]
+    layers = [layer1, layer2, layer3, layer4]
 
     two_layer_net = net.Net(layers)
 
