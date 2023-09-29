@@ -4,13 +4,6 @@ from core import net, layer
 from core.updater import *
 from examples.common import mnist_load_data
 
-
-def convert_to_one_hot_encoding(y: np.ndarray):
-    result = np.zeros((y.size, np.max(y) + 1))
-    result[np.arange(y.size), y] = 1
-    return result
-
-
 if __name__ == '__main__':
     (train_X, train_y), (test_X, test_y) = mnist_load_data()
 
@@ -19,7 +12,7 @@ if __name__ == '__main__':
     iter_num = 2000
     train_size = train_X.shape[0]
     batch_size = 100
-    learning_rate = 0.1
+    learning_rate = 0.01
 
     input_size = train_X.shape[1]
     output_size = train_y.shape[1]
