@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from core.layer import Affine, Sigmoid
+from core.layer import Affine, Sigmoid, Dropout
 from core.net import Net
 from core.updater import SGD
 from examples.common import mnist_load_data
@@ -31,6 +31,9 @@ if __name__ == '__main__':
     layer2 = Sigmoid()
     layers.append(layer2)
 
+    dropout_layer = Dropout()
+    layers.append(dropout_layer)
+
     # xavier init
     init_weight_mid = 1.0 / np.sqrt(hidden_size)
 
@@ -39,6 +42,8 @@ if __name__ == '__main__':
         layers.append(affine_layer)
         activation_layer = Sigmoid()
         layers.append(activation_layer)
+        dropout_layer = Dropout()
+        layers.append(dropout_layer)
 
     final_affine_layer = Affine.from_sizes(hidden_size, output_size, SGD(lr=learning_rate), init_weight=init_weight_mid)
     layers.append(final_affine_layer)
@@ -46,7 +51,7 @@ if __name__ == '__main__':
     network = Net(layers)
 
     epoch_count = 0
-    max_epoch = 50
+    max_epoch = 100
 
     train_accuracies = []
     test_accuracies = []

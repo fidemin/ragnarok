@@ -8,9 +8,9 @@ class Net:
         self._layers = layers
         self._last_layer = SoftmaxWithLoss()
 
-    def predict(self, x: np.ndarray) -> np.ndarray:
+    def predict(self, x: np.ndarray, train_flag=True) -> np.ndarray:
         for layer in self._layers:
-            x = layer.forward(x)
+            x = layer.forward(x, train_flag=train_flag)
 
         return x
 
@@ -19,7 +19,7 @@ class Net:
         return self._last_layer.forward(y, t)
 
     def accuracy(self, x: np.ndarray, t: np.ndarray):
-        y = self.predict(x)
+        y = self.predict(x, train_flag=False)
 
         y_max_idx = np.argmax(y, axis=1)
         t_max_idx = np.argmax(t, axis=1)

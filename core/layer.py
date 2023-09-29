@@ -1,6 +1,5 @@
 import copy
 from abc import ABCMeta, abstractmethod
-from typing import Optional
 
 import numpy as np
 
@@ -9,27 +8,10 @@ from core.updater import Updater
 
 
 class Layer(metaclass=ABCMeta):
-    @property
-    def updater(self) -> Optional[Updater]:
-        if hasattr(self, '_updater'):
-            return self._updater
-
-        return None
-
-    @updater.setter
-    def updater(self, updater: Updater):
-        if hasattr(self, '_updater'):
-            self._updater = updater
-
-    @property
-    def grads(self) -> Optional[list[np.ndarray]]:
-        if hasattr(self, '_grads'):
-            return self._grads
-
-        return None
+    train_flag_key = 'train_flag'
 
     @abstractmethod
-    def forward(self, x: np.ndarray):
+    def forward(self, x: np.ndarray, **kwargs):
         pass
 
     @abstractmethod
@@ -46,7 +28,7 @@ class Relu(Layer):
         self.x = None
         self.mask = None
 
-    def forward(self, x: np.ndarray) -> np.ndarray:
+    def forward(self, x: np.ndarray, **kwargs) -> np.ndarray:
         self.x = x
         self.mask = self.x <= 0
         out = copy.deepcopy(x)
@@ -66,7 +48,7 @@ class Sigmoid(Layer):
         self.x = None
         self.out = None
 
-    def forward(self, x: np.ndarray):
+    def forward(self, x: np.ndarray, **kwargs):
         self.out = activation.sigmoid(x)
         return self.out
 
@@ -94,7 +76,7 @@ class Affine(Layer):
         b = np.zeros(output_size)
         return cls(W, b, updater)
 
-    def forward(self, x: np.ndarray):
+    def forward(self, x: np.ndarray, **kwargs):
         self.x = x
         return np.dot(self.x, self.W) + self.b
 
@@ -126,7 +108,7 @@ class BatchNorm(Layer):
 
         self._updater = updater
 
-    def forward(self, x: np.ndarray):
+    def forward(self, x: np.ndarray, **kwargs):
         if self._gamma is None:
             self._gamma = np.ones_like(x[0]) + 1
 
@@ -184,6 +166,29 @@ class BatchNorm(Layer):
         params = self._updater.update([self._gamma, self._gamma], [self._dgamma, self._dbeta])
         self._gamma = params[0]
         self._beta = params[1]
+
+
+class Dropout(Layer):
+    def __init__(self, dropout_ratio=0.5):
+        self._dropout_ratio = dropout_ratio
+        self._mask = None
+
+    def forward(self, x: np.ndarray, **kwargs) -> np.ndarray:
+        train_flag = True
+        if self.train_flag_key in kwargs and kwargs['train_flag'] is False:
+            train_flag = False
+
+        if train_flag:
+            self._mask = np.random.rand(*x.shape) > self._dropout_ratio
+            return x * self._mask
+        else:
+            return x
+
+    def backward(self, dout: np.ndarray):
+        return dout * self._mask
+
+    def update_params(self):
+        pass
 
 
 class SoftmaxWithLoss:
