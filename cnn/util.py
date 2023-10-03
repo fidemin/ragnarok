@@ -18,5 +18,14 @@ def img2col(input_array: np.ndarray, filter_height, filter_width, padding=0, str
             x_max = x + filter_width
             col[:, :, out_y, out_x, :, :] = img[:, :, y:y_max, x:x_max]
 
-    col = col.reshape((N, -1))
+    col = col.transpose((0, 2, 3, 1, 4, 5))
+    col = col.reshape((N * out_h * out_w, -1))
+
+    # out.shape: (N * out_h * out_w, C * filter_h * filter_w)
     return col
+
+
+def fil2col(fil: np.ndarray) -> np.ndarray:
+    FN = fil.shape[0]
+
+    return fil.reshape(FN, -1)
