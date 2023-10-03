@@ -1,14 +1,83 @@
 import numpy as np
 
-from cnn.layer import Convolution
+from cnn.layer import Convolution, Pooling
 
 
-def test_forward():
-    test_input = np.random.rand(10, 3, 4, 4)
-    test_W = np.random.rand(5, 3, 3, 3)
-    test_b = np.random.rand(5)
+class TestConvolution:
+    def test_forward(self):
+        test_input = np.random.rand(10, 3, 4, 4)
+        test_W = np.random.rand(5, 3, 3, 3)
+        test_b = np.random.rand(5)
 
-    layer = Convolution(test_W, test_b)
-    out = layer.forward(test_input)
+        layer = Convolution(test_W, test_b)
+        out = layer.forward(test_input)
 
-    assert out.shape == (10, 5, 2, 2)
+        assert out.shape == (10, 5, 2, 2)
+
+
+class TestPooling:
+
+    def test_forward(self):
+        test_input = np.array([
+            [
+                [
+                    [1.0, 2.0, 1.0],
+                    [-1.0, 3.0, 2.2],
+                    [5.0, -4.0, 2.5]
+                ],
+                [
+                    [5.0, 4.0, 1.1],
+                    [-2.0, 1.0, 2.0],
+                    [2.5, 3.0, 3.1]
+                ]
+            ],
+            [
+                [
+                    [3.0, 2.0, 3.2],
+                    [-1.0, 1.1, 5.0],
+                    [4.5, 2.4, 2.1]
+                ],
+                [
+                    [3.3, 2.3, -2.2],
+                    [3.4, 2.1, -1.1],
+                    [2.5, 6.8, 2.1]
+                ]
+            ]
+        ])
+
+        padding = 0
+        stride = 1
+        PH = 2
+        PW = 2
+
+        pooling = Pooling(PH, PW, stride=stride, padding=padding)
+
+        actual = pooling.forward(test_input)
+
+        expected = np.array([
+            # set 1
+            [
+                # C1
+                [
+                    [3.0, 3.0], [3.0, 3.0]
+                ],
+                # C2
+                [
+                    [5.0, 4.0], [3.0, 3.1]
+                ]
+
+            ],
+            # set 2
+            [
+                # C1
+                [
+                    [3.0, 5.0], [4.5, 5.0]
+                ],
+                # C2
+                [
+                    [3.4, 2.3], [6.8, 6.8]
+                ]
+            ]
+        ])
+
+        np.allclose(actual, expected)
