@@ -101,15 +101,31 @@ class Pooling(Layer):
         self._stride = stride
         self._padding = padding
 
+        self._max_indices = None
+        self._OH = None
+        self._OW = None
+        self._C = None
+        self._W = None
+        self._H = None
+
     def forward(self, x: np.ndarray, **kwargs) -> np.ndarray:
         N, C, H, W = x.shape
+        self._C = C
+        self._H = H
+        self._W = W
 
         OH = (H + 2 * self._padding - self._PH) // self._stride + 1
         OW = (W + 2 * self._padding - self._PW) // self._stride + 1
+        self._OH = OH
+        self._OW = OW
 
+        # col_x.shape: (N * OH * OW, C * PH * PW)
         col_x = img2col(x, self._PH, self._PW, stride=self._stride, padding=self._padding)
+        # col_x.shape: (N * OH * OW * C, PH * PW)
         col_x = col_x.reshape(-1, self._PH * self._PW)
 
+        self._max_indices = np.argmax(col_x, axis=1)
+        # out.shape: (N * OH * OW * C, )
         out = np.max(col_x, axis=1)
 
         # out.shape = (N, C, OH, OW)
@@ -118,8 +134,23 @@ class Pooling(Layer):
         return out
 
     def backward(self, dout: np.ndarray):
-        # TODO: need to be implemented
-        pass
+        # dout.shape = (N, C, OH, OW)
+        N = dout.shape[0]
+
+        # dout.shape = (N, OH, OW, C)
+        dout = dout.transpose(0, 2, 3, 1).flatten()
+
+        # dcol_x.shape: (N * OH * OW * C, PH * PW)
+        dcol_x = np.zeros((N * self._OH * self._OW * self._C, self._PH * self._PW))
+        dcol_x[np.arange(self._max_indices.size), self._max_indices] = dout
+
+        # dcol_x.shape: (N * OH * OW, C * PH * PW)
+        dcol_x = dcol_x.reshape(N * self._OH * self._OW, -1)
+        dx = col2img(dcol_x, N, self._C, self._H, self._W, self._PH, self._PW, padding=self._padding,
+                     stride=self._stride)
+
+        # dx.shape: (N, C, H, W)
+        return dx
 
     def update_params(self):
         # There is no parameters for pooling
