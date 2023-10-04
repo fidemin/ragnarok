@@ -14,6 +14,33 @@ class TestConvolution:
 
         assert out.shape == (10, 5, 2, 2)
 
+    def test_backward(self):
+        N = 10
+        C = 3
+        H = 4
+        W = 4
+        FN = 5
+        FH = 3
+        FW = 3
+        padding = 0
+        stride = 1
+
+        OH = (H + 2 * padding - FH) // stride + 1
+        OW = (W + 2 * padding - FW) // stride + 1
+
+        test_x = np.random.rand(N, C, H, W)
+        test_dout = np.random.rand(N, FN, OH, OW)
+        test_W = np.random.rand(FN, C, FH, FW)
+        test_b = np.random.rand(FN)
+
+        layer = Convolution(test_W, test_b, stride=stride, padding=padding)
+        layer.forward(test_x)
+        dx = layer.backward(test_dout)
+
+        assert dx.shape == (N, C, H, W)
+        assert layer._dF.shape == (FN, C, FH, FW)
+        assert layer._db.shape == (FN,)
+
 
 class TestPooling:
 
