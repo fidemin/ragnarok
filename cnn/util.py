@@ -43,7 +43,7 @@ def col2img(input_array: np.ndarray, N, C, H, W, FH, FW, padding=0, stride=1) ->
         for out_x in range(OW):
             x = out_x * stride
             x_max = x + FW
-            img[:, :, y:y_max, x:x_max] = col[:, :, out_y, out_x, :, :]
+            img[:, :, y:y_max, x:x_max] += col[:, :, out_y, out_x, :, :]
 
     # target shape: (N, C, H, W)
     return img[:, :, padding:H + padding, padding:W + padding]
