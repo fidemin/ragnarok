@@ -1,6 +1,7 @@
 import numpy as np
 
 from cnn.layer import Convolution, Pooling
+from core.updater import SGD
 
 
 class TestConvolution:
@@ -9,7 +10,7 @@ class TestConvolution:
         test_W = np.random.rand(5, 3, 3, 3)
         test_b = np.random.rand(5)
 
-        layer = Convolution(test_W, test_b)
+        layer = Convolution(test_W, test_b, SGD())
         out = layer.forward(test_input)
 
         assert out.shape == (10, 5, 2, 2)
@@ -33,7 +34,7 @@ class TestConvolution:
         test_W = np.random.rand(FN, C, FH, FW)
         test_b = np.random.rand(FN)
 
-        layer = Convolution(test_W, test_b, stride=stride, padding=padding)
+        layer = Convolution(test_W, test_b, SGD(), stride=stride, padding=padding)
         layer.forward(test_x)
         dx = layer.backward(test_dout)
 

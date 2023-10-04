@@ -2,10 +2,11 @@ import numpy as np
 
 from cnn.util import img2col, fil2col, col2fil, col2img
 from core.layer import Layer
+from core.updater import Updater
 
 
 class Convolution(Layer):
-    def __init__(self, F: np.ndarray, b: np.ndarray, stride=1, padding=0):
+    def __init__(self, F: np.ndarray, b: np.ndarray, updater: Updater, stride=1, padding=0):
         # self._W.shape: (FN, FC, FH, FW)
         self._F = F
         self._dF = None
@@ -13,6 +14,8 @@ class Convolution(Layer):
         # self._b.shape: (FN, 1)
         self._b = b
         self._db = None
+
+        self._updater = updater
 
         self._stride = stride
         self._padding = padding
@@ -60,7 +63,6 @@ class Convolution(Layer):
         return out
 
     def backward(self, dout: np.ndarray) -> np.ndarray:
-        # TODO: need to be checked
         N, FN, OH, OW = dout.shape
         _, FC, FH, FW = self._F.shape
 
@@ -87,8 +89,9 @@ class Convolution(Layer):
         return dx
 
     def update_params(self):
-        # TODO: need to be implemented
-        pass
+        params = self._updater.update([self._F, self._b], [self._dF, self._db])
+        self._F = params[0]
+        self._b = params[1]
 
 
 class Pooling(Layer):
