@@ -65,7 +65,9 @@ class Affine(Layer):
         self.b = b
         self.dW = np.zeros_like(self.W)
         self.db = np.zeros_like(self.b)
+
         self.x = None
+        self._original_shape = None
 
         # default updater
         self._updater = updater
@@ -77,6 +79,9 @@ class Affine(Layer):
         return cls(W, b, updater)
 
     def forward(self, x: np.ndarray, **kwargs):
+        self._original_shape = x.shape
+        # To handle tensor
+        x = x.reshape(x.shape[0], -1)
         self.x = x
         return np.dot(self.x, self.W) + self.b
 
@@ -84,6 +89,8 @@ class Affine(Layer):
         self.dW = np.dot(self.x.T, dout)
         self.db = np.sum(dout, axis=0)
         dx = np.dot(dout, self.W.T)
+        # to handle tensor
+        dx = dx.reshape(self._original_shape)
         return dx
 
     def update_params(self):

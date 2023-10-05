@@ -27,6 +27,13 @@ class Convolution(Layer):
         self._H = None
         self._W = None
 
+    @classmethod
+    def from_sizes(cls, F_shape, updater: Updater, stride=1, padding=0, weight_init=0.01):
+        # F_shape: (FN, FC, FH, FW)
+        F = weight_init * np.random.randn(*F_shape)
+        b = np.zeros(F_shape[0])
+        return cls(F, b, updater, stride=stride, padding=padding)
+
     def forward(self, x: np.ndarray, **kwargs) -> np.ndarray:
         N, C, H, W = x.shape
         self._C = C
