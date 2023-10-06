@@ -60,11 +60,17 @@ class Sigmoid(Layer):
 
 
 class Affine(Layer):
-    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Updater):
+    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Updater, useBias=True):
         self.W = W
         self.b = b
         self.dW = np.zeros_like(self.W)
-        self.db = np.zeros_like(self.b)
+
+        if useBias:
+            self.db = np.zeros_like(self.b)
+        else:
+            self.db = None
+
+        self._useBias = useBias
 
         self.x = None
         self._original_shape = None
@@ -73,30 +79,40 @@ class Affine(Layer):
         self._updater = updater
 
     @classmethod
-    def from_sizes(cls, input_size: int, output_size: int, updater: Updater, init_weight=0.01):
+    def from_sizes(cls, input_size: int, output_size: int, updater: Updater, init_weight=0.01, useBias=True):
         W = init_weight * np.random.randn(input_size, output_size)
         b = np.zeros(output_size)
-        return cls(W, b, updater)
+        return cls(W, b, updater, useBias=useBias)
 
     def forward(self, x: np.ndarray, **kwargs):
         self._original_shape = x.shape
         # To handle tensor
         x = x.reshape(x.shape[0], -1)
         self.x = x
-        return np.dot(self.x, self.W) + self.b
+        if self._useBias:
+            return np.dot(self.x, self.W) + self.b
+        else:
+            return np.dot(self.x, self.W)
 
     def backward(self, dout: np.ndarray):
         self.dW = np.dot(self.x.T, dout)
-        self.db = np.sum(dout, axis=0)
+
+        if self._useBias:
+            self.db = np.sum(dout, axis=0)
+
         dx = np.dot(dout, self.W.T)
         # to handle tensor
         dx = dx.reshape(self._original_shape)
         return dx
 
     def update_params(self):
-        params = self._updater.update([self.W, self.b], [self.dW, self.db])
-        self.W = params[0]
-        self.b = params[1]
+        if self._useBias:
+            params = self._updater.update([self.W, self.b], [self.dW, self.db])
+            self.W = params[0]
+            self.b = params[1]
+        else:
+            params = self._updater.update([self.W], [self.dW])
+            self.W = params[0]
 
 
 class BatchNorm(Layer):
