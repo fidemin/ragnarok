@@ -1,8 +1,10 @@
-from language.word_id import WordIdConverter
+import pytest
+
+from language.word_id import WordIdConverter, ConverterException
 
 
 def test_init():
-    words = ['say', 'good', 'you', 'say', 'i', 'bye']
+    words = ['say', 'say', 'good', 'you', 'say', 'i', 'bye', 'bye', '']
 
     converter = WordIdConverter(words)
 
@@ -32,3 +34,45 @@ def test_init():
 
     for expected_k, expected_v in expected_id_to_word.items():
         assert converter._id_to_word[expected_k] == expected_v
+
+
+def test_word_to_id():
+    words = ['say', 'good', 'you', 'say', 'i', 'bye', 'bye', '']
+
+    converter = WordIdConverter(words)
+
+    assert converter.word_to_id('bye') == 0
+    assert converter.word_to_id('good') == 1
+    assert converter.word_to_id('i') == 2
+    assert converter.word_to_id('say') == 3
+    assert converter.word_to_id('you') == 4
+
+
+def test_word_to_id_exception():
+    words = ['say', 'good', 'you', 'say', 'i', 'bye', 'bye', '']
+
+    converter = WordIdConverter(words)
+
+    with pytest.raises(ConverterException):
+        converter.word_to_id('abcd')
+
+
+def test_id_to_word():
+    words = ['say', 'good', 'you', 'say', 'i', 'bye', 'bye', '']
+
+    converter = WordIdConverter(words)
+
+    assert converter.id_to_word(0) == 'bye'
+    assert converter.id_to_word(1) == 'good'
+    assert converter.id_to_word(2) == 'i'
+    assert converter.id_to_word(3) == 'say'
+    assert converter.id_to_word(4) == 'you'
+
+
+def test_id_to_word_exception():
+    words = ['say', 'good', 'you', 'say', 'i', 'bye', 'bye', '']
+
+    converter = WordIdConverter(words)
+
+    with pytest.raises(ConverterException):
+        converter.id_to_word(5)
