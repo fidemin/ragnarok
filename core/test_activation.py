@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from . import activation
 
@@ -21,10 +22,18 @@ def test_sigmoid():
     assert np.allclose(actual, expected)
 
 
-def test_softmax():
-    test_input = np.array([[0.3, 1.5, 1], [1.0, 2.0, 2.0]])
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        # test case 1
+        (np.array([[0.3, 1.5, 1], [1.0, 2.0, 2.0]]),
+         np.array([[0.15788136769202, 0.52418460065905, 0.31793403164894], [0.155362, 0.422319, 0.422319]])),
 
-    expected = np.array([[0.15788136769202, 0.52418460065905, 0.31793403164894], [0.155362, 0.422319, 0.422319]])
+        # test case 2
+        (np.array([0.3, 1.5, 1]),
+         np.array([0.15788136769202, 0.52418460065905, 0.31793403164894]))]
+)
+def test_softmax(test_input, expected):
     actual = activation.softmax(test_input)
 
     assert np.allclose(actual, expected)

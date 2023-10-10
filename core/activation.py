@@ -26,9 +26,14 @@ def softmax(x: np.ndarray) -> np.ndarray:
     """
     softmax function
 
-    :param x: ndarray of numbers with dim 2 e.g. [[1.0, 0.0, 5.0], [1.0, 2.0, 2.0]]
-    :return: returns the result of softmax function as ndarray
+    :param x: ndarray of numbers with dim >= 1 e.g. [[1.0, 0.0, 5.0], [1.0, 2.0, 2.0]]
+    :return: returns the result of softmax function as ndarray. shape is same as x
     """
+    dim_is_one = (x.ndim == 1)
+    original_shape = x.shape
+
+    if dim_is_one:
+        x = x.reshape(1, -1)
     max_value = np.max(x, axis=1)
 
     # To prevent overflow of e(x), change the all input value to <0 value.
@@ -37,4 +42,9 @@ def softmax(x: np.ndarray) -> np.ndarray:
     exp_ = np.exp(x_normal)
     exp_sum = np.sum(exp_, axis=1)
 
-    return (exp_.T / exp_sum).T
+    result = (exp_.T / exp_sum).T
+
+    if dim_is_one:
+        return result.reshape(original_shape)
+
+    return result
