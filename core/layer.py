@@ -61,14 +61,12 @@ class Sigmoid(Layer):
 
 class Affine(Layer):
     def __init__(self, W: np.ndarray, b: np.ndarray, updater: Updater, useBias=True):
-        self.W = W
-        self.b = b
-        self.dW = np.zeros_like(self.W)
-
         if useBias:
-            self.db = np.zeros_like(self.b)
+            self.params = [W, b]
+            self.grads = [np.zeros_like(W), np.zeros_like(b)]
         else:
-            self.db = None
+            self.params = [W]
+            self.grads = [np.zeros_like(W)]
 
         self._useBias = useBias
 
@@ -90,29 +88,25 @@ class Affine(Layer):
         x = x.reshape(x.shape[0], -1)
         self.x = x
         if self._useBias:
-            return np.dot(self.x, self.W) + self.b
+            return np.dot(self.x, self.params[0]) + self.params[1]
         else:
-            return np.dot(self.x, self.W)
+            return np.dot(self.x, self.params[0])
 
     def backward(self, dout: np.ndarray):
-        self.dW = np.dot(self.x.T, dout)
+        # dW calculation
+        self.grads[0] = np.dot(self.x.T, dout)
 
         if self._useBias:
-            self.db = np.sum(dout, axis=0)
+            # db calculation
+            self.grads[1] = np.sum(dout, axis=0)
 
-        dx = np.dot(dout, self.W.T)
+        dx = np.dot(dout, self.params[0].T)
         # to handle tensor
         dx = dx.reshape(self._original_shape)
         return dx
 
     def update_params(self):
-        if self._useBias:
-            params = self._updater.update([self.W, self.b], [self.dW, self.db])
-            self.W = params[0]
-            self.b = params[1]
-        else:
-            params = self._updater.update([self.W], [self.dW])
-            self.W = params[0]
+        self._updater.update(self.params, self.grads)
 
 
 class BatchNorm(Layer):
