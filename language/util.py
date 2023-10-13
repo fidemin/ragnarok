@@ -3,7 +3,7 @@ import numpy as np
 
 def process_text(text: str):
     # TODO: need to process other special characters
-    return text.lower().strip().replace('.', ' .').split(' ')
+    return text.lower().strip().replace('.', ' .').replace(',', ' ,').split(' ')
 
 
 def convert_to_one_hot_encoding(x: np.ndarray, max_value):
@@ -39,10 +39,12 @@ class WordIdConverter:
 
         self._word_to_id = {}
         self._id_to_word = {}
+        self._max_id = 0
         for i in range(self._word_length):
             word = sorted_word_list[i]
             self._word_to_id[word] = i
             self._id_to_word[i] = word
+            self._max_id = i
 
     def word_to_id(self, word: str) -> int:
         if word not in self._word_to_id:
@@ -57,6 +59,9 @@ class WordIdConverter:
             raise ConverterException("{0} is larger than maximum id: {1}".format(id_, self._word_length - 1))
 
         return self._id_to_word[id_]
+
+    def max_id(self) -> int:
+        return self._max_id
 
 
 class ContextTargetConverter:

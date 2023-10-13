@@ -15,6 +15,11 @@ class CBOW(Layer):
         self._sub_layers = []
         self._updater = updater
 
+    @classmethod
+    def from_size(cls, input_size, hidden_size, updater: Updater, init_weight=0.01):
+        W = np.random.randn(input_size, hidden_size) * init_weight
+        return cls(W, updater)
+
     def forward(self, x: np.ndarray, **kwargs):
         context_size = x.shape[1]
 
