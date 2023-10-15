@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 
 
@@ -95,3 +97,33 @@ class ContextTargetConverter:
 
     def targets(self) -> np.ndarray:
         return self._targets
+
+
+class UnigramExporter:
+    def __init__(self, word_id_list: list[int], damp_coefficient=0.75):
+        self._word_id_list = word_id_list
+
+        length = len(word_id_list)
+        max_id = max(word_id_list)
+        word_id_length = max_id + 1
+        count_by_id = np.zeros((word_id_length,))
+        for word_id in word_id_list:
+            count_by_id[word_id] += 1.0
+
+        prob_by_id = count_by_id / length
+        prob_by_id = np.power(prob_by_id, damp_coefficient)
+        prob_by_id /= np.sum(prob_by_id)
+        self._prob_by_id = prob_by_id
+        self._id_array = np.arange(word_id_length)
+
+    def export(self, size: int, exception_ids=None) -> np.ndarray:
+        new_prob = self._prob_by_id
+
+        if exception_ids:
+            new_prob = copy.deepcopy(new_prob)
+            new_prob[exception_ids] = 0.0
+            new_prob /= np.sum(new_prob)
+
+        result = np.random.choice(self._id_array, size=size, p=new_prob, replace=False)
+
+        return result

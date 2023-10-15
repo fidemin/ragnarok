@@ -1,7 +1,10 @@
+import copy
+
 import numpy as np
 import pytest
 
-from language.util import WordIdConverter, ConverterException, ContextTargetConverter, convert_to_one_hot_encoding
+from language.util import WordIdConverter, ConverterException, ContextTargetConverter, convert_to_one_hot_encoding, \
+    UnigramExporter
 
 
 @pytest.mark.parametrize(
@@ -101,3 +104,38 @@ class TestContextTargetConverter:
         converter = ContextTargetConverter(test_input, window_size=window_size)
         assert np.array_equal(converter.contexts(), expected_contexts)
         assert np.array_equal(converter.targets(), expected_targets)
+
+
+class TestUnigramExporter:
+    def test_init(self):
+        word_id_list = [0, 1, 2, 3, 0, 1, 5, 1, 2, 3]
+        dc = 0.75
+        sum_ = 0.2 ** dc + 0.3 ** dc + 0.2 ** dc + 0.2 ** dc + 0.0 ** dc + 0.1 ** dc
+        expected_prob_by_id = np.array(
+            [(0.2 ** dc) / sum_, (0.3 ** dc) / sum_, (0.2 ** dc) / sum_, (0.2 ** dc) / sum_, (0.0 ** dc) / sum_,
+             (0.1 ** dc) / sum_])
+
+        exporter = UnigramExporter(word_id_list, damp_coefficient=dc)
+        actual = exporter._prob_by_id
+        assert np.allclose(actual, expected_prob_by_id)
+
+    def test_choice(self):
+        word_id_list = [0, 1, 2, 3, 0, 1, 5, 1, 2, 3]
+        max_id = 5
+        dc = 0.75
+        exporter = UnigramExporter(word_id_list, damp_coefficient=dc)
+        original_prob_by_id = copy.deepcopy(exporter._prob_by_id)
+        size = 2
+
+        for i in range(1000):
+            actual = exporter.export(size)
+            assert actual.shape == (size,)
+            assert np.alltrue(np.where(np.logical_and(actual >= 0, actual <= max_id), True, False))
+
+        for i in range(1000):
+            actual = exporter.export(size, exception_ids=[1, 3])
+            assert actual.shape == (size,)
+            condition = np.logical_and(np.logical_and(actual >= 0, actual <= max_id),
+                                       np.logical_and(actual != 1, actual != 3))
+            assert np.alltrue(np.where(condition, True, False))
+            assert np.allclose(exporter._prob_by_id, original_prob_by_id)
