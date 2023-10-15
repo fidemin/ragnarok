@@ -94,7 +94,7 @@ class TestEmbedding:
             [(0.05 + 0.02) / 2.0, (0.03 + 0.02) / 2.0]
         ])
 
-        layer = Embedding(W_in)
+        layer = Embedding(W_in, SGD())
         actual = layer.forward(x)
         assert np.allclose(actual, expected)
 
@@ -123,7 +123,7 @@ class TestEmbedding:
             [(0.2 + 0.3), (0.5 + 0.4)]
         ]) / 2.0
 
-        layer = Embedding(W_in)
+        layer = Embedding(W_in, SGD())
         layer.forward(forward_input)
         layer.backward(backward_input)
 
