@@ -46,9 +46,44 @@ class CBOW(Layer):
             dx.append(result)
 
         # sum all sub layer's gradients
-        self.grads = reduce(lambda x, y: x.grads + y.grads, self._sub_layers[1:], self._sub_layers[0])
+        self.grads[0][...] = reduce(lambda x, y: x.grads[0] + y.grads[0], self._sub_layers[1:], self._sub_layers[0])
 
         return dx
 
     def update_params(self):
         self._updater.update(self.params, self.grads)
+
+
+class Embedding(Layer):
+    def __init__(self, W: np.ndarray, updater: Updater):
+        self._params = [W]
+        self._grads = [np.zeros_like(W)]
+        self._updater = updater
+        self._x = None
+        self._context_size = None
+
+    @classmethod
+    def from_size(cls, input_size, hidden_size, updater: Updater, init_weight=0.01):
+        W = np.random.randn(input_size, hidden_size) * init_weight
+        return cls(W, updater)
+
+    def forward(self, x: np.ndarray, **kwargs):
+        W = self._params[0]
+        self._x = x
+        self._context_size = x.shape[1]
+        out = W[self._x]
+        out = np.average(out, axis=1)
+        return out
+
+    def backward(self, dout: np.ndarray):
+        # dout.shape: (m, W.shape[1])
+        dout *= 1.0 / self._context_size
+        dW = self._grads[0]
+
+        flatten_x = self._x.flatten()
+        dout_repeat = np.repeat(dout, self._context_size, axis=0)
+        np.add.at(dW, flatten_x, dout_repeat)
+        return None
+
+    def update_params(self):
+        self._updater.update(self._params, self._grads)

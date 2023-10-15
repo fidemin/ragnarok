@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from core.layer import Affine
 from core.net import Net
 from core.updater import Adam
-from language.layer import CBOW
+from language.layer import Embedding
 from language.util import process_text, ContextTargetConverter, WordIdConverter, convert_to_one_hot_encoding
 
 if __name__ == '__main__':
@@ -22,14 +22,13 @@ if __name__ == '__main__':
     contexts = context_target_converter.contexts()
     target = context_target_converter.targets()
 
-    contexts = convert_to_one_hot_encoding(contexts, wi_converter.max_id())
     target = convert_to_one_hot_encoding(target, wi_converter.max_id())
 
     # build network
     input_layer_size = wi_converter.max_id() + 1
     hidden_layer_size = 50
 
-    layer1 = CBOW.from_size(input_layer_size, hidden_layer_size, Adam())
+    layer1 = Embedding.from_size(input_layer_size, hidden_layer_size, Adam())
     layer2 = Affine.from_sizes(hidden_layer_size, input_layer_size, Adam(), useBias=False)
 
     layers = [layer1, layer2]
@@ -39,6 +38,7 @@ if __name__ == '__main__':
     iter_num = 2000
     batch_size = 100
     loss_list = []
+
     start_time = time.time()
     for i in range(iter_num):
         print("iter_num: {} starts".format(i))
