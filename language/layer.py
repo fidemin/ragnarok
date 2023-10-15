@@ -7,7 +7,7 @@ from core.updater import Updater
 
 
 class CBOW(Layer):
-    _sub_layers: list[Layer]
+    _sub_layers: list[Affine]
 
     def __init__(self, W: np.ndarray, updater: Updater):
         self.params = [W]
@@ -56,8 +56,37 @@ class CBOW(Layer):
 
 class Embedding(Layer):
     def __init__(self, W: np.ndarray, updater: Updater):
-        self._params = [W]
-        self._grads = [np.zeros_like(W)]
+        self.params = [W]
+        self.grads = [np.zeros_like(W)]
+        self._updater = updater
+        self._x = None
+        self._out_W = None
+
+    def forward(self, x: np.ndarray, **kwargs):
+        W = self.params[0]
+        self._x = x
+        out = W[self._x]
+        self._out_W = out
+        return out
+
+    def backward(self, dout: np.ndarray):
+        dW = self.grads[0]
+        np.add.at(dW, self._x, dout)
+        dx = np.sum(self._out_W * dout, axis=1)
+        return dx
+
+    def update_params(self):
+        # This update_params method is only for single Embedding layer.
+        self._updater.update(self.params, self.grads)
+
+
+class MultiInputEmbedding(Layer):
+    _sub_layers: list[Embedding]
+
+    def __init__(self, W: np.ndarray, updater: Updater):
+        self._sub_layers = []
+        self.params = [W]
+        self.grads = [np.zeros_like(W)]
         self._updater = updater
         self._x = None
         self._context_size = None
@@ -68,22 +97,40 @@ class Embedding(Layer):
         return cls(W, updater)
 
     def forward(self, x: np.ndarray, **kwargs):
-        W = self._params[0]
         self._x = x
         self._context_size = x.shape[1]
-        out = W[self._x]
-        out = np.average(out, axis=1)
-        return out
+
+        if len(self._sub_layers) == 0:
+            for i in range(self._context_size):
+                layer = Embedding(self.params[0], self._updater)
+                self._sub_layers.append(layer)
+
+        out = np.zeros((x.shape[0], self.params[0].shape[1]))
+
+        for i in range(self._context_size):
+            layer = self._sub_layers[i]
+            result = layer.forward(x[:, i])
+            out += result
+
+        return out / (self._context_size * 1.0)
 
     def backward(self, dout: np.ndarray):
         # dout.shape: (m, W.shape[1])
         dout *= 1.0 / self._context_size
-        dW = self._grads[0]
+        dW = self.grads[0]
 
-        flatten_x = self._x.flatten()
-        dout_repeat = np.repeat(dout, self._context_size, axis=0)
-        np.add.at(dW, flatten_x, dout_repeat)
-        return None
+        dx = []
+        for layer in self._sub_layers:
+            result = layer.backward(dout)
+            dx.append(result)
+
+        # sum all sub layer's gradients
+        dW[...] = reduce(lambda x, y: x.grads[0] + y.grads[0], self._sub_layers[1:], self._sub_layers[0])
+
+        return dx
 
     def update_params(self):
-        self._updater.update(self._params, self._grads)
+        self.params = self._updater.update(self.params, self.grads)
+        W = self.params[0]
+        for layer in self._sub_layers:
+            layer.params[0] = W

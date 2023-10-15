@@ -221,3 +221,34 @@ class SoftmaxWithLoss:
     def backward(self, dout=1):
         batch_size = self.y.shape[0]
         return dout * (self.y - self.t) / batch_size
+
+
+class SigmoidWithLoss(Layer):
+    def __init__(self):
+        self._t = None
+        self._t_key = 't'
+
+        self._y = None
+
+    def forward(self, x: np.ndarray, **kwargs):
+        if self._t_key not in kwargs:
+            raise LayerException('kwargs has the value with key t')
+
+        t = kwargs['t']
+
+        self._t = t
+
+        self._y = activation.sigmoid(x)
+
+        return loss.cross_entropy(self._y, t)
+
+    def backward(self, dout=1):
+        batch_size = self._y.shape[0]
+        return dout * (self._y - self._t) / batch_size
+
+    def update_params(self):
+        pass
+
+
+class LayerException(RuntimeError):
+    pass
