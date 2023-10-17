@@ -116,17 +116,19 @@ class UnigramSampler:
         self._prob_by_id = prob_by_id
         self._id_array = np.arange(word_id_length)
 
-    def sample(self, size: int, exception_ids=None) -> list[int]:
-        new_prob = self._prob_by_id
+    def sample(self, number_of_samples: int, sample_size: int, exception_ids=None) -> np.ndarray:
+        prob = self._prob_by_id
 
-        if exception_ids:
-            new_prob = copy.deepcopy(new_prob)
-            new_prob[exception_ids] = 0.0
-            new_prob /= np.sum(new_prob)
+        result = np.zeros((number_of_samples, sample_size), dtype=int)
 
-        result = np.random.choice(self._id_array, size=size, p=new_prob, replace=False)
+        for i in range(number_of_samples):
+            if exception_ids:
+                prob = copy.deepcopy(prob)
+                prob[exception_ids[i]] = 0.0
+                prob /= np.sum(prob)
 
-        return result.tolist()
+            result[i] = np.random.choice(self._id_array, size=sample_size, p=prob, replace=False)
+        return result
 
 
 def cosine_similarity(x: np.ndarray, y: np.ndarray):

@@ -125,24 +125,24 @@ class TestUnigramSampler:
         dc = 0.75
         exporter = UnigramSampler(word_id_list, damp_coefficient=dc)
         original_prob_by_id = copy.deepcopy(exporter._prob_by_id)
+        number_of_samples = 4
         size = 2
 
         for i in range(1000):
-            actual = exporter.sample(size)
-            actual_array = np.array(actual)
-            assert isinstance(actual, list)
-            assert len(actual) == size
-            assert np.all(np.where(np.logical_and(actual_array >= 0, actual_array <= max_id), True, False))
+            actual = exporter.sample(number_of_samples, size)
+            assert actual.shape == (number_of_samples, size)
+            assert np.all(np.where(np.logical_and(actual >= 0, actual <= max_id), True, False))
 
         for i in range(1000):
-            actual = exporter.sample(size, exception_ids=[1, 3])
-            actual_array = np.array(actual)
-            assert isinstance(actual, list)
-            assert len(actual) == size
-            condition = np.logical_and(np.logical_and(actual_array >= 0, actual_array <= max_id),
-                                       np.logical_and(actual_array != 1, actual_array != 3))
-            assert np.all(np.where(condition, True, False))
-            assert np.allclose(exporter._prob_by_id, original_prob_by_id)
+            exception_ids = [1, 3, 2, 4]
+            actual = exporter.sample(number_of_samples, size, exception_ids=exception_ids)
+            assert actual.shape == (number_of_samples, size)
+
+            for i, exception_id in enumerate(exception_ids):
+                condition = np.logical_and(np.logical_and(actual[i] >= 0, actual[i] <= max_id),
+                                           np.logical_and(actual[i] != exception_id, True))
+                assert np.all(np.where(condition, True, False))
+                assert np.allclose(exporter._prob_by_id, original_prob_by_id)
 
 
 def test_most_similar():

@@ -310,7 +310,7 @@ class TestNegativeSampling:
         UnigramSampler(word_id_list)
         sampler_class = mock.Mock(spec=UnigramSampler)
         sampler_instance = sampler_class.return_value
-        sampler_instance.sample.return_value = [2, 3]
+        sampler_instance.sample.return_value = np.array([[2, 3], [1, 4]])
 
         W = np.array([
             [0.01, 0.04, 0.02, 0.04, 0.01, 0.04],
@@ -336,7 +336,7 @@ class TestNegativeSampling:
         UnigramSampler(word_id_list)
         sampler_class = mock.Mock(spec=UnigramSampler)
         sampler_instance = sampler_class.return_value
-        sampler_instance.sample.return_value = [2, 3]
+        sampler_instance.sample.return_value = np.array([[2, 3], [1, 4]])
 
         W = np.array([
             [0.01, 0.04, 0.02, 0.04, 0.01, 0.04],
@@ -364,7 +364,7 @@ class TestNegativeSampling:
         UnigramSampler(word_id_list)
         sampler_class = mock.Mock(spec=UnigramSampler)
         sampler_instance = sampler_class.return_value
-        sampler_instance.sample.return_value = [2, 3]
+        sampler_instance.sample.return_value = np.array([[2, 3], [1, 4]])
 
         W = np.array([
             [0.01, 0.04, 0.02, 0.04, 0.01, 0.04],

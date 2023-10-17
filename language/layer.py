@@ -179,10 +179,7 @@ class CBOWInputEmbedding(Layer):
         return None
 
     def update_params(self):
-        self.params = self._updater.update(self.params, self.grads)
-        W = self.params[0]
-        for layer in self._sub_layers:
-            layer.params[0] = W
+        self._updater.update(self.params, self.grads)
 
 
 class NegativeSampling(Layer):
@@ -217,9 +214,7 @@ class NegativeSampling(Layer):
         batch_size = x.shape[0]
         positive_indexes = kwargs[self.positive_indexes_key]
 
-        negative_indexes = []
-        for positive_idx in positive_indexes:
-            negative_indexes.append(self._sampler.sample(self._negative_size, [positive_idx]))
+        negative_indexes = self._sampler.sample(batch_size, self._negative_size, exception_ids=positive_indexes)
 
         positive_kwargs = {EmbeddingDot.indexes_key: positive_indexes}
         out_positive = self._embedding_dot_layers[0].forward(x, **positive_kwargs)
@@ -229,7 +224,7 @@ class NegativeSampling(Layer):
 
         negative_labels = np.ones((batch_size, 1), dtype=np.int32)
         for i in range(1, self._negative_size + 1):
-            negative_kwargs = {EmbeddingDot.indexes_key: [row[i - 1] for row in negative_indexes]}
+            negative_kwargs = {EmbeddingDot.indexes_key: negative_indexes.T[i - 1]}
             out_negative = self._embedding_dot_layers[i].forward(x, **negative_kwargs)
             loss_kwargs = {SigmoidWithLoss.t_key: negative_labels}
             loss += self._loss_layers[i].forward(out_negative, **loss_kwargs)
