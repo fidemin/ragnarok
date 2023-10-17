@@ -196,8 +196,10 @@ class Dropout(Layer):
             train_flag = False
 
         if train_flag:
-            self._mask = np.random.rand(*x.shape) > self._dropout_ratio
-            return x * self._mask
+            self._mask = (np.random.rand(*x.shape) > self._dropout_ratio).astype(int)
+            keep_ratio = 1. - self._dropout_ratio
+            # inverted dropout: divided by keep_ratio to preserve expectation of x
+            return x * self._mask / keep_ratio
         else:
             return x
 
@@ -224,17 +226,18 @@ class SoftmaxWithLoss:
 
 
 class SigmoidWithLoss(Layer):
+    t_key = 't'
+
     def __init__(self):
         self._t = None
-        self._t_key = 't'
 
         self._y = None
 
     def forward(self, x: np.ndarray, **kwargs):
-        if self._t_key not in kwargs:
+        if self.t_key not in kwargs:
             raise LayerException('kwargs has the value with key t')
 
-        t = kwargs['t']
+        t = kwargs[self.t_key]
 
         self._t = t
 
