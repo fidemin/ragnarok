@@ -134,7 +134,7 @@ class TestUnigramSampler:
             assert np.all(np.where(np.logical_and(actual >= 0, actual <= max_id), True, False))
 
         for i in range(1000):
-            exception_ids = [1, 3, 2, 4]
+            exception_ids = np.array([1, 3, 2, 4])
             actual = exporter.sample(number_of_samples, size, exception_ids=exception_ids)
             assert actual.shape == (number_of_samples, size)
 
@@ -143,6 +143,25 @@ class TestUnigramSampler:
                                            np.logical_and(actual[i] != exception_id, True))
                 assert np.all(np.where(condition, True, False))
                 assert np.allclose(exporter._prob_by_id, original_prob_by_id)
+
+    @pytest.mark.parametrize(
+        "number_of_samples,sample_size,exception_ids",
+        [
+            (4, 2, None),
+            (4, 2, np.array([1, 3, 2, 4])),
+        ])
+    def test_sample_remember_sampling(self, number_of_samples, sample_size, exception_ids):
+        word_id_list = [0, 1, 2, 3, 0, 1, 5, 1, 2, 3]
+        dc = 0.75
+        exporter = UnigramSampler(word_id_list, damp_coefficient=dc, remember_sampling=True)
+
+        exception_ids = np.array([1, 3, 2, 4])
+        last_actual = exporter.sample(number_of_samples, sample_size, exception_ids=exception_ids)
+        actual = exporter.sample(number_of_samples, sample_size, exception_ids=exception_ids)
+
+        diff = exporter.sample(4, 2, np.array([2, 3, 4, 2]))
+        assert np.allclose(actual, last_actual)
+        assert not np.allclose(actual, diff)
 
 
 def test_most_similar():

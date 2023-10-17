@@ -233,12 +233,9 @@ class NegativeSampling(Layer):
 
     def backward(self, dout: np.ndarray):
         dx = np.zeros(self._x.shape)
-        for i in reversed(range(1, self._negative_size + 1)):
-            dloss_negative = self._loss_layers[i].backward(dout)
-            dx += self._embedding_dot_layers[i].backward(dloss_negative)
-
-        dloss_positive = self._loss_layers[0].backward(dout)
-        dx += self._embedding_dot_layers[0].backward(dloss_positive)
+        for i in range(self._negative_size):
+            dloss = self._loss_layers[i].backward(dout)
+            dx += self._embedding_dot_layers[i].backward(dloss)
 
         self.grads[0][...] = reduce(lambda grad, embedding_dot_layer: grad + embedding_dot_layer.grads[0],
                                     self._embedding_dot_layers[1:],

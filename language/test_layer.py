@@ -323,7 +323,7 @@ class TestNegativeSampling:
             [0.6, 0.2, 0.7]
         ])
 
-        positive_indexes = [1, 5]
+        positive_indexes = np.array([1, 5])
 
         negative_size = 2
         layer = NegativeSampling(W, negative_size, sampler_instance, SGD())
@@ -349,7 +349,7 @@ class TestNegativeSampling:
             [0.6, 0.2, 0.7]
         ])
 
-        positive_indexes = [1, 5]
+        positive_indexes = np.array([1, 5])
 
         negative_size = 2
         layer = NegativeSampling(W, negative_size, sampler_instance, SGD())
@@ -379,7 +379,7 @@ class TestNegativeSampling:
             [0.6, 0.2, 0.7]
         ])
 
-        positive_indexes = [1, 5]
+        positive_indexes = np.array([1, 5])
 
         negative_size = 2
         layer = NegativeSampling(W, negative_size, sampler_instance, SGD())

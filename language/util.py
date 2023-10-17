@@ -100,8 +100,10 @@ class ContextTargetConverter:
 
 
 class UnigramSampler:
-    def __init__(self, word_id_list: list[int], damp_coefficient=0.75):
+    def __init__(self, word_id_list: list[int], damp_coefficient=0.75, remember_sampling=False):
         self._word_id_list = word_id_list
+        self._remember_sampling = remember_sampling
+        self._result_cache = {}
 
         length = len(word_id_list)
         max_id = max(word_id_list)
@@ -117,18 +119,34 @@ class UnigramSampler:
         self._id_array = np.arange(word_id_length)
 
     def sample(self, number_of_samples: int, sample_size: int, exception_ids=None) -> np.ndarray:
+        if self._remember_sampling:
+            key = self._cache_key(number_of_samples, sample_size, exception_ids)
+            if self._result_cache.get(key) is not None:
+                return self._result_cache[key]
+
         prob = self._prob_by_id
 
         result = np.zeros((number_of_samples, sample_size), dtype=int)
 
         for i in range(number_of_samples):
-            if exception_ids:
+            if exception_ids is not None:
                 prob = copy.deepcopy(prob)
                 prob[exception_ids[i]] = 0.0
                 prob /= np.sum(prob)
 
-            result[i] = np.random.choice(self._id_array, size=sample_size, p=prob, replace=False)
+            result[i, :] = np.random.choice(self._id_array, size=sample_size, p=prob, replace=False)
+
+        if self._remember_sampling:
+            key = self._cache_key(number_of_samples, sample_size, exception_ids)
+            self._result_cache[key] = result
         return result
+
+    def _cache_key(self, number_of_samples: int, sample_size: int, exception_ids: np.ndarray) -> tuple:
+        exception_ids_key = None
+        if exception_ids is not None:
+            exception_ids_key = exception_ids.tobytes()
+
+        return number_of_samples, sample_size, exception_ids_key
 
 
 def cosine_similarity(x: np.ndarray, y: np.ndarray):
@@ -148,7 +166,7 @@ def most_similar_words(word, word_id_converter: WordIdConverter, word_vec, top=5
     word_similarity_list = []
     count = 0
     for i in (-1 * similarity).argsort():
-        if count > top:
+        if count >= top:
             break
 
         if i == word_id:

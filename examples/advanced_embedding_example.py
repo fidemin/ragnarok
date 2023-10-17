@@ -12,7 +12,8 @@ if __name__ == '__main__':
     # text = '''
     # Importance of trade and commerce cannot be overstated; import and export activities drive the global economy. Countries import and export goods to meet their essential needs and promote economic growth. The import of raw materials is crucial for manufacturing, while the export of finished products can generate substantial revenue. Governments impose import tariffs and regulations to safeguard domestic industries, but these policies can impact international relations. In today's interconnected world, technology and information sharing are of utmost importance. The exchange of knowledge is as vital as physical imports and exports. As technology continues to advance, the importance of cybersecurity cannot be ignored, as it's necessary to protect against cyber threats. In a globalized world, understanding the intricate web of imports, exports, and information flows is key to thriving in the modern economy.
     # '''
-    text = 'You say yes. I say yes. Kim said yes. Min said yes'
+    text = 'You say no. I say no. You said yes. I said yes. Kim said yes. Min said no.'
+    text = 'I say yes. I said yes. You said yes. You say yes.'
 
     # the file is from: https://github.com/wojzaremba/lstm/blob/master/data/ptb.train.txt
     # file_path = '../downloads/ptb.train.txt'
@@ -39,10 +40,15 @@ if __name__ == '__main__':
     input_layer_size = wi_converter.max_id() + 1
     hidden_layer_size = 100
 
-    layer1 = CBOWInputEmbedding.from_size(input_layer_size, hidden_layer_size, Adam())
+    init_weight1 = 1 / np.sqrt(input_layer_size)
+    # init_weight1 = 0.01
+    layer1 = CBOWInputEmbedding.from_size(input_layer_size, hidden_layer_size, Adam(), init_weight=init_weight1)
     sampler = UnigramSampler(word_id_list)
-    negative_size = 5
-    layer2 = NegativeSampling.from_size(hidden_layer_size, input_layer_size, negative_size, sampler, Adam())
+    negative_size = 2
+    # init_weight2 = 1 / np.sqrt(hidden_layer_size)
+    init_weight2 = 0.01
+    layer2 = NegativeSampling.from_size(hidden_layer_size, input_layer_size, negative_size, sampler, Adam(),
+                                        init_weight=init_weight2)
 
     layers = [layer1, layer2]
 
@@ -86,7 +92,7 @@ if __name__ == '__main__':
 
     word_vec = layer1.params[0]
     # target_words = ['you', 'year', 'car', 'ford']
-    target_words = ['kim', 'min']
+    target_words = ['said']
 
     for target_word in target_words:
         word_similar_list = most_similar_words(target_word, wi_converter, word_vec)
