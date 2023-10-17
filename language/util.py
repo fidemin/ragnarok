@@ -130,7 +130,7 @@ class UnigramSampler:
 
         for i in range(number_of_samples):
             if exception_ids is not None:
-                prob = copy.deepcopy(prob)
+                prob = copy.deepcopy(self._prob_by_id)
                 prob[exception_ids[i]] = 0.0
                 prob /= np.sum(prob)
 

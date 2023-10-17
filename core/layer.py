@@ -243,7 +243,7 @@ class SigmoidWithLoss(Layer):
 
         self._y = activation.sigmoid(x)
 
-        return loss.cross_entropy(self._y, t)
+        return loss.log_loss(self._y, self._t)
 
     def backward(self, dout=1):
         batch_size = self._y.shape[0]

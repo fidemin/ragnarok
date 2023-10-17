@@ -75,6 +75,7 @@ class Embedding(Layer):
 
     def backward(self, dout: np.ndarray):
         dW = self.grads[0]
+        dW[...] = 0
         np.add.at(dW, self._x, dout)
 
         # Embdding layer has no output because it has no meaning.
@@ -222,7 +223,7 @@ class NegativeSampling(Layer):
         loss_kwargs = {SigmoidWithLoss.t_key: positive_labels}
         loss = self._loss_layers[0].forward(out_positive, **loss_kwargs)
 
-        negative_labels = np.ones((batch_size, 1), dtype=np.int32)
+        negative_labels = np.zeros((batch_size, 1), dtype=np.int32)
         for i in range(1, self._negative_size + 1):
             negative_kwargs = {EmbeddingDot.indexes_key: negative_indexes.T[i - 1]}
             out_negative = self._embedding_dot_layers[i].forward(x, **negative_kwargs)
@@ -233,7 +234,7 @@ class NegativeSampling(Layer):
 
     def backward(self, dout: np.ndarray):
         dx = np.zeros(self._x.shape)
-        for i in range(self._negative_size):
+        for i in range(self._negative_size + 1):
             dloss = self._loss_layers[i].backward(dout)
             dx += self._embedding_dot_layers[i].backward(dloss)
 

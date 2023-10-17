@@ -6,8 +6,9 @@ from matplotlib import pyplot as plt
 from core.layer import Affine
 from core.net import Net
 from core.updater import Adam
-from language.layer import CBOWInputEmbedding
-from language.util import process_text, ContextTargetConverter, WordIdConverter, convert_to_one_hot_encoding
+from language.layer import CBOWInputEmbedding, NegativeSampling
+from language.util import process_text, ContextTargetConverter, WordIdConverter, convert_to_one_hot_encoding, \
+    most_similar_words, UnigramSampler
 
 if __name__ == '__main__':
     text = '''
@@ -18,11 +19,11 @@ if __name__ == '__main__':
     wi_converter = WordIdConverter(words)
     word_id_list = [wi_converter.word_to_id(word) for word in words]
 
-    context_target_converter = ContextTargetConverter(word_id_list)
-    contexts = context_target_converter.contexts()
-    target = context_target_converter.targets()
+    context_target_converter = ContextTargetConverter(word_id_list, window_size=1)
+    contexts_original = context_target_converter.contexts()
+    target_original = context_target_converter.targets()
 
-    target = convert_to_one_hot_encoding(target, wi_converter.max_id())
+    target = convert_to_one_hot_encoding(target_original, wi_converter.max_id())
 
     # build network
     input_layer_size = wi_converter.max_id() + 1
@@ -33,31 +34,66 @@ if __name__ == '__main__':
 
     layers = [layer1, layer2]
 
-    net = Net(layers)
+    net1 = Net(layers)
 
-    iter_num = 2000
+    init_weight1 = 1 / np.sqrt(input_layer_size)
+    # init_weight1 = 0.01
+    layer2_1 = CBOWInputEmbedding.from_size(input_layer_size, hidden_layer_size, Adam(), init_weight=init_weight1)
+    sampler = UnigramSampler(word_id_list, remember_sampling=True)
+    negative_size = 10
+    init_weight2 = 1 / np.sqrt(hidden_layer_size)
+    # init_weight2 = 0.01
+    layer2_2 = NegativeSampling.from_size(hidden_layer_size, input_layer_size, negative_size, sampler, Adam(),
+                                          init_weight=init_weight2)
+
+    layers2 = [layer2_1, layer2_2]
+
+    net2 = Net(layers2, use_last_layer=False)
+
+    iter_num = 1000
     batch_size = 100
-    loss_list = []
+    loss_list1 = []
+    loss_list2 = []
 
     start_time = time.time()
     for i in range(iter_num):
         print("iter_num: {} starts".format(i))
-        batch_mask = np.random.choice(contexts.shape[0], batch_size)
-        x_batch = contexts[batch_mask]
+        batch_mask = np.random.choice(contexts_original.shape[0], batch_size)
+        x_batch_original = contexts_original[batch_mask]
         y_batch = target[batch_mask]
+        y_batch_original = target_original[batch_mask]
 
-        net.gradient_descent(x_batch, y_batch)
+        net1.gradient_descent(x_batch_original, y_batch)
+        loss1 = net1.loss(x_batch_original, y_batch)
+        loss_list1.append(loss1)
 
-        loss = net.loss(x_batch, y_batch)
-        loss_list.append(loss)
+        kwargs_list = [{}, {layer2_2.positive_indexes_key: y_batch_original}]
+        net2.gradient_descent(x_batch_original, y_batch_original, kwargs_list=kwargs_list)
+        loss2 = net2.loss(x_batch_original, y_batch_original, kwargs_list=kwargs_list)
+        loss_list2.append(loss2)
 
     print("execution time (s): %s" % (time.time() - start_time))
     # print(loss_list)
-    y = loss_list
-    x = list(range(1, len(loss_list) + 1))
+    x = list(range(1, len(loss_list1) + 1))
+    y = loss_list1
 
-    plt.plot(x, y)
-    plt.xlabel('iteration')
+    plt.plot(x, loss_list1, label='normal')
+    plt.plot(x, loss_list2, label='negative sampling')
     plt.ylabel('loss')
+    plt.legend()
+
+    word_vec1 = layer1.params[0]
+    word_vec2 = layer2_1.params[0]
+    target_words = ['import', 'export']
+
+    for target_word in target_words:
+        word_similar_list1 = most_similar_words(target_word, wi_converter, word_vec1)
+        word_similar_list2 = most_similar_words(target_word, wi_converter, word_vec2)
+
+        print('[target word]', target_word)
+        for i in range(len(word_similar_list1)):
+            word1, similar1 = word_similar_list1[i]
+            word2, similar2 = word_similar_list2[i]
+            print('{} ({}) vs {} ({})'.format(word1, similar1, word2, similar2))
 
     plt.show()

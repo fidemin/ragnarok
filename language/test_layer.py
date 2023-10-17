@@ -359,6 +359,13 @@ class TestNegativeSampling:
         dout = 1
         layer.backward(dout)
 
+        dW_sub_sum = np.zeros(layer.grads[0].shape)
+
+        for sub_l in layer._embedding_dot_layers:
+            dW_sub_sum += sub_l.grads[0]
+
+        assert np.allclose(layer.grads[0], dW_sub_sum)
+
     def test_update_params(self):
         word_id_list = [0, 1, 2, 3, 0, 1, 5, 1, 4, 3]
         UnigramSampler(word_id_list)
