@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from language.util import WordIdConverter, ConverterException, ContextTargetConverter, convert_to_one_hot_encoding, \
-    UnigramExporter
+    UnigramSampler, most_similar_words
 
 
 @pytest.mark.parametrize(
@@ -106,7 +106,7 @@ class TestContextTargetConverter:
         assert np.array_equal(converter.targets(), expected_targets)
 
 
-class TestUnigramExporter:
+class TestUnigramSampler:
     def test_init(self):
         word_id_list = [0, 1, 2, 3, 0, 1, 5, 1, 2, 3]
         dc = 0.75
@@ -115,27 +115,50 @@ class TestUnigramExporter:
             [(0.2 ** dc) / sum_, (0.3 ** dc) / sum_, (0.2 ** dc) / sum_, (0.2 ** dc) / sum_, (0.0 ** dc) / sum_,
              (0.1 ** dc) / sum_])
 
-        exporter = UnigramExporter(word_id_list, damp_coefficient=dc)
+        exporter = UnigramSampler(word_id_list, damp_coefficient=dc)
         actual = exporter._prob_by_id
         assert np.allclose(actual, expected_prob_by_id)
 
-    def test_choice(self):
+    def test_sample(self):
         word_id_list = [0, 1, 2, 3, 0, 1, 5, 1, 2, 3]
         max_id = 5
         dc = 0.75
-        exporter = UnigramExporter(word_id_list, damp_coefficient=dc)
+        exporter = UnigramSampler(word_id_list, damp_coefficient=dc)
         original_prob_by_id = copy.deepcopy(exporter._prob_by_id)
         size = 2
 
         for i in range(1000):
-            actual = exporter.export(size)
-            assert actual.shape == (size,)
-            assert np.alltrue(np.where(np.logical_and(actual >= 0, actual <= max_id), True, False))
+            actual = exporter.sample(size)
+            actual_array = np.array(actual)
+            assert isinstance(actual, list)
+            assert len(actual) == size
+            assert np.all(np.where(np.logical_and(actual_array >= 0, actual_array <= max_id), True, False))
 
         for i in range(1000):
-            actual = exporter.export(size, exception_ids=[1, 3])
-            assert actual.shape == (size,)
-            condition = np.logical_and(np.logical_and(actual >= 0, actual <= max_id),
-                                       np.logical_and(actual != 1, actual != 3))
-            assert np.alltrue(np.where(condition, True, False))
+            actual = exporter.sample(size, exception_ids=[1, 3])
+            actual_array = np.array(actual)
+            assert isinstance(actual, list)
+            assert len(actual) == size
+            condition = np.logical_and(np.logical_and(actual_array >= 0, actual_array <= max_id),
+                                       np.logical_and(actual_array != 1, actual_array != 3))
+            assert np.all(np.where(condition, True, False))
             assert np.allclose(exporter._prob_by_id, original_prob_by_id)
+
+
+def test_most_similar():
+    words = ['say', 'say', 'good', 'you', 'say', 'i', 'bye', 'bye']
+
+    converter = WordIdConverter(words)
+
+    word_vec = np.array([
+        # target word is 'bye', word_id=0
+        [0.1, 0.2, 0.1, 0.2, 0.0, 0.7],
+        [0.2, 0.1, -0.1, 0.3, 0.0, 0.8],
+        # exact same vec with 1st row
+        [0.1, 0.2, 0.1, 0.2, 0.0, 0.7],
+        [-0.1, -0.2, -1.3, 1.0, 0.0, 1.3],
+        [1.1, 0.1, 2.2, 3.3, 1.1, 2.3]
+    ])
+
+    word_similar_list = most_similar_words(converter.id_to_word(0), converter, word_vec, top=2)
+    assert word_similar_list[0][0] == converter.id_to_word(2)

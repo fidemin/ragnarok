@@ -5,7 +5,9 @@ import numpy as np
 
 class Updater(metaclass=ABCMeta):
     @abstractmethod
-    def update(self, params: list, grads: list):
+    def update(self, params: list[np.ndarray], grads: list[np.ndarray]):
+        # This method should update each parameter's all elements in-place.
+        # e.g. params[i] += (any operation) or params[i][:] = params[i] + (any operation)"
         pass
 
 

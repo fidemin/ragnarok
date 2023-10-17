@@ -1,12 +1,14 @@
 import copy
+from unittest import mock
 
 import numpy as np
 
 from core.updater import SGD
-from language.layer import CBOW, CBOWInputEmbedding, EmbeddingDot
+from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling
+from language.util import UnigramSampler
 
 
-class TestCBOW:
+class TestCBOWInput:
     def test_forward(self):
         W_in = np.array([
             [0.01, 0.04],
@@ -25,7 +27,7 @@ class TestCBOW:
             [(0.05 + 0.02) / 2.0, (0.03 + 0.02) / 2.0]
         ])
 
-        layer = CBOW(W_in, SGD())
+        layer = CBOWInput(W_in, SGD())
         actual = layer.forward(x)
         assert np.allclose(actual, expected)
 
@@ -53,7 +55,7 @@ class TestCBOW:
             [(0.2 + 0.3), (0.5 + 0.4)]
         ]) / 2.0
 
-        layer = CBOW(W_in, SGD())
+        layer = CBOWInput(W_in, SGD())
         layer.forward(forward_input)
         dx = layer.backward(backward_input)
 
@@ -299,3 +301,100 @@ class TestCBOWInputEmbedding:
         # W of sub layer also should be updated
         for sub_layer in layer._sub_layers:
             assert np.allclose(sub_layer.params[0], actual_W)
+
+
+class TestNegativeSampling:
+
+    def test_forward(self):
+        word_id_list = [0, 1, 2, 3, 0, 1, 5, 1, 4, 3]
+        UnigramSampler(word_id_list)
+        sampler_class = mock.Mock(spec=UnigramSampler)
+        sampler_instance = sampler_class.return_value
+        sampler_instance.sample.return_value = [2, 3]
+
+        W = np.array([
+            [0.01, 0.04, 0.02, 0.04, 0.01, 0.04],
+            [0.02, 0.02, 0.07, 0.01, 0.04, 0.02],
+            [0.12, 0.31, 0.03, 0.09, 0.04, 0.22],
+        ])
+
+        forward_input = np.array([
+            [0.2, 0.3, 0.5],
+            [0.6, 0.2, 0.7]
+        ])
+
+        positive_indexes = [1, 5]
+
+        negative_size = 2
+        layer = NegativeSampling(W, negative_size, sampler_instance, SGD())
+        kwargs = {NegativeSampling.positive_indexes_key: positive_indexes}
+
+        layer.forward(forward_input, **kwargs)
+
+    def test_backward(self):
+        word_id_list = [0, 1, 2, 3, 0, 1, 5, 1, 4, 3]
+        UnigramSampler(word_id_list)
+        sampler_class = mock.Mock(spec=UnigramSampler)
+        sampler_instance = sampler_class.return_value
+        sampler_instance.sample.return_value = [2, 3]
+
+        W = np.array([
+            [0.01, 0.04, 0.02, 0.04, 0.01, 0.04],
+            [0.02, 0.02, 0.07, 0.01, 0.04, 0.02],
+            [0.12, 0.31, 0.03, 0.09, 0.04, 0.22],
+        ])
+
+        forward_input = np.array([
+            [0.2, 0.3, 0.5],
+            [0.6, 0.2, 0.7]
+        ])
+
+        positive_indexes = [1, 5]
+
+        negative_size = 2
+        layer = NegativeSampling(W, negative_size, sampler_instance, SGD())
+        kwargs = {NegativeSampling.positive_indexes_key: positive_indexes}
+
+        layer.forward(forward_input, **kwargs)
+        dout = 1
+        layer.backward(dout)
+
+    def test_update_params(self):
+        word_id_list = [0, 1, 2, 3, 0, 1, 5, 1, 4, 3]
+        UnigramSampler(word_id_list)
+        sampler_class = mock.Mock(spec=UnigramSampler)
+        sampler_instance = sampler_class.return_value
+        sampler_instance.sample.return_value = [2, 3]
+
+        W = np.array([
+            [0.01, 0.04, 0.02, 0.04, 0.01, 0.04],
+            [0.02, 0.02, 0.07, 0.01, 0.04, 0.02],
+            [0.12, 0.31, 0.03, 0.09, 0.04, 0.22],
+        ])
+
+        W_original = copy.deepcopy(W)
+
+        forward_input = np.array([
+            [0.2, 0.3, 0.5],
+            [0.6, 0.2, 0.7]
+        ])
+
+        positive_indexes = [1, 5]
+
+        negative_size = 2
+        layer = NegativeSampling(W, negative_size, sampler_instance, SGD())
+        kwargs = {NegativeSampling.positive_indexes_key: positive_indexes}
+
+        layer.forward(forward_input, **kwargs)
+        dout = 1
+        layer.backward(dout)
+        assert np.allclose(W_original, layer.params[0])
+
+        layer.update_params()
+
+        W_new = layer.params[0]
+        assert not np.allclose(W_original, W_new)
+
+        for embedding_dot_layer in layer._embedding_dot_layers:
+            assert np.allclose(W_new, embedding_dot_layer.params[0])
+            assert np.allclose(W_new, embedding_dot_layer._embedding_layer.params[0].T)

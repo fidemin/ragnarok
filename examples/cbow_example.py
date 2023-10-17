@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from core.layer import Affine
 from core.net import Net
 from core.updater import Adam
-from language.layer import CBOW
+from language.layer import CBOWInput
 from language.util import process_text, ContextTargetConverter, WordIdConverter, convert_to_one_hot_encoding
 
 if __name__ == '__main__':
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     input_layer_size = wi_converter.max_id() + 1
     hidden_layer_size = 50
 
-    layer1 = CBOW.from_size(input_layer_size, hidden_layer_size, Adam())
+    layer1 = CBOWInput.from_size(input_layer_size, hidden_layer_size, Adam())
     layer2 = Affine.from_sizes(hidden_layer_size, input_layer_size, Adam(), useBias=False)
 
     layers = [layer1, layer2]

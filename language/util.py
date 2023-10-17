@@ -99,7 +99,7 @@ class ContextTargetConverter:
         return self._targets
 
 
-class UnigramExporter:
+class UnigramSampler:
     def __init__(self, word_id_list: list[int], damp_coefficient=0.75):
         self._word_id_list = word_id_list
 
@@ -116,7 +116,7 @@ class UnigramExporter:
         self._prob_by_id = prob_by_id
         self._id_array = np.arange(word_id_length)
 
-    def export(self, size: int, exception_ids=None) -> np.ndarray:
+    def sample(self, size: int, exception_ids=None) -> list[int]:
         new_prob = self._prob_by_id
 
         if exception_ids:
@@ -126,4 +126,35 @@ class UnigramExporter:
 
         result = np.random.choice(self._id_array, size=size, p=new_prob, replace=False)
 
-        return result
+        return result.tolist()
+
+
+def cosine_similarity(x: np.ndarray, y: np.ndarray):
+    return np.dot(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
+
+
+def most_similar_words(word, word_id_converter: WordIdConverter, word_vec, top=5):
+    word_id = word_id_converter.word_to_id(word)
+
+    word_vec_row = word_vec[word_id]
+    word_size = word_id_converter.max_id() + 1
+
+    similarity = np.zeros(word_size)
+    for i in range(word_size):
+        similarity[i] = cosine_similarity(word_vec_row, word_vec[i])
+
+    word_similarity_list = []
+    count = 0
+    for i in (-1 * similarity).argsort():
+        if count > top:
+            break
+
+        if i == word_id:
+            continue
+
+        word = word_id_converter.id_to_word(i)
+        word_similarity_list.append((word, similarity[i]))
+
+        count += 1
+
+    return word_similarity_list
