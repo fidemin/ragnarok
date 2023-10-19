@@ -60,13 +60,14 @@ class AdaGrad(Updater):
 
 
 class Adam(Updater):
-    def __init__(self, lr=0.001, beta1=0.9, beta2=0.99):
+    def __init__(self, lr=0.001, beta1=0.9, beta2=0.999):
         self._lr = lr
         self._beta1 = beta1
         self._beta2 = beta2
         self._iter = 0
         self._momentum1 = []
         self._momentum2 = []
+        self._epsilon = 1e-8
 
     def update(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
         if self._iter == 0:
@@ -82,6 +83,6 @@ class Adam(Updater):
             self._momentum2[i] = self._beta2 * self._momentum2[i] + (1 - self._beta2) * np.power(grads[i], 2)
             momentum2_corr = self._momentum2[i] / (1 - (self._beta2 ** self._iter))
 
-            params[i] -= self._lr * momentum1_corr / (np.sqrt(momentum2_corr + 1e-8))
+            params[i] -= self._lr * momentum1_corr / (np.sqrt(momentum2_corr) + self._epsilon)
 
         return params
