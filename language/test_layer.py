@@ -434,11 +434,44 @@ class TestLSTM:
             [1.1, 2.5]
         ])
 
-        lstm = LSTM(Wx, Wh, b, SGD())
+        lstm = LSTM(Wx, Wh, b)
+        lstm.forward(x, h_prev, c_prev)
 
-        kwargs = {
-            LSTM.h_prev_key: h_prev,
-            LSTM.c_prev_key: c_prev
-        }
+    def test_backward(self):
+        Wx = np.array([
+            [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+            [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8],
+            [2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8],
+        ])
 
-        lstm.forward(x, **kwargs)
+        Wh = np.array([
+            [-0.1, -0.2, 0.2, 0.1, 0.3, 0.6, 0.7, 0.8],
+            [0.5, 1.2, 1.2, 1.7, 1.1, 1.6, 2.7, 2.0],
+        ])
+
+        b = np.array([
+            [0.4, 0.5, 0.1, 0.2, 0.3, 0.7, 0.8, 0.6]
+        ])
+
+        x = np.array([
+            [0.3, 0.2, 0.7]
+        ])
+        h_prev = np.array([
+            [1.1, 2.4]
+        ])
+        c_prev = np.array([
+            [1.1, 2.5]
+        ])
+
+        lstm = LSTM(Wx, Wh, b)
+        lstm.forward(x, h_prev, c_prev)
+
+        dh = np.array([
+            [0.01, 0.03]
+        ])
+
+        dc = np.array(
+            [0.04, 0.02]
+        )
+
+        lstm.backward(dh, dc)

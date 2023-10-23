@@ -249,19 +249,17 @@ class NegativeSampling(Layer):
         self._updater.update(self.params, self.grads)
 
 
-class LSTM(Layer):
-    h_prev_key = 'h_prev'
-    c_prev_key = 'c_prev'
-
-    def __init__(self, Wx, Wh, b, updater: Updater):
+class LSTM:
+    def __init__(self, Wx, Wh, b):
         self.params = [Wx, Wh, b]
         self.grads = [np.zeros_like(Wx), np.zeros_like(Wh), np.zeros_like(b)]
 
         self._cache = {}
 
-    def forward(self, x: np.ndarray, **kwargs):
-        h_prev = kwargs[self.h_prev_key]
-        c_prev = kwargs[self.c_prev_key]
+    def forward(self, x: np.ndarray, h_prev: np.ndarray, c_prev: np.ndarray):
+        self._cache['x'] = x
+        self._cache['h_prev'] = h_prev
+        self._cache['c_prev'] = c_prev
 
         N, H = h_prev.shape
 
@@ -280,13 +278,50 @@ class LSTM(Layer):
         input_gate = sigmoid(input_gate)
         output_gate = sigmoid(output_gate)
 
+        self._cache['forget_gate'] = forget_gate
+        self._cache['remember_cell'] = remember_cell
+        self._cache['input_gate'] = input_gate
+        self._cache['output_gate'] = output_gate
+
         c_next = c_prev * forget_gate + remember_cell * input_gate
         h_next = tanh(c_next) * output_gate
 
-        return h_next
+        self._cache['h_next'] = h_next
+        self._cache['c_next'] = c_next
 
-    def backward(self, dout: np.ndarray):
-        pass
+        return h_next, c_next
 
-    def update_params(self):
-        pass
+    def backward(self, dh: np.ndarray, dc: np.ndarray):
+        x = self._cache['x']
+        h_prev = self._cache['h_prev']
+        c_prev = self._cache['c_prev']
+        forget_gate = self._cache['forget_gate']
+        remember_cell = self._cache['remember_cell']
+        input_gate = self._cache['input_gate']
+        output_gate = self._cache['output_gate']
+
+        dc_prev = dc * forget_gate
+
+        doutput_gate = dh * output_gate * (1 - output_gate)
+
+        dinput_gate_pre_sigmoid = dc * remember_cell
+        dinput_gate = dinput_gate_pre_sigmoid * input_gate * (1 - input_gate)
+
+        dremember_cell_pre_tanh = dc * input_gate
+        dremember_cell = dremember_cell_pre_tanh * (1 - np.square(remember_cell))
+
+        dforget = dc * c_prev
+
+        # shape: N X 4H
+        dZ = np.hstack((dforget, dremember_cell, dinput_gate, doutput_gate))
+
+        self.grads[0][...] = np.dot(x.T, dZ)
+        self.grads[1][...] = np.dot(h_prev.T, dZ)
+        self.grads[2][...] = np.sum(dZ, axis=1, keepdims=True)
+
+        # shape: N * D
+        dx = np.dot(dZ, self.params[0].T)
+        # shape: N * H
+        dh_prev = np.dot(dZ, self.params[1].T)
+
+        return dx, dh_prev, dc_prev
