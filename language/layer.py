@@ -2,6 +2,7 @@ from functools import reduce
 
 import numpy as np
 
+from core.activation import sigmoid, tanh
 from core.layer import Layer, Affine, LayerException, SigmoidWithLoss
 from core.updater import Updater
 from language.util import UnigramSampler
@@ -246,3 +247,46 @@ class NegativeSampling(Layer):
 
     def update_params(self):
         self._updater.update(self.params, self.grads)
+
+
+class LSTM(Layer):
+    h_prev_key = 'h_prev'
+    c_prev_key = 'c_prev'
+
+    def __init__(self, Wx, Wh, b, updater: Updater):
+        self.params = [Wx, Wh, b]
+        self.grads = [np.zeros_like(Wx), np.zeros_like(Wh), np.zeros_like(b)]
+
+        self._cache = {}
+
+    def forward(self, x: np.ndarray, **kwargs):
+        h_prev = kwargs[self.h_prev_key]
+        c_prev = kwargs[self.c_prev_key]
+
+        N, H = h_prev.shape
+
+        Wx = self.params[0]
+        Wh = self.params[1]
+        b = self.params[2]
+        Z = np.matmul(x, Wx) + np.matmul(h_prev, Wh) + b
+
+        forget_gate = Z[:, :H]
+        remember_cell = Z[:, H: 2 * H]
+        input_gate = Z[:, 2 * H: 3 * H]
+        output_gate = Z[:, 3 * H:]
+
+        forget_gate = sigmoid(forget_gate)
+        remember_cell = tanh(remember_cell)
+        input_gate = sigmoid(input_gate)
+        output_gate = sigmoid(output_gate)
+
+        c_next = c_prev * forget_gate + remember_cell * input_gate
+        h_next = tanh(c_next) * output_gate
+
+        return h_next
+
+    def backward(self, dout: np.ndarray):
+        pass
+
+    def update_params(self):
+        pass

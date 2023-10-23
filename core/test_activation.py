@@ -22,6 +22,15 @@ def test_sigmoid():
     assert np.allclose(actual, expected)
 
 
+def test_tanh():
+    test_input = np.array([10.0, 0.0, -1.5])
+
+    expected = np.array([0.999999995878, 0.0, -0.905148253645])
+    actual = activation.tanh(test_input)
+
+    assert np.allclose(actual, expected)
+
+
 @pytest.mark.parametrize(
     "test_input,expected",
     [

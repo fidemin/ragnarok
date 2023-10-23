@@ -4,7 +4,7 @@ from unittest import mock
 import numpy as np
 
 from core.updater import SGD
-from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling
+from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM
 from language.util import UnigramSampler
 
 
@@ -405,3 +405,40 @@ class TestNegativeSampling:
         for embedding_dot_layer in layer._embedding_dot_layers:
             assert np.allclose(W_new, embedding_dot_layer.params[0])
             assert np.allclose(W_new, embedding_dot_layer._embedding_layer.params[0].T)
+
+
+class TestLSTM:
+    def test_forward(self):
+        Wx = np.array([
+            [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+            [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8],
+            [2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8],
+        ])
+
+        Wh = np.array([
+            [-0.1, -0.2, 0.2, 0.1, 0.3, 0.6, 0.7, 0.8],
+            [0.5, 1.2, 1.2, 1.7, 1.1, 1.6, 2.7, 2.0],
+        ])
+
+        b = np.array([
+            [0.4, 0.5, 0.1, 0.2, 0.3, 0.7, 0.8, 0.6]
+        ])
+
+        x = np.array([
+            [0.3, 0.2, 0.7]
+        ])
+        h_prev = np.array([
+            [1.1, 2.4]
+        ])
+        c_prev = np.array([
+            [1.1, 2.5]
+        ])
+
+        lstm = LSTM(Wx, Wh, b, SGD())
+
+        kwargs = {
+            LSTM.h_prev_key: h_prev,
+            LSTM.c_prev_key: c_prev
+        }
+
+        lstm.forward(x, **kwargs)
