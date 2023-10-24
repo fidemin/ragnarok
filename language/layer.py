@@ -333,3 +333,78 @@ class LSTM:
         dh_prev = np.dot(dZ, self.params[1].T)
 
         return dx, dh_prev, dc_prev
+
+
+class GroupedLSTM(Layer):
+    def __init__(self, Wx: np.ndarray, Wh: np.ndarray, b: np.ndarray, stateful=False):
+        self._validate_params(Wx, Wh, b)
+
+        self.params = [Wx, Wh, b]
+        self.grads = [np.zeros_like(Wx), np.zeros_like(Wh), np.zeros_like(b)]
+        self._stateful = stateful
+
+        self._layers = None
+        self._h = None
+        self._c = None
+
+    def _validate_params(self, Wx, Wh, b):
+        assert 4 * Wx.shape[1] == Wh.shape[1], "4 * Wx.shape[0] == Wh.shape[1] is required"
+        assert 4 * Wh.shape[0] == Wh.shape[1], "4 * Wh.shape[0] == Wh.shape[1] is required"
+        assert Wh.shape[1] == b.shape[1], "Wh.shape[1] == b.shape[1] is required"
+
+    def forward(self, xs: np.ndarray, **kwargs):
+        Wx, Wh, b = self.params
+
+        # N: batch size, T: subsequences size, D: input size
+        N, T, D = xs.shape
+
+        # H: hidden size
+        H = Wh.shape[0]
+
+        self._layers = []
+        hs = np.zeros((N, T, H))
+
+        if not self._stateful or self._h is None:
+            self._h = np.zeros((N, H))
+
+        if not self._stateful or self._c is None:
+            self._c = np.zeros((N, H))
+
+        for t in range(T):
+            layer = LSTM(Wx, Wh, b)
+            h, c = layer.forward(xs[:, t, :], self._h, self._c)
+            hs[:, t, :] = h
+
+            # save h, c for forward propagation of next subsequences
+            self._h = h
+            self._c = c
+
+            self._layers.append(layer)
+
+    def backward(self, dhs: np.ndarray):
+        Wx, Wh, b = self.params
+        N, T, H = dhs.shape
+        D = Wx.shape[0]
+
+        # initialize with zeros for truncated BPTT
+        dh, dc = 0, 0
+        grads = [0, 0, 0]
+
+        dxs = np.zeros((N, T, D))
+
+        for t in reversed(range(T)):
+            layer = self._layers[t]
+            dx, dh, dc = layer.backward(dhs[:, t, :] + dh, dc)
+            dxs[:, t, :] = dx
+
+            for i, grad in enumerate(layer.grads):
+                # sum all gradients because same Wh, Wx, b is used in layers.
+                grads[i] += grad
+
+        for i, grad in enumerate(grads):
+            self.grads[i][...] = grad
+
+        return dxs
+
+    def update_params(self):
+        pass
