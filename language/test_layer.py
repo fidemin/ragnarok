@@ -474,4 +474,11 @@ class TestLSTM:
             [0.04, 0.02]
         )
 
-        lstm.backward(dh, dc)
+        dx, dh_prev, dc_prev = lstm.backward(dh, dc)
+
+        assert x.shape == dx.shape
+        assert h_prev.shape == dh_prev.shape
+        assert c_prev.shape == dc_prev.shape
+        assert Wx.shape == lstm.grads[0].shape
+        assert Wh.shape == lstm.grads[1].shape
+        assert b.shape == lstm.grads[2].shape

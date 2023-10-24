@@ -284,10 +284,10 @@ class LSTM:
         self._cache['output_gate'] = output_gate
 
         c_next = c_prev * forget_gate + remember_cell * input_gate
-        h_next = tanh(c_next) * output_gate
+        tanh_c_next = tanh(c_next)
+        h_next = tanh_c_next * output_gate
 
-        self._cache['h_next'] = h_next
-        self._cache['c_next'] = c_next
+        self._cache['tanh_c_next'] = tanh_c_next
 
         return h_next, c_next
 
@@ -295,29 +295,37 @@ class LSTM:
         x = self._cache['x']
         h_prev = self._cache['h_prev']
         c_prev = self._cache['c_prev']
+        tanh_c_next = self._cache['tanh_c_next']
         forget_gate = self._cache['forget_gate']
         remember_cell = self._cache['remember_cell']
         input_gate = self._cache['input_gate']
         output_gate = self._cache['output_gate']
 
-        dc_prev = dc * forget_gate
+        dtanh_h_next = dh * output_gate * (1 - np.square(tanh_c_next))
+        ds = dc + dtanh_h_next
 
-        doutput_gate = dh * output_gate * (1 - output_gate)
+        dc_prev = ds * forget_gate
+        doutput_gate = dh * tanh_c_next
+        dZ_o = doutput_gate * output_gate * (1 - output_gate)
 
-        dinput_gate_pre_sigmoid = dc * remember_cell
-        dinput_gate = dinput_gate_pre_sigmoid * input_gate * (1 - input_gate)
+        dinput_gate = ds * remember_cell
+        dZ_i = dinput_gate * input_gate * (1 - input_gate)
 
-        dremember_cell_pre_tanh = dc * input_gate
-        dremember_cell = dremember_cell_pre_tanh * (1 - np.square(remember_cell))
+        dremember = ds * input_gate
+        dZ_r = dremember * (1 - np.square(remember_cell))
 
-        dforget = dc * c_prev
+        dforget_gate = ds * c_prev
+        dZ_f = dforget_gate * forget_gate * (1 - forget_gate)
 
         # shape: N X 4H
-        dZ = np.hstack((dforget, dremember_cell, dinput_gate, doutput_gate))
+        dZ = np.hstack((dZ_f, dZ_r, dZ_i, dZ_o))
 
+        # dWx
         self.grads[0][...] = np.dot(x.T, dZ)
+        # dWh
         self.grads[1][...] = np.dot(h_prev.T, dZ)
-        self.grads[2][...] = np.sum(dZ, axis=1, keepdims=True)
+        # db
+        self.grads[2][...] = np.sum(dZ, axis=0, keepdims=True)
 
         # shape: N * D
         dx = np.dot(dZ, self.params[0].T)
