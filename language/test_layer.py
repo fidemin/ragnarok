@@ -2,9 +2,10 @@ import copy
 from unittest import mock
 
 import numpy as np
+import pytest
 
 from core.updater import SGD
-from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM
+from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM, GroupedLSTM
 from language.util import UnigramSampler
 
 
@@ -482,3 +483,173 @@ class TestLSTM:
         assert Wx.shape == lstm.grads[0].shape
         assert Wh.shape == lstm.grads[1].shape
         assert b.shape == lstm.grads[2].shape
+
+
+class TestGroupedLSTM:
+
+    def test_init(self):
+        Wx = np.array([
+            [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+            [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8],
+            [2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8],
+        ])
+
+        Wh = np.array([
+            [-0.1, -0.2, 0.2, 0.1, 0.3, 0.6, 0.7, 0.8],
+            [0.5, 1.2, 1.2, 1.7, 1.1, 1.6, 2.7, 2.0],
+        ])
+
+        b = np.array([
+            [0.4, 0.5, 0.1, 0.2, 0.3, 0.7, 0.8, 0.6]
+        ])
+
+        layer = GroupedLSTM(Wx, Wh, b)
+        assert np.allclose(Wx, layer.params[0])
+        assert np.allclose(Wh, layer.params[1])
+        assert np.allclose(b, layer.params[2])
+        assert Wx.shape == layer.grads[0].shape
+        assert Wh.shape == layer.grads[1].shape
+        assert b.shape == layer.grads[2].shape
+        assert layer._stateful is False
+
+        layer = GroupedLSTM(Wx, Wh, b, True)
+        assert np.allclose(Wx, layer.params[0])
+        assert np.allclose(Wh, layer.params[1])
+        assert np.allclose(b, layer.params[2])
+        assert Wx.shape == layer.grads[0].shape
+        assert Wh.shape == layer.grads[1].shape
+        assert b.shape == layer.grads[2].shape
+        assert layer._stateful is True
+
+    @pytest.mark.parametrize(
+        'Wx,Wh,b',
+        [
+            (
+                    np.array([
+                        [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+                        [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7],
+                        [2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7],
+                    ]),
+
+                    np.array([
+                        [-0.1, -0.2, 0.2, 0.1, 0.3, 0.6, 0.7, 0.8],
+                        [0.5, 1.2, 1.2, 1.7, 1.1, 1.6, 2.7, 2.0],
+                    ]),
+                    np.array([
+                        [0.4, 0.5, 0.1, 0.2, 0.3, 0.7, 0.8, 0.6]
+                    ])
+            ),
+            (
+                    np.array([
+                        [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+                        [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8],
+                        [2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8],
+                    ]),
+
+                    np.array([
+                        [-0.1, -0.2, 0.2, 0.1, 0.3, 0.6, 0.7, 0.8],
+                    ]),
+                    np.array([
+                        [0.4, 0.5, 0.1, 0.2, 0.3, 0.7, 0.8, 0.6]
+                    ])
+            ),
+            (
+                    np.array([
+                        [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+                        [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8],
+                        [2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8],
+                    ]),
+
+                    np.array([
+                        [-0.1, -0.2, 0.2, 0.1, 0.3, 0.6, 0.7, 0.8],
+                        [0.5, 1.2, 1.2, 1.7, 1.1, 1.6, 2.7, 2.0],
+                    ]),
+                    np.array([
+                        [0.4, 0.5, 0.1, 0.2, 0.3, 0.7, 0.8]
+                    ])
+            )
+        ]
+    )
+    def test_validate_params(self, Wx, Wh, b):
+        with pytest.raises(AssertionError):
+            GroupedLSTM(Wx, Wh, b)
+
+    def test_forward(self):
+        Wx = np.array([
+            [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+            [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8],
+            [2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8],
+        ])
+
+        Wh = np.array([
+            [-0.1, -0.2, 0.2, 0.1, 0.3, 0.6, 0.7, 0.8],
+            [0.5, 1.2, 1.2, 1.7, 1.1, 1.6, 2.7, 2.0],
+        ])
+
+        H = Wh.shape[0]
+
+        b = np.array([
+            [0.4, 0.5, 0.1, 0.2, 0.3, 0.7, 0.8, 0.6]
+        ])
+
+        # N, T, D = 1, 2, 3
+        xs = np.array([
+            [
+                [0.3, 0.2, 0.7], [0.1, 0.5, 0.4]
+            ]
+        ])
+
+        N, T, _ = xs.shape
+
+        layer = GroupedLSTM(Wx, Wh, b)
+        hs = layer.forward(xs)
+
+        assert hs.shape == (N, T, H)
+        assert len(layer._layers) == T
+        assert layer._h.shape == (N, H)
+        assert layer._c.shape == (N, H)
+        for sublayer in layer._layers:
+            for i, param in enumerate(sublayer.params):
+                assert np.allclose(layer.params[i], param)
+
+    def test_backward(self):
+        Wx = np.array([
+            [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+            [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8],
+            [2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8],
+        ])
+
+        Wh = np.array([
+            [-0.1, -0.2, 0.2, 0.1, 0.3, 0.6, 0.7, 0.8],
+            [0.5, 1.2, 1.2, 1.7, 1.1, 1.6, 2.7, 2.0],
+        ])
+
+        b = np.array([
+            [0.4, 0.5, 0.1, 0.2, 0.3, 0.7, 0.8, 0.6]
+        ])
+
+        # N, T, D = 1, 2, 3
+        xs = np.array([
+            [
+                [0.3, 0.2, 0.7], [0.1, 0.5, 0.4]
+            ]
+        ])
+
+        # N, T, H = 1, 2, 2
+        dhs = np.array([
+            [
+                [0.01, 0.03], [0.02, 0.04]
+            ]
+        ])
+
+        N, T, _ = xs.shape
+
+        layer = GroupedLSTM(Wx, Wh, b)
+        layer.forward(xs)
+        dxs = layer.backward(dhs)
+
+        assert dxs.shape == xs.shape
+
+        # gradient should be sum of sub layers's gradients
+        for i, grad in enumerate(layer.grads):
+            assert np.allclose(grad, layer._layers[0].grads[i] + layer._layers[1].grads[i])

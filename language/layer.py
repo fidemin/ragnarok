@@ -337,19 +337,22 @@ class LSTM:
 
 class GroupedLSTM(Layer):
     def __init__(self, Wx: np.ndarray, Wh: np.ndarray, b: np.ndarray, stateful=False):
-        self._validate_params(Wx, Wh, b)
 
         self.params = [Wx, Wh, b]
         self.grads = [np.zeros_like(Wx), np.zeros_like(Wh), np.zeros_like(b)]
+
+        self._validate_params()
         self._stateful = stateful
 
         self._layers = None
         self._h = None
         self._c = None
 
-    def _validate_params(self, Wx, Wh, b):
-        assert 4 * Wx.shape[1] == Wh.shape[1], "4 * Wx.shape[0] == Wh.shape[1] is required"
+    def _validate_params(self):
+        Wx, Wh, b = self.params
+        assert Wx.shape[1] == Wh.shape[1], "Wx.shape[1] == Wh.shape[1] is required"
         assert 4 * Wh.shape[0] == Wh.shape[1], "4 * Wh.shape[0] == Wh.shape[1] is required"
+        assert 1 == b.shape[0], "b.shape[0] should be 1"
         assert Wh.shape[1] == b.shape[1], "Wh.shape[1] == b.shape[1] is required"
 
     def forward(self, xs: np.ndarray, **kwargs):
@@ -372,14 +375,14 @@ class GroupedLSTM(Layer):
 
         for t in range(T):
             layer = LSTM(Wx, Wh, b)
-            h, c = layer.forward(xs[:, t, :], self._h, self._c)
-            hs[:, t, :] = h
 
-            # save h, c for forward propagation of next subsequences
-            self._h = h
-            self._c = c
+            # save h, c as instance variable for forward propagation of next subsequences (truncated group)
+            self._h, self._c = layer.forward(xs[:, t, :], self._h, self._c)
+            hs[:, t, :] = self._h
 
             self._layers.append(layer)
+
+        return hs
 
     def backward(self, dhs: np.ndarray):
         Wx, Wh, b = self.params
