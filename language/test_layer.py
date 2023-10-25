@@ -5,7 +5,8 @@ import numpy as np
 import pytest
 
 from core.updater import SGD
-from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM, GroupedLSTM, Embedding
+from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM, GroupedLSTM, Embedding, \
+    GroupedAffine
 from language.util import UnigramSampler
 
 
@@ -715,3 +716,82 @@ class TestEmbedding:
 
         assert dW_actual.shape == dW_expected.shape
         assert np.allclose(dW_actual, dW_expected)
+
+
+class TestGroupedAffine:
+    def test_forward(self):
+        # W shape (D, H) = (3, 2)
+        W = np.array([
+            [0.01, 0.04],
+            [0.02, 0.02],
+            [0.05, 0.03]])
+
+        # b shape (1, H) = (1, 2)
+        b = np.array([
+            [0.02, 0.04]
+        ])
+
+        # xs shape (N, T, D) = (1, 4, 3)
+        xs = np.array([
+            [
+                [0.1, 0.2, 0.3],
+                [0.4, 0.5, 0.1],
+                [0.3, 0.7, 0.1],
+                [0.2, 0.2, 0.3]
+            ],
+        ])
+
+        layer = GroupedAffine(W, b, SGD())
+
+        actual = layer.forward(xs)
+
+        # expected shape: (N, T, H) = (1, 4, 2)
+        expected = np.array([
+            [
+                [np.dot(xs[0][0], W[:, 0]) + b[0][0], np.dot(xs[0][0], W[:, 1]) + b[0][1]],
+                [np.dot(xs[0][1], W[:, 0]) + b[0][0], np.dot(xs[0][1], W[:, 1]) + b[0][1]],
+                [np.dot(xs[0][2], W[:, 0]) + b[0][0], np.dot(xs[0][2], W[:, 1]) + b[0][1]],
+                [np.dot(xs[0][3], W[:, 0]) + b[0][0], np.dot(xs[0][3], W[:, 1]) + b[0][1]],
+            ]
+        ])
+
+        assert np.allclose(actual, expected)
+
+    def test_backward(self):
+        # W shape (D, H) = (3, 2)
+        W = np.array([
+            [0.01, 0.04],
+            [0.02, 0.02],
+            [0.05, 0.03]])
+
+        # b shape (1, H) = (1, 2)
+        b = np.array([
+            [0.02, 0.04]
+        ])
+
+        # xs shape (N, T, D) = (1, 4, 3)
+        xs = np.array([
+            [
+                [0.1, 0.2, 0.3],
+                [0.4, 0.5, 0.1],
+                [0.3, 0.7, 0.1],
+                [0.2, 0.2, 0.3]
+            ],
+        ])
+
+        dhs = np.array([
+            [
+                [0.1, 0.2],
+                [0.4, 0.5],
+                [0.3, 0.7],
+                [0.2, 0.2]
+            ]
+        ])
+
+        layer = GroupedAffine(W, b, SGD())
+        layer.forward(xs)
+        actual = layer.backward(dhs)
+
+        assert actual.shape == xs.shape
+        assert not np.allclose(layer.grads[0], np.zeros_like(layer.params[0].shape))
+        assert not np.allclose(layer.grads[1], np.zeros_like(layer.params[1].shape))

@@ -411,3 +411,50 @@ class GroupedLSTM(Layer):
 
     def update_params(self):
         pass
+
+
+class GroupedAffine(Layer):
+    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Updater):
+        self.params = [W, b]
+        self.grads = [np.zeros_like(W), np.zeros_like(b)]
+        self._updater = updater
+
+        self._cache = {}
+
+    def forward(self, xs: np.ndarray, **kwargs):
+        N, T, D = xs.shape
+        self._cache['original_shape'] = xs.shape
+        W = self.params[0]
+        b = self.params[1]
+
+        H = W.shape[1]
+
+        xs = xs.reshape(N * T, D)
+
+        self._cache['xs'] = xs
+
+        Z = np.dot(xs, W) + b
+
+        return Z.reshape(N, T, H)
+
+    def backward(self, dout: np.ndarray):
+        N, T, H = dout.shape
+
+        xs = self._cache['xs']
+        original_shape = self._cache['original_shape']
+
+        W = self.params[0]
+        dW = self.grads[0]
+        db = self.grads[1]
+
+        # dW calculation
+        dout = dout.reshape(N * T, H)
+        dW[...] = np.dot(xs.T, dout)
+        db[...] = np.sum(dout, axis=0)
+
+        dxs = np.dot(dout, W.T)
+        dxs = dxs.reshape(original_shape)
+        return dxs
+
+    def update_params(self):
+        self._updater.update(self.params, self.grads)
