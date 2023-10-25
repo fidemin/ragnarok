@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from core.updater import SGD
-from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM, GroupedLSTM
+from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM, GroupedLSTM, Embedding
 from language.util import UnigramSampler
 
 
@@ -653,3 +653,65 @@ class TestGroupedLSTM:
         # gradient should be sum of sub layers's gradients
         for i, grad in enumerate(layer.grads):
             assert np.allclose(grad, layer._layers[0].grads[i] + layer._layers[1].grads[i])
+
+
+class TestEmbedding:
+    def test_forward(self):
+        # W shape = D, H
+        W = np.array([
+            [0.01, 0.04],
+            [0.02, 0.02],
+            [0.05, 0.03]])
+
+        # xs shape = (N, T) = (2, 3)
+        xs = np.array([
+            [0, 1, 2],
+            [1, 2, 2]
+        ])
+
+        embedding = Embedding(W, SGD())
+
+        actual = embedding.forward(xs)
+
+        # expected output shape = (N, T, H)
+        expected = np.array([
+            [[0.01, 0.04], [0.02, 0.02], [0.05, 0.03]],
+            [[0.02, 0.02], [0.05, 0.03], [0.05, 0.03]]
+        ])
+
+        assert np.allclose(actual, expected)
+
+    def test_backward(self):
+        # W shape = D, H
+        W = np.array([
+            [0.01, 0.04],
+            [0.02, 0.02],
+            [0.05, 0.03]])
+
+        # xs shape = (N, T) = (2, 3)
+        xs = np.array([
+            [0, 1, 2],
+            [1, 2, 2]
+        ])
+
+        embedding = Embedding(W, SGD())
+
+        embedding.forward(xs)
+
+        dhs = np.array([
+            [[0.1, 0.4], [0.2, 0.2], [0.5, 0.3]],
+            [[0.2, 0.2], [0.5, 0.3], [0.5, 0.3]]
+        ])
+
+        embedding.backward(dhs)
+
+        dW_actual = embedding.grads[0]
+
+        dW_expected = np.array([
+            dhs[0][0],
+            dhs[0][1] + dhs[1][0],
+            dhs[0][2] + dhs[1][1] + dhs[1][2]
+        ])
+
+        assert dW_actual.shape == dW_expected.shape
+        assert np.allclose(dW_actual, dW_expected)

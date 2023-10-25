@@ -79,7 +79,7 @@ class Embedding(Layer):
         dW[...] = 0
         np.add.at(dW, self._x, dout)
 
-        # Embdding layer has no output because it has no meaning.
+        # Embedding layer has no output because it has no meaning.
         return None
 
     def update_params(self):
