@@ -831,3 +831,30 @@ class TestGroupedSoftmaxWithLoss:
              cross_entropy(softmax(xs[0][2]), ts[0][2]),
              cross_entropy(softmax(xs[0][3]), ts[0][3])]) / 4
         assert actual == expected
+
+    def test_backward(self):
+        # xs shape (N, T, D) = (1, 4, 3)
+        xs = np.array([
+            [
+                [0.1, 0.2, 0.3],
+                [0.4, 0.5, 0.1],
+                [0.3, 0.7, 0.1],
+                [0.2, 0.2, 0.3]
+            ],
+        ])
+
+        # ts shape: same as xs
+        ts = np.array([
+            [
+                [0, 1, 0],
+                [1, 0, 0],
+                [1, 0, 0],
+                [0, 0, 1]
+            ]
+        ])
+
+        layer = GroupedSoftmaxWithLoss()
+        layer.forward(xs, ts)
+        dxs = layer.backward()
+
+        assert xs.shape == dxs.shape
