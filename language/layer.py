@@ -2,6 +2,7 @@ from functools import reduce
 
 import numpy as np
 
+from core import activation, loss
 from core.activation import sigmoid, tanh
 from core.layer import Layer, Affine, LayerException, SigmoidWithLoss
 from core.updater import Updater
@@ -458,3 +459,32 @@ class GroupedAffine(Layer):
 
     def update_params(self):
         self._updater.update(self.params, self.grads)
+
+
+class GroupedSoftmaxWithLoss:
+    def __init__(self):
+        self.params = []
+        self.grads = []
+        self._cache = {}
+
+    def forward(self, xs: np.ndarray, ts: np.ndarray):
+        N, T, D = xs.shape
+        self._cache['original_size'] = xs.shape
+        xs = xs.reshape(N * T, D)
+        ts = ts.reshape(N * T, D)
+
+        ys = activation.softmax(xs)
+
+        self._cache['ys'] = ys
+        self._cache['ts'] = ts
+        return loss.cross_entropy(ys, ts)
+
+    def backward(self, dout=1):
+        ys = self._cache['ys']
+        ts = self._cache['ts']
+        original_size = self._cache['original_size']
+
+        batch_size = ys.shape[0]
+        dxs = dout * (ys - ts) / batch_size
+
+        return dxs.reshape(original_size)

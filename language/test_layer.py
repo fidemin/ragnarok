@@ -4,9 +4,11 @@ from unittest import mock
 import numpy as np
 import pytest
 
+from core.activation import softmax
+from core.loss import cross_entropy
 from core.updater import SGD
 from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM, GroupedLSTM, Embedding, \
-    GroupedAffine
+    GroupedAffine, GroupedSoftmaxWithLoss
 from language.util import UnigramSampler
 
 
@@ -795,3 +797,37 @@ class TestGroupedAffine:
         assert actual.shape == xs.shape
         assert not np.allclose(layer.grads[0], np.zeros_like(layer.params[0].shape))
         assert not np.allclose(layer.grads[1], np.zeros_like(layer.params[1].shape))
+
+
+class TestGroupedSoftmaxWithLoss:
+
+    def test_forward(self):
+        # xs shape (N, T, D) = (1, 4, 3)
+        xs = np.array([
+            [
+                [0.1, 0.2, 0.3],
+                [0.4, 0.5, 0.1],
+                [0.3, 0.7, 0.1],
+                [0.2, 0.2, 0.3]
+            ],
+        ])
+
+        # ts shape: same as xs
+        ts = np.array([
+            [
+                [0, 1, 0],
+                [1, 0, 0],
+                [1, 0, 0],
+                [0, 0, 1]
+            ]
+        ])
+
+        layer = GroupedSoftmaxWithLoss()
+        actual = layer.forward(xs, ts)
+
+        expected = sum(
+            [cross_entropy(softmax(xs[0][0]), ts[0][0]),
+             cross_entropy(softmax(xs[0][1]), ts[0][1]),
+             cross_entropy(softmax(xs[0][2]), ts[0][2]),
+             cross_entropy(softmax(xs[0][3]), ts[0][3])]) / 4
+        assert actual == expected
