@@ -23,7 +23,7 @@ def sigmoid(x: np.ndarray) -> np.ndarray:
 
 
 def tanh(x: np.ndarray) -> np.ndarray:
-    return (1 - np.exp(-2 * x)) / (1 + np.exp(-2 * x))
+    return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
 
 
 def softmax(x: np.ndarray) -> np.ndarray:

@@ -65,6 +65,9 @@ class WordIdConverter:
     def max_id(self) -> int:
         return self._max_id
 
+    def number_of_words(self) -> int:
+        return self._max_id + 1
+
 
 class ContextTargetConverter:
     def __init__(self, word_ids: list[int], window_size=1):

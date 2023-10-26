@@ -2,6 +2,7 @@ import numpy as np
 
 from core.layer import Layer, SoftmaxWithLoss
 from core.optimizer import Optimizer
+from core.util import clip_grads
 
 
 class Net:
@@ -94,5 +95,8 @@ class NeuralNet:
 
         return np.sum(y_max_idx == t_max_idx) / float(x.shape[0])
 
-    def optimize(self):
+    def optimize(self, grad_max_norm: float = None):
         self._optimizer.optimize(self._params, self._grads)
+
+        if grad_max_norm is not None:
+            clip_grads(self._grads, grad_max_norm)

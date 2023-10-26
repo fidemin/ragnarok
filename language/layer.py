@@ -59,7 +59,7 @@ class CBOWInput(Layer):
 
 
 class Embedding(Layer):
-    def __init__(self, W: np.ndarray, updater: Optimizer):
+    def __init__(self, W: np.ndarray, updater: Optimizer = None):
         self.params = [W]
         self.grads = [np.zeros_like(W)]
         self._updater = updater
@@ -416,7 +416,7 @@ class GroupedLSTM(Layer):
 
 
 class GroupedAffine(Layer):
-    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Optimizer):
+    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Optimizer = None):
         self.params = [W, b]
         self.grads = [np.zeros_like(W), np.zeros_like(b)]
         self._updater = updater
