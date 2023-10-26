@@ -48,6 +48,8 @@ class Relu(Layer):
 
 class Sigmoid(Layer):
     def __init__(self):
+        self.params = []
+        self.grads = []
         self.x = None
         self.out = None
 
@@ -63,7 +65,7 @@ class Sigmoid(Layer):
 
 
 class Affine(Layer):
-    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Optimizer, useBias=True):
+    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Optimizer = None, useBias=True):
         if useBias:
             self.params = [W, b]
             self.grads = [np.zeros_like(W), np.zeros_like(b)]
@@ -80,7 +82,7 @@ class Affine(Layer):
         self._updater = updater
 
     @classmethod
-    def from_sizes(cls, input_size: int, output_size: int, updater: Optimizer, init_weight=0.01, useBias=True):
+    def from_sizes(cls, input_size: int, output_size: int, updater: Optimizer = None, init_weight=0.01, useBias=True):
         W = init_weight * np.random.randn(input_size, output_size)
         b = np.zeros(output_size)
         return cls(W, b, updater, useBias=useBias)
@@ -97,11 +99,11 @@ class Affine(Layer):
 
     def backward(self, dout: np.ndarray):
         # dW calculation
-        self.grads[0] = np.dot(self.x.T, dout)
+        self.grads[0][...] = np.dot(self.x.T, dout)
 
         if self._useBias:
             # db calculation
-            self.grads[1] = np.sum(dout, axis=0)
+            self.grads[1][...] = np.sum(dout, axis=0)
 
         dx = np.dot(dout, self.params[0].T)
         # to handle tensor
@@ -113,27 +115,27 @@ class Affine(Layer):
 
 
 class BatchNorm(Layer):
-    def __init__(self, updater: Optimizer, gamma=None, beta=None):
-        self._gamma = gamma
-        self._beta = beta
-        self._dgamma = None
-        self._dbeta = None
-        self._eps = 1e-8
+    def __init__(self, gamma, beta, optimizer: Optimizer = None):
+        self.params = [gamma, beta]
+        self.grads = [np.zeros_like(gamma), np.zeros_like(beta)]
+        self._optimizer = optimizer
 
+        self._eps = 1e-8
         self._x_norm = None
         self._xmu = None
         self._istd = None
         self._std = None
         self._var = None
 
-        self._updater = updater
+    @classmethod
+    def from_shape(cls, input_shape, optimizer: Optimizer = None):
+        gamma = np.ones(input_shape)
+        beta = np.zeros(input_shape)
+        return cls(gamma, beta, optimizer)
 
     def forward(self, x: np.ndarray, **kwargs):
-        if self._gamma is None:
-            self._gamma = np.ones_like(x[0]) + 1
-
-        if self._beta is None:
-            self._beta = np.zeros_like(x[0])
+        gamma = self.params[0]  # size: (D, )
+        beta = self.params[1]  # size: (D, )
 
         batch_size = x.shape[0] * 1.0
         avg = np.sum(x, axis=0) / batch_size
@@ -149,16 +151,18 @@ class BatchNorm(Layer):
         x_norm = xmu * self._istd
         self._x_norm = x_norm
 
-        return self._gamma * x_norm + self._beta
+        return gamma * x_norm + beta
 
     def backward(self, dout: np.ndarray):
         N = dout.shape[0] * 1.0
+        dgamma = self.grads[0]
+        dbeta = self.grads[1]
 
         dgammax = dout  # same as size of x: (N, D)
-        self._dbeta = np.sum(dout, axis=0)  # size: (D, )
+        dbeta[...] = np.sum(dout, axis=0)  # size: (D, )
 
-        self._dgamma = np.sum(dgammax * self._x_norm, axis=0)  # size: (D, )
-        dx_norm = dgammax * self._gamma  # size: (N, D)
+        dgamma[...] = np.sum(dgammax * self._x_norm, axis=0)  # size: (D, )
+        dx_norm = dgammax * dgamma  # size: (N, D)
 
         distd = np.sum(dx_norm * self._xmu, axis=0)  # size: (D, )
         dxmu1 = dx_norm * self._istd  # size: (N, D)
@@ -183,9 +187,7 @@ class BatchNorm(Layer):
         return dx
 
     def update_params(self):
-        params = self._updater.optimize([self._gamma, self._gamma], [self._dgamma, self._dbeta])
-        self._gamma = params[0]
-        self._beta = params[1]
+        pass
 
 
 class Dropout(Layer):

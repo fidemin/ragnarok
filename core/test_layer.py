@@ -1,7 +1,6 @@
 import numpy as np
 
 from core import layer, numerical, activation
-from core.optimizer import SGD
 
 
 class TestRelu:
@@ -53,12 +52,15 @@ class TestSigmoid:
 
 class TestBatchNorm:
     def test_forward(self):
-        batch_norm = layer.BatchNorm(SGD())
         x = np.array([
             [[10.0, 0.0], [1.0, 2.0]],
             [[2.0, 4.0], [3.0, 8.0]],
             [[3.0, 6.0], [1.0, 4.0]],
         ])
+
+        gamma = np.ones_like(x[0]) + 1
+        beta = np.zeros_like(x[0])
+        batch_norm = layer.BatchNorm(gamma, beta)
 
         actual = batch_norm.forward(x)
 
@@ -71,12 +73,12 @@ class TestBatchNorm:
         assert np.allclose(actual, expected)
 
     def test_backward(self):
-        batch_norm = layer.BatchNorm(SGD())
         x = np.array([
             [[10.0, 0.0], [1.0, 2.0]],
             [[2.0, 4.0], [3.0, 8.0]],
             [[3.0, 6.0], [1.0, 4.0]],
         ])
+        batch_norm = layer.BatchNorm.from_shape(x.shape[1:])
 
         batch_norm.forward(x)
         dout = np.ones(x.shape)

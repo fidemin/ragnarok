@@ -55,6 +55,14 @@ class Net:
 class NeuralNet:
     def __init__(self, layers: list[Layer], loss_layer, optimizer: Optimizer):
         self._layers = layers
+        self._params = []
+        self._grads = []
+
+        for layer in layers:
+            if layer.params:
+                self._params.extend(layer.params)
+                self._grads.extend(layer.grads)
+
         self._loss_layer = loss_layer
         self._optimizer = optimizer
 
@@ -78,7 +86,13 @@ class NeuralNet:
 
         return x
 
+    def accuracy(self, x: np.ndarray, t: np.ndarray):
+        y = self.predict(x, train_flag=False)
+
+        y_max_idx = np.argmax(y, axis=1)
+        t_max_idx = np.argmax(t, axis=1)
+
+        return np.sum(y_max_idx == t_max_idx) / float(x.shape[0])
+
     def optimize(self):
-        for layer in self._layers:
-            if layer.params:
-                self._optimizer.optimize(layer.params, layer.grads)
+        self._optimizer.optimize(self._params, self._grads)
