@@ -192,6 +192,8 @@ class BatchNorm(Layer):
 
 class Dropout(Layer):
     def __init__(self, dropout_ratio=0.5):
+        self.params = []
+        self.grads = []
         self._dropout_ratio = dropout_ratio
         self._mask = None
 

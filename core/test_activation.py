@@ -14,18 +14,18 @@ def test_step():
 
 
 def test_sigmoid():
-    test_input = np.array([10.0, 0.0, -1.5])
+    test_input = np.array([10.0, 0.0, -1.5, -800])
 
-    expected = np.array([0.9999546021312978, 0.5, 0.18242552380627775])
+    expected = np.array([0.9999546021312978, 0.5, 0.18242552380627775, 0.000])
     actual = activation.sigmoid(test_input)
 
     assert np.allclose(actual, expected)
 
 
 def test_tanh():
-    test_input = np.array([10.0, 0.0, -1.5])
+    test_input = np.array([10.0, 0.0, -1.5, -800, 800])
 
-    expected = np.array([0.999999995878, 0.0, -0.905148253645])
+    expected = np.array([0.999999995878, 0.0, -0.905148253645, -1.0, 1.0])
     actual = activation.tanh(test_input)
 
     assert np.allclose(actual, expected)

@@ -7,9 +7,14 @@ from language.layer import Embedding, GroupedLSTM, GroupedAffine, GroupedSoftmax
 from language.util import process_text, WordIdConverter, convert_to_one_hot_encoding
 
 if __name__ == '__main__':
-    text = '''
-        Importance of trade and commerce cannot be overstated; import and export activities drive the global economy. Countries import and export goods to meet their essential needs and promote economic growth. The import of raw materials is crucial for manufacturing, while the export of finished products can generate substantial revenue. Governments impose import tariffs and regulations to safeguard domestic industries, but these policies can impact international relations. In today's interconnected world, technology and information sharing are of utmost importance. The exchange of knowledge is as vital as physical imports and exports. As technology continues to advance, the importance of cybersecurity cannot be ignored, as it's necessary to protect against cyber threats. In a globalized world, understanding the intricate web of imports, exports, and information flows is key to thriving in the modern economy.
-        '''
+    # file_path = './data/3000_word_size.txt'
+    # with open(file_path) as f:
+    #     text = f.read().replace('\n', '<eos>').strip()
+
+    # the file is from: https://github.com/wojzaremba/lstm/blob/master/data/ptb.train.txt
+    file_path = '../downloads/ptb.train.txt'
+    with open(file_path) as f:
+        text = f.read().replace('\n', '<eos>').strip()
 
     words = process_text(text)
     wi_converter = WordIdConverter(words)
@@ -19,14 +24,20 @@ if __name__ == '__main__':
     ts = convert_to_one_hot_encoding(origin_ts, wi_converter.max_id())
 
     voca_size = wi_converter.number_of_words()
-    wordvec_size = 100  # D
-    hidden_size = 100  # H
-    time_subsequence_size = 10  # T
+    wordvec_size = 700  # D
+    hidden_size = 700  # H
+    time_size = 30  # T
 
-    data_size = word_id_list
-    mini_batch_size = 1
-    max_epoch = 100
-    iter_size = voca_size // (mini_batch_size * time_subsequence_size)
+    original_data_size = xs.shape[0]
+    mini_batch_size = 20
+    max_epoch = 40
+    iter_size = original_data_size // (mini_batch_size * time_size)
+
+    # truncate data to data size for training
+    data_size = iter_size * mini_batch_size * time_size
+    xs = xs[:data_size]
+    print("original data size: {}, truncated data size:, {}, voca_size: {}".format(original_data_size,
+                                                                                   data_size, voca_size))
 
     W_emb = np.random.randn(voca_size, wordvec_size) * 0.01
     Wx_lstm = np.random.randn(wordvec_size, 4 * hidden_size) * (1 / np.sqrt(wordvec_size))
@@ -41,27 +52,34 @@ if __name__ == '__main__':
     affine_layer = GroupedAffine(W_affine, b_affine)
     loss_layer = GroupedSoftmaxWithLoss()
 
-    net = NeuralNet([embedding_layer, lstm_layer, affine_layer], loss_layer, SGD(lr=5))
+    net = NeuralNet([embedding_layer, lstm_layer, affine_layer], loss_layer, SGD(lr=20.0))
     ppl_list = []
     loss_list = []
 
-    jump = voca_size // mini_batch_size
+    jump_size = data_size // mini_batch_size
+    offsets_per_mini_batch = [i * jump_size for i in range(mini_batch_size)]
 
     for epoch in range(max_epoch):
         total_loss = 0
         loss_count = 0
         for iter_ in range(iter_size):
-            mini_batch_X = np.empty((mini_batch_size, time_subsequence_size), dtype=int)
-            mini_batch_y = np.empty((mini_batch_size, time_subsequence_size, voca_size), dtype=int)
+            mini_batch_X = np.empty((mini_batch_size, time_size), dtype=int)
+            mini_batch_y = np.empty((mini_batch_size, time_size, voca_size), dtype=int)
 
-            for t in range(time_subsequence_size):
-                mini_batch_X[0, t] = xs[iter_ * time_subsequence_size + t]
-                mini_batch_y[0, t, :] = ts[iter_ * time_subsequence_size + t]
+            for t in range(time_size):
+                for n, offset in enumerate(offsets_per_mini_batch):
+                    position = offset + iter_ * time_size + t
+                    # print("n: {}, position: {}".format(n, position))
+                    mini_batch_X[n, t] = xs[position]
+                    mini_batch_y[n, t, :] = ts[position]
 
             loss = net.forward(mini_batch_X, mini_batch_y)
             loss_list.append(loss)
             net.backward()
-            net.optimize(grad_max_norm=0.25)
+            net.optimize(grad_max_norm=0.10)
+
+            if iter_ % 100 == 0:
+                print('iter: {}, loss: {}'.format(iter_, loss))
 
             total_loss += loss
             loss_count += 1
@@ -69,6 +87,8 @@ if __name__ == '__main__':
         perplexity = np.exp(total_loss / loss_count)
         ppl_list.append(perplexity)
         print("epoch: {}, perplexity: {}".format(epoch + 1, perplexity))
+
+    net.save_params('./data/ptb_params.pkl')
 
     plt.subplot(2, 1, 1)
     loss_x = list(range(1, len(loss_list) + 1))

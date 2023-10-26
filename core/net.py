@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 
 from core.layer import Layer, SoftmaxWithLoss
@@ -100,3 +102,11 @@ class NeuralNet:
 
         if grad_max_norm is not None:
             clip_grads(self._grads, grad_max_norm)
+
+    def save_params(self, filename):
+        with open(filename, 'wb') as f:
+            pickle.dump(self._params, f)
+
+    def load_params(self, filename):
+        with open(filename, 'rb') as f:
+            self._params = pickle.load(f)
