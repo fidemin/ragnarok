@@ -2,11 +2,11 @@ import numpy as np
 
 from cnn.util import img2col, fil2col, col2fil, col2img
 from core.layer import Layer
-from core.updater import Updater
+from core.optimizer import Optimizer
 
 
 class Convolution(Layer):
-    def __init__(self, F: np.ndarray, b: np.ndarray, updater: Updater, stride=1, padding=0):
+    def __init__(self, F: np.ndarray, b: np.ndarray, updater: Optimizer, stride=1, padding=0):
         # self._W.shape: (FN, FC, FH, FW)
         self._F = F
         self._dF = None
@@ -28,7 +28,7 @@ class Convolution(Layer):
         self._W = None
 
     @classmethod
-    def from_sizes(cls, F_shape, updater: Updater, stride=1, padding=0, weight_init=0.01):
+    def from_sizes(cls, F_shape, updater: Optimizer, stride=1, padding=0, weight_init=0.01):
         # F_shape: (FN, FC, FH, FW)
         F = weight_init * np.random.randn(*F_shape)
         b = np.zeros(F_shape[0])
@@ -96,7 +96,7 @@ class Convolution(Layer):
         return dx
 
     def update_params(self):
-        params = self._updater.update([self._F, self._b], [self._dF, self._db])
+        params = self._updater.optimize([self._F, self._b], [self._dF, self._db])
         self._F = params[0]
         self._b = params[1]
 

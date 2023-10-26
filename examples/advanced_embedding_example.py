@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from core.net import Net
-from core.updater import Adam
+from core.optimizer import Adam
 from language.layer import CBOWInputEmbedding, NegativeSampling
 from language.util import process_text, ContextTargetConverter, WordIdConverter, UnigramSampler, most_similar_words
 

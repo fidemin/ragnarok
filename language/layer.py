@@ -5,21 +5,21 @@ import numpy as np
 from core import activation, loss
 from core.activation import sigmoid, tanh
 from core.layer import Layer, Affine, LayerException, SigmoidWithLoss
-from core.updater import Updater
+from core.optimizer import Optimizer
 from language.util import UnigramSampler
 
 
 class CBOWInput(Layer):
     _sub_layers: list[Affine]
 
-    def __init__(self, W: np.ndarray, updater: Updater):
+    def __init__(self, W: np.ndarray, updater: Optimizer):
         self.params = [W]
         self.grads = [np.zeros(W.shape)]
         self._sub_layers = []
         self._updater = updater
 
     @classmethod
-    def from_size(cls, input_size, hidden_size, updater: Updater, init_weight=0.01):
+    def from_size(cls, input_size, hidden_size, updater: Optimizer, init_weight=0.01):
         W = np.random.randn(input_size, hidden_size) * init_weight
         return cls(W, updater)
 
@@ -55,11 +55,11 @@ class CBOWInput(Layer):
         return dx
 
     def update_params(self):
-        self._updater.update(self.params, self.grads)
+        self._updater.optimize(self.params, self.grads)
 
 
 class Embedding(Layer):
-    def __init__(self, W: np.ndarray, updater: Updater):
+    def __init__(self, W: np.ndarray, updater: Optimizer):
         self.params = [W]
         self.grads = [np.zeros_like(W)]
         self._updater = updater
@@ -85,13 +85,13 @@ class Embedding(Layer):
 
     def update_params(self):
         # This update_params method is only for single Embedding layer.
-        self._updater.update(self.params, self.grads)
+        self._updater.optimize(self.params, self.grads)
 
 
 class EmbeddingDot(Layer):
     indexes_key = 'indexes'
 
-    def __init__(self, W: np.ndarray, updater: Updater):
+    def __init__(self, W: np.ndarray, updater: Optimizer):
         self.params = [W]
         self.grads = [np.zeros_like(W)]
         self._embedding_layer = Embedding(self.params[0].T, None)
@@ -128,13 +128,13 @@ class EmbeddingDot(Layer):
         return dx
 
     def update_params(self):
-        self._updater.update(self.params, self.grads)
+        self._updater.optimize(self.params, self.grads)
 
 
 class CBOWInputEmbedding(Layer):
     _sub_layers: list[Embedding]
 
-    def __init__(self, W: np.ndarray, updater: Updater):
+    def __init__(self, W: np.ndarray, updater: Optimizer):
         self._sub_layers = []
         self.params = [W]
         self.grads = [np.zeros_like(W)]
@@ -143,7 +143,7 @@ class CBOWInputEmbedding(Layer):
         self._context_size = None
 
     @classmethod
-    def from_size(cls, input_size, hidden_size, updater: Updater, init_weight=0.01):
+    def from_size(cls, input_size, hidden_size, updater: Optimizer, init_weight=0.01):
         W = np.random.randn(input_size, hidden_size) * init_weight
         return cls(W, updater)
 
@@ -182,7 +182,7 @@ class CBOWInputEmbedding(Layer):
         return None
 
     def update_params(self):
-        self._updater.update(self.params, self.grads)
+        self._updater.optimize(self.params, self.grads)
 
 
 class NegativeSampling(Layer):
@@ -191,7 +191,7 @@ class NegativeSampling(Layer):
     _embedding_dot_layers: list[EmbeddingDot]
     _loss_layers: list[SigmoidWithLoss]
 
-    def __init__(self, W, negative_size: int, sampler: UnigramSampler, updater: Updater):
+    def __init__(self, W, negative_size: int, sampler: UnigramSampler, updater: Optimizer):
         self.params = [W]
         self.grads = [np.zeros_like(W)]
         self._sampler = sampler
@@ -206,7 +206,8 @@ class NegativeSampling(Layer):
         self._x = None
 
     @classmethod
-    def from_size(cls, input_size: int, words_size: int, negative_size: int, sampler: UnigramSampler, updater: Updater,
+    def from_size(cls, input_size: int, words_size: int, negative_size: int, sampler: UnigramSampler,
+                  updater: Optimizer,
                   init_weight=0.01):
 
         W = np.random.randn(input_size, words_size) * init_weight
@@ -247,7 +248,7 @@ class NegativeSampling(Layer):
         return dx
 
     def update_params(self):
-        self._updater.update(self.params, self.grads)
+        self._updater.optimize(self.params, self.grads)
 
 
 class LSTM:
@@ -415,7 +416,7 @@ class GroupedLSTM(Layer):
 
 
 class GroupedAffine(Layer):
-    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Updater):
+    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Optimizer):
         self.params = [W, b]
         self.grads = [np.zeros_like(W), np.zeros_like(b)]
         self._updater = updater
@@ -458,7 +459,7 @@ class GroupedAffine(Layer):
         return dxs
 
     def update_params(self):
-        self._updater.update(self.params, self.grads)
+        self._updater.optimize(self.params, self.grads)
 
 
 class GroupedSoftmaxWithLoss:

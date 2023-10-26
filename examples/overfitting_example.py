@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 
 from core.layer import Affine, Sigmoid, Dropout
 from core.net import Net
-from core.updater import SGD
+from core.optimizer import SGD
 from examples.common import mnist_load_data
 
 if __name__ == '__main__':

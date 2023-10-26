@@ -1,6 +1,7 @@
 import numpy as np
 
 from core.layer import Layer, SoftmaxWithLoss
+from core.optimizer import Optimizer
 
 
 class Net:
@@ -49,3 +50,35 @@ class Net:
             layer.update_params()
 
         return dout
+
+
+class NeuralNet:
+    def __init__(self, layers: list[Layer], loss_layer, optimizer: Optimizer):
+        self._layers = layers
+        self._loss_layer = loss_layer
+        self._optimizer = optimizer
+
+    def forward(self, x: np.ndarray, t: np.ndarray, kwargs_list=None) -> np.float64:
+        y = self.predict(x, kwargs_list=kwargs_list)
+        return self._loss_layer.forward(y, t)
+
+    def backward(self, dout=1):
+        dout = self._loss_layer.backward(dout)
+        for layer in reversed(self._layers):
+            dout = layer.backward(dout)
+
+        return dout
+
+    def predict(self, x: np.ndarray, train_flag=True, kwargs_list=None):
+        for i, layer in enumerate(self._layers):
+            kwargs = {}
+            if kwargs_list is not None:
+                kwargs = kwargs_list[i]
+            x = layer.forward(x, train_flag=train_flag, **kwargs)
+
+        return x
+
+    def optimize(self):
+        for layer in self._layers:
+            if layer.params:
+                self._optimizer.optimize(layer.params, layer.grads)

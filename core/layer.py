@@ -4,11 +4,14 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 
 from core import activation, loss
-from core.updater import Updater
+from core.optimizer import Optimizer
 
 
 class Layer(metaclass=ABCMeta):
     train_flag_key = 'train_flag'
+
+    params: list[np.ndarray]
+    grads: list[np.ndarray]
 
     @abstractmethod
     def forward(self, x: np.ndarray, **kwargs):
@@ -60,7 +63,7 @@ class Sigmoid(Layer):
 
 
 class Affine(Layer):
-    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Updater, useBias=True):
+    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Optimizer, useBias=True):
         if useBias:
             self.params = [W, b]
             self.grads = [np.zeros_like(W), np.zeros_like(b)]
@@ -77,7 +80,7 @@ class Affine(Layer):
         self._updater = updater
 
     @classmethod
-    def from_sizes(cls, input_size: int, output_size: int, updater: Updater, init_weight=0.01, useBias=True):
+    def from_sizes(cls, input_size: int, output_size: int, updater: Optimizer, init_weight=0.01, useBias=True):
         W = init_weight * np.random.randn(input_size, output_size)
         b = np.zeros(output_size)
         return cls(W, b, updater, useBias=useBias)
@@ -106,11 +109,11 @@ class Affine(Layer):
         return dx
 
     def update_params(self):
-        self._updater.update(self.params, self.grads)
+        self._updater.optimize(self.params, self.grads)
 
 
 class BatchNorm(Layer):
-    def __init__(self, updater: Updater, gamma=None, beta=None):
+    def __init__(self, updater: Optimizer, gamma=None, beta=None):
         self._gamma = gamma
         self._beta = beta
         self._dgamma = None
@@ -180,7 +183,7 @@ class BatchNorm(Layer):
         return dx
 
     def update_params(self):
-        params = self._updater.update([self._gamma, self._gamma], [self._dgamma, self._dbeta])
+        params = self._updater.optimize([self._gamma, self._gamma], [self._dgamma, self._dbeta])
         self._gamma = params[0]
         self._beta = params[1]
 

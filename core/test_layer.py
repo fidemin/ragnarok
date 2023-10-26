@@ -1,6 +1,7 @@
 import numpy as np
 
-from core import layer, numerical, activation, updater
+from core import layer, numerical, activation
+from core.optimizer import SGD
 
 
 class TestRelu:
@@ -52,7 +53,7 @@ class TestSigmoid:
 
 class TestBatchNorm:
     def test_forward(self):
-        batch_norm = layer.BatchNorm(updater.SGD())
+        batch_norm = layer.BatchNorm(SGD())
         x = np.array([
             [[10.0, 0.0], [1.0, 2.0]],
             [[2.0, 4.0], [3.0, 8.0]],
@@ -70,7 +71,7 @@ class TestBatchNorm:
         assert np.allclose(actual, expected)
 
     def test_backward(self):
-        batch_norm = layer.BatchNorm(updater.SGD())
+        batch_norm = layer.BatchNorm(SGD())
         x = np.array([
             [[10.0, 0.0], [1.0, 2.0]],
             [[2.0, 4.0], [3.0, 8.0]],

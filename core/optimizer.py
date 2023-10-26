@@ -3,32 +3,32 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 
 
-class Updater(metaclass=ABCMeta):
+class Optimizer(metaclass=ABCMeta):
     @abstractmethod
-    def update(self, params: list[np.ndarray], grads: list[np.ndarray]):
+    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray]):
         # This method should update each parameter's all elements in-place.
         # e.g. params[i] += (any operation) or params[i][:] = params[i] + (any operation)"
         pass
 
 
-class SGD(Updater):
+class SGD(Optimizer):
     def __init__(self, lr=0.01):
         self._lr = lr
 
-    def update(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
+    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
         for i in range(len(params)):
             params[i] -= self._lr * grads[i]
 
         return params
 
 
-class Momentum(Updater):
+class Momentum(Optimizer):
     def __init__(self, lr=0.01, momentum=0.9):
         self._lr = lr
         self._momentum = momentum
         self._v = None
 
-    def update(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
+    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
         if self._v is None:
             self._v = []
             for param in params:
@@ -41,12 +41,12 @@ class Momentum(Updater):
         return params
 
 
-class AdaGrad(Updater):
+class AdaGrad(Optimizer):
     def __init__(self, lr=0.01):
         self._lr = lr
         self._h = None
 
-    def update(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
+    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
         if self._h is None:
             self._h = []
             for param in params:
@@ -59,7 +59,7 @@ class AdaGrad(Updater):
         return params
 
 
-class Adam(Updater):
+class Adam(Optimizer):
     def __init__(self, lr=0.001, beta1=0.9, beta2=0.999):
         self._lr = lr
         self._beta1 = beta1
@@ -69,7 +69,7 @@ class Adam(Updater):
         self._momentum2 = []
         self._epsilon = 1e-8
 
-    def update(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
+    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
         if self._iter == 0:
             for param in params:
                 self._momentum1.append(np.zeros_like(param))

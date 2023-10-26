@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 from core.layer import Affine
 from core.net import Net
-from core.updater import Adam
+from core.optimizer import Adam
 from language.layer import CBOWInput
 from language.util import process_text, ContextTargetConverter, WordIdConverter, convert_to_one_hot_encoding
 

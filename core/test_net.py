@@ -2,7 +2,7 @@ import numpy as np
 
 from core.layer import Affine, Sigmoid
 from core.net import Net
-from core.updater import SGD
+from core.optimizer import SGD
 
 
 def test_predict():

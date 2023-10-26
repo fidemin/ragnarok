@@ -6,7 +6,7 @@ import pytest
 
 from core.activation import softmax
 from core.loss import cross_entropy
-from core.updater import SGD
+from core.optimizer import SGD
 from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM, GroupedLSTM, Embedding, \
     GroupedAffine, GroupedSoftmaxWithLoss
 from language.util import UnigramSampler
