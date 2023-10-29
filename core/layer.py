@@ -217,6 +217,17 @@ class Dropout(Layer):
         pass
 
 
+class Softmax(Layer):
+    def forward(self, x: np.ndarray, **kwargs):
+        return activation.softmax(x)
+
+    def backward(self, dout: np.ndarray):
+        raise NotImplementedError('Softmax.backward is not implemented yet. This may not be used.')
+
+    def update_params(self):
+        pass
+
+
 class SoftmaxWithLoss:
     def __init__(self):
         self.y = None

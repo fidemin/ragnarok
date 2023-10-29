@@ -56,7 +56,7 @@ class Net:
 
 
 class NeuralNet:
-    def __init__(self, layers: list[Layer], loss_layer, optimizer: Optimizer):
+    def __init__(self, layers: list[Layer], loss_layer, optimizer: Optimizer, predict_layer=None):
         self._layers = layers
         self._params = []
         self._grads = []
@@ -68,6 +68,7 @@ class NeuralNet:
 
         self._loss_layer = loss_layer
         self._optimizer = optimizer
+        self._predict_layer = predict_layer
 
     def forward(self, x: np.ndarray, t: np.ndarray, kwargs_list=None) -> np.float64:
         y = self.predict(x, kwargs_list=kwargs_list)
@@ -86,6 +87,9 @@ class NeuralNet:
             if kwargs_list is not None:
                 kwargs = kwargs_list[i]
             x = layer.forward(x, train_flag=train_flag, **kwargs)
+
+        if self._predict_layer is not None:
+            x = self._predict_layer.forward(x)
 
         return x
 
@@ -110,3 +114,12 @@ class NeuralNet:
     def load_params(self, filename):
         with open(filename, 'rb') as f:
             self._params = pickle.load(f)
+
+        pos = 0
+        for layer in self._layers:
+            if layer.params:
+                param_length = len(layer.params)
+
+                for i, param in enumerate(layer.params):
+                    param[...] = self._params[pos + i]
+                pos += param_length

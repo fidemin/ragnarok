@@ -5,7 +5,8 @@ import numpy as np
 
 def process_text(text: str):
     # TODO: need to process other special characters
-    return text.lower().strip().replace('.', ' .').replace(',', ' ,').split(' ')
+    return text.lower().strip().replace('.', ' .').replace(',', ' ,').replace('?', ' ?').replace('<eos>',
+                                                                                                 ' <eos> ').split(' ')
 
 
 def convert_to_one_hot_encoding(x: np.ndarray, max_value):

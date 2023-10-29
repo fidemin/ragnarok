@@ -52,13 +52,14 @@ def softmax(x: np.ndarray) -> np.ndarray:
 
     if dim_is_one:
         x = x.reshape(1, -1)
-    max_value = np.max(x, axis=1)
+    last_axis = len(x.shape) - 1
+    max_value = np.max(x, axis=last_axis)
 
     # To prevent overflow of e(x), change the all input value to <0 value.
     x_normal = (x.T - max_value).T
 
     exp_ = np.exp(x_normal)
-    exp_sum = np.sum(exp_, axis=1)
+    exp_sum = np.sum(exp_, axis=last_axis)
 
     result = (exp_.T / exp_sum).T
 
