@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from data.sum_data_creator import create_sum_examples, create_sum_examples_to_str
+from data.sum_data_creator import create_sum_examples, convert_sum_examples_to_str
 
 
 def test_create_sum_examples():
@@ -20,7 +20,7 @@ def test_create_sum_examples():
     assert len(pair_checker) == number_of_examples
 
 
-def test_create_sum_examples_to_str():
+def test_convert_sum_examples_to_str():
     input_ = [
         (10, 20, 30),
         (30, 234, 264),
@@ -37,7 +37,7 @@ def test_create_sum_examples_to_str():
         '1+2   =3   '
     ]
 
-    actual = create_sum_examples_to_str(input_)
+    actual = convert_sum_examples_to_str(input_)
 
     assert len(actual) == len(expected)
 

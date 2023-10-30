@@ -24,7 +24,7 @@ def create_sum_examples(number_of_examples, min_int, max_int, seed=0):
     return result
 
 
-def create_sum_examples_to_str(sum_examples: list[tuple]):
+def convert_sum_examples_to_str(sum_examples: list[tuple]):
     max_left_size = 0
     max_right_size = 0
 

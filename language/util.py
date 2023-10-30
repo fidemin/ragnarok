@@ -32,7 +32,6 @@ class WordIdConverter:
         word_set = set()
 
         for word in self._original_words:
-            word = word.strip()
             if len(word) > 0 and word not in word_set:
                 word_set.add(word)
 
