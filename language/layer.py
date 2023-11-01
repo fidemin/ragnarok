@@ -348,6 +348,7 @@ class GroupedLSTM(Layer):
 
         self._layers = None
         self._h = None
+        self._dh = None
         self._c = None
 
     def _validate_params(self):
@@ -405,6 +406,8 @@ class GroupedLSTM(Layer):
             for i, grad in enumerate(layer.grads):
                 # sum all gradients because same Wh, Wx, b is used in layers.
                 grads[i] += grad
+
+        self._dh = dh
 
         for i, grad in enumerate(grads):
             self.grads[i][...] = grad

@@ -2,10 +2,12 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
+from core.learning_rate import LearningRate
+
 
 class Optimizer(metaclass=ABCMeta):
     @abstractmethod
-    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray]):
+    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray], epoch=1):
         # This method should update each parameter's all elements in-place.
         # e.g. params[i] += (any operation) or params[i][:] = params[i] + (any operation)"
         pass
@@ -15,9 +17,13 @@ class SGD(Optimizer):
     def __init__(self, lr=0.01):
         self._lr = lr
 
-    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
+    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray], epoch=1) -> list[np.ndarray]:
+        lr = self._lr
+        if isinstance(self._lr, LearningRate):
+            lr = self._lr.learning_rate(epoch)
+
         for i in range(len(params)):
-            params[i] -= self._lr * grads[i]
+            params[i] -= lr * grads[i]
 
         return params
 
@@ -28,7 +34,7 @@ class Momentum(Optimizer):
         self._momentum = momentum
         self._v = None
 
-    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
+    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray], epoch=1) -> list[np.ndarray]:
         if self._v is None:
             self._v = []
             for param in params:
@@ -46,7 +52,7 @@ class AdaGrad(Optimizer):
         self._lr = lr
         self._h = None
 
-    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
+    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray], epoch=1) -> list[np.ndarray]:
         if self._h is None:
             self._h = []
             for param in params:
@@ -69,7 +75,7 @@ class Adam(Optimizer):
         self._momentum2 = []
         self._epsilon = 1e-8
 
-    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray]) -> list[np.ndarray]:
+    def optimize(self, params: list[np.ndarray], grads: list[np.ndarray], epoch=1) -> list[np.ndarray]:
         if self._iter == 0:
             for param in params:
                 self._momentum1.append(np.zeros_like(param))

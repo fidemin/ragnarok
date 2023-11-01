@@ -101,8 +101,8 @@ class NeuralNet:
 
         return np.sum(y_max_idx == t_max_idx) / float(x.shape[0])
 
-    def optimize(self, grad_max_norm: float = None):
-        self._optimizer.optimize(self._params, self._grads)
+    def optimize(self, grad_max_norm: float = None, epoch=1):
+        self._optimizer.optimize(self._params, self._grads, epoch=epoch)
 
         if grad_max_norm is not None:
             clip_grads(self._grads, grad_max_norm)

@@ -62,10 +62,13 @@ class WordIdConverter:
 
         return self._id_to_word[id_]
 
+    def ids_to_words(self, ids: list[int]) -> list[str]:
+        return [self.id_to_word(id_) for id_ in ids]
+
     def max_id(self) -> int:
         return self._max_id
 
-    def number_of_words(self) -> int:
+    def vocabulary_size(self) -> int:
         return self._max_id + 1
 
 

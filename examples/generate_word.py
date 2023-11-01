@@ -19,7 +19,7 @@ if __name__ == '__main__':
     origin_ts = np.array(word_id_list[1:])
     ts = convert_to_one_hot_encoding(origin_ts, wi_converter.max_id())
 
-    voca_size = wi_converter.number_of_words()
+    voca_size = wi_converter.vocabulary_size()
     wordvec_size = 100  # D
     hidden_size = 100  # H
     time_size = 10  # T
