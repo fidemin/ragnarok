@@ -3,12 +3,11 @@ from datetime import datetime
 import numpy as np
 from matplotlib import pyplot as plt
 
-from core.learning_rate import InverseSqrt
 from core.net import NeuralNet
-from core.optimizer import SGD
+from core.optimizer import Adam
 from data.sum_data_creator import create_sum_examples, convert_sum_examples_to_str
 from language.layer import GroupedSoftmaxWithLoss
-from language.seq2seq import Seq2Seq
+from language.seq2seq import Seq2Seq, PeekySeq2Seq
 from language.util import WordIdConverter, convert_to_one_hot_encoding
 
 
@@ -63,6 +62,10 @@ if __name__ == '__main__':
     word_id_blank = wi_converter.word_to_id(' ')
     word_id_equal = wi_converter.word_to_id('=')
 
+    # reverse input data
+    train_X = train_X[:, ::-1]
+    test_X = test_X[:, ::-1]
+
     train_t = convert_decoder_input_to_expected_output(train_y, wi_converter.max_id(), one_hot=True)
     test_t_no_one_hot = convert_decoder_input_to_expected_output(test_y, wi_converter.max_id(), one_hot=False)
     test_t = convert_to_one_hot_encoding(test_t_no_one_hot, wi_converter.max_id())
@@ -73,13 +76,13 @@ if __name__ == '__main__':
     hidden_size = 128
     max_epoch = 25
     data_size = train_X.shape[0]
-    batch_size = 128
+    batch_size = 64
     iter_size = data_size // batch_size
 
-    seq2seq = Seq2Seq(voca_size, wordvec_size, hidden_size)
+    seq2seq = PeekySeq2Seq(voca_size, wordvec_size, hidden_size)
     loss_layer = GroupedSoftmaxWithLoss()
 
-    net = NeuralNet([seq2seq], loss_layer=loss_layer, optimizer=SGD(InverseSqrt(5.0)))
+    net = NeuralNet([seq2seq], loss_layer=loss_layer, optimizer=Adam(lr=0.001))
 
     loss_list = []
     correct_ratios = []
