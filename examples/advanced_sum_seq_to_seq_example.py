@@ -3,6 +3,7 @@ from datetime import datetime
 import numpy as np
 from matplotlib import pyplot as plt
 
+from core.learning_rate import InverseSqrt
 from core.net import NeuralNet
 from core.optimizer import Adam
 from data.sum_data_creator import create_sum_examples, convert_sum_examples_to_str
@@ -82,7 +83,7 @@ if __name__ == '__main__':
     seq2seq = PeekySeq2Seq(voca_size, wordvec_size, hidden_size)
     loss_layer = GroupedSoftmaxWithLoss()
 
-    net = NeuralNet([seq2seq], loss_layer=loss_layer, optimizer=Adam(lr=0.001))
+    net = NeuralNet([seq2seq], loss_layer=loss_layer, optimizer=Adam(lr=InverseSqrt(0.01)))
 
     loss_list = []
     correct_ratios = []

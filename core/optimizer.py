@@ -76,6 +76,10 @@ class Adam(Optimizer):
         self._epsilon = 1e-8
 
     def optimize(self, params: list[np.ndarray], grads: list[np.ndarray], epoch=1) -> list[np.ndarray]:
+        lr = self._lr
+        if isinstance(self._lr, LearningRate):
+            lr = self._lr.learning_rate(epoch)
+
         if self._iter == 0:
             for param in params:
                 self._momentum1.append(np.zeros_like(param))
@@ -89,6 +93,6 @@ class Adam(Optimizer):
             self._momentum2[i] = self._beta2 * self._momentum2[i] + (1 - self._beta2) * np.power(grads[i], 2)
             momentum2_corr = self._momentum2[i] / (1 - (self._beta2 ** self._iter))
 
-            params[i] -= self._lr * momentum1_corr / (np.sqrt(momentum2_corr) + self._epsilon)
+            params[i] -= lr * momentum1_corr / (np.sqrt(momentum2_corr) + self._epsilon)
 
         return params
