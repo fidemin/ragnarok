@@ -8,7 +8,7 @@ from core.activation import softmax
 from core.loss import cross_entropy
 from core.optimizer import SGD
 from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM, GroupedLSTM, Embedding, \
-    GroupedAffine, GroupedSoftmaxWithLoss, WeightSum
+    GroupedAffine, GroupedSoftmaxWithLoss, WeightSum, WeightForAttention
 from language.util import UnigramSampler
 
 
@@ -918,3 +918,70 @@ class TestWeightSum:
         layer = WeightSum()
         layer.forward(hs, weight)
         dhs, dweight = layer.backward(test_input)
+
+        assert dhs.shape == hs.shape
+        assert dweight.shape == weight.shape
+
+
+class TestWeightForAttention:
+    def test_forward(self):
+        # N = 2, T = 2, H = 3
+        hs = np.array([
+            [
+                [0.1, 0.2, 0.3],
+                [0.4, 0.5, 0.6]
+            ],
+            [
+                [0.2, 0.1, 0.4],
+                [0.8, 1.2, 1.5]
+            ]
+        ])
+
+        # N = 2, H = 3
+        h = np.array([
+            [0.1, 0.5, 1.1],
+            [1.1, 2.2, 3.0]
+        ])
+
+        # N = 2, T = 2
+        expected = np.array([
+            [0.37519353, 0.62480647],
+            [0.00169225, 0.99830775]
+        ])
+
+        layer = WeightForAttention()
+        actual = layer.forward(hs, h)
+
+        assert np.allclose(actual, expected)
+
+    def test_backward(self):
+        # N = 2, T = 2, H = 3
+        hs = np.array([
+            [
+                [0.1, 0.2, 0.3],
+                [0.4, 0.5, 0.6]
+            ],
+            [
+                [0.2, 0.1, 0.4],
+                [0.8, 1.2, 1.5]
+            ]
+        ])
+
+        # N = 2, H = 3
+        h = np.array([
+            [0.1, 0.5, 1.1],
+            [1.1, 2.2, 3.0]
+        ])
+
+        # N = 2, T = 2
+        dout = np.array([
+            [0.1, 0.2],
+            [1.0, 2.0]
+        ])
+
+        layer = WeightForAttention()
+        layer.forward(hs, h)
+        dhs, dh = layer.backward(dout)
+
+        assert dhs.shape == hs.shape
+        assert dh.shape == h.shape

@@ -218,11 +218,26 @@ class Dropout(Layer):
 
 
 class Softmax(Layer):
+    def __init__(self):
+        self._cache = {}
+
     def forward(self, x: np.ndarray, **kwargs):
-        return activation.softmax(x)
+        out = activation.softmax(x)
+        self._cache['out'] = out
+        return out
 
     def backward(self, dout: np.ndarray):
-        raise NotImplementedError('Softmax.backward is not implemented yet. This may not be used.')
+        # derivative equation: dx_k = dout_k * out_k - out_k * sum_over_element(dout * out)
+        # reference: https://www.mldawn.com/back-propagation-with-cross-entropy-and-softmax
+        out = self._cache['out']
+
+        last_axis = len(out.shape) - 1
+
+        dx = dout * out
+        dsum = np.sum(dx, axis=last_axis, keepdims=True)
+
+        dx = dx - out * dsum
+        return dx
 
     def update_params(self):
         pass

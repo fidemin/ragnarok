@@ -4,7 +4,7 @@ import numpy as np
 
 from core import activation, loss
 from core.activation import sigmoid, tanh
-from core.layer import Layer, Affine, LayerException, SigmoidWithLoss
+from core.layer import Layer, Affine, LayerException, SigmoidWithLoss, Softmax
 from core.optimizer import Optimizer
 from language.util import UnigramSampler
 
@@ -528,6 +528,53 @@ class WeightSum(Layer):
         dweight = dweight.sum(axis=2)
 
         return dhs, dweight
+
+    def update_params(self):
+        pass
+
+
+class WeightForAttention(Layer):
+    def __init__(self):
+        self._cache = {}
+
+    def forward(self, *inputs: np.ndarray) -> np.ndarray:
+        hs_from_encoding = inputs[0]  # N X T X H
+        h_from_decoding = inputs[1]  # N X H
+
+        N, T, H = hs_from_encoding.shape
+
+        h_from_decoding = h_from_decoding.reshape((N, 1, H)).repeat(T, axis=1)
+
+        out = hs_from_encoding * h_from_decoding
+        out = out.sum(axis=2)  # N X T
+
+        softmax = Softmax()
+        out = softmax.forward(out)
+
+        self._cache['softmax'] = softmax
+        self._cache['shape'] = hs_from_encoding.shape
+        self._cache['hs_from_encoding'] = hs_from_encoding
+        self._cache['h_from_decoding'] = h_from_decoding
+        return out
+
+    def backward(self, dout: np.ndarray):
+        # dout: N X T
+
+        softmax = self._cache['softmax']
+        N, T, H = self._cache['shape']
+        hs_from_encoding = self._cache['hs_from_encoding']
+        h_from_decoding = self._cache['h_from_decoding']
+
+        dout = softmax.backward(dout)
+
+        dout = dout.reshape(N, T, 1).repeat(H, axis=2)
+
+        dhs_from_encoding = dout * h_from_decoding
+        dh_from_decoding = dout * hs_from_encoding
+
+        dh_from_decoding = dh_from_decoding.sum(axis=1)
+
+        return dhs_from_encoding, dh_from_decoding
 
     def update_params(self):
         pass
