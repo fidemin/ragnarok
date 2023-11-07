@@ -8,7 +8,7 @@ from core.activation import softmax
 from core.loss import cross_entropy
 from core.optimizer import SGD
 from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM, GroupedLSTM, Embedding, \
-    GroupedAffine, GroupedSoftmaxWithLoss
+    GroupedAffine, GroupedSoftmaxWithLoss, WeightSum
 from language.util import UnigramSampler
 
 
@@ -858,3 +858,63 @@ class TestGroupedSoftmaxWithLoss:
         dxs = layer.backward()
 
         assert xs.shape == dxs.shape
+
+
+class TestWeightSum:
+    def test_forward(self):
+        # N = 2, T = 2, H = 3
+        test_input = np.array([
+            [
+                [0.1, 0.2, 0.3],
+                [0.4, 0.5, 0.6]
+            ],
+            [
+                [0.2, 0.1, 0.4],
+                [0.8, 1.2, 1.5]
+            ]
+        ])
+
+        # N = 2, T = 2
+        weight = np.array([
+            [0.6, 0.4],  # sum = 1.0
+            [0.1, 0.9]  # sum = 1.0
+        ])
+
+        expected = np.array([
+            test_input[0][0] * weight[0][0] + test_input[0][1] * weight[0][1],
+            test_input[1][0] * weight[1][0] + test_input[1][1] * weight[1][1]
+        ])
+
+        layer = WeightSum()
+        actual = layer.forward(test_input, weight)
+
+        assert np.allclose(actual, expected)
+
+    def test_backward(self):
+        # N = 2, T = 2, H = 3
+        hs = np.array([
+            [
+                [0.1, 0.2, 0.3],
+                [0.4, 0.5, 0.6]
+            ],
+            [
+                [0.2, 0.1, 0.4],
+                [0.8, 1.2, 1.5]
+            ]
+        ])
+
+        # N = 2, T = 2
+        weight = np.array([
+            [0.6, 0.4],  # sum = 1.0
+            [0.1, 0.9]  # sum = 1.0
+        ])
+
+        # N X H
+        test_input = np.array([
+            [1.0, 1.0, 1.0],
+            [2.0, 2.0, 2.0]
+        ])
+
+        layer = WeightSum()
+        layer.forward(hs, weight)
+        dhs, dweight = layer.backward(test_input)

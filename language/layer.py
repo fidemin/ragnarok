@@ -492,3 +492,42 @@ class GroupedSoftmaxWithLoss:
         dxs = dout * (ys - ts) / batch_size
 
         return dxs.reshape(original_size)
+
+
+class WeightSum(Layer):
+    def __init__(self):
+        self._cache = {}
+
+    def forward(self, *inputs: np.ndarray) -> np.ndarray:
+        hs = inputs[0]  # N X T X H
+        weight = inputs[1]  # N X T
+
+        N, T, H = hs.shape
+
+        weight = weight.reshape((N, T, 1)).repeat(H, axis=2)
+
+        out = hs * weight
+        out = out.sum(axis=1)
+
+        self._cache['shape'] = hs.shape
+        self._cache['hs'] = hs
+        self._cache['weight'] = weight
+        return out
+
+    def backward(self, dout: np.ndarray):
+        # dout: N, H
+        N, T, H = self._cache['shape']
+        hs = self._cache['hs']
+        weight = self._cache['weight']
+
+        dout = dout.reshape((N, 1, H)).repeat(T, axis=1)
+
+        dhs = dout * weight
+        dweight = dout * hs
+
+        dweight = dweight.sum(axis=2)
+
+        return dhs, dweight
+
+    def update_params(self):
+        pass
