@@ -601,3 +601,41 @@ class Attention(Layer):
 
     def update_params(self):
         pass
+
+
+class GroupedAttention(Layer):
+    def __init__(self):
+        self._layers = None
+
+    def forward(self, *inputs: np.ndarray, **kwargs):
+        hs_enc = inputs[0]
+        hs_dec = inputs[1]
+
+        self._layers = []
+
+        N, T_dec, H = hs_dec.shape
+
+        out = np.zeros_like(hs_dec)
+
+        for t in range(T_dec):
+            attention = Attention()
+            t_out = attention.forward(hs_enc, hs_dec[:, t, :])
+            self._layers.append(attention)
+            out[:, t, :] = t_out
+
+        return out
+
+    def backward(self, douts: np.ndarray):
+        N, T_dec, H = douts.shape
+        dhs_enc = 0
+        dhs_dec = np.zeros_like(douts)
+
+        for t in range(T_dec):
+            dhs_enc_t, dhs_dec_t = self._layers[t].backward(douts)
+            dhs_enc += dhs_enc_t
+            dhs_dec[:, t, :] = dhs_dec_t
+
+        return dhs_enc, dhs_dec
+
+    def update_params(self):
+        pass
