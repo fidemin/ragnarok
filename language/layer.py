@@ -578,3 +578,26 @@ class WeightForAttention(Layer):
 
     def update_params(self):
         pass
+
+
+class Attention(Layer):
+    def __init__(self):
+        self._weight_sum_layer = WeightSum()
+        self._weight_for_attention_layer = WeightForAttention()
+
+    def forward(self, *inputs: np.ndarray, **kwargs):
+        hs = inputs[0]
+        h = inputs[1]
+
+        weight = self._weight_for_attention_layer.forward(hs, h)
+        out = self._weight_sum_layer.forward(hs, weight)
+        return out
+
+    def backward(self, dout: np.ndarray):
+        dhs1, dweight = self._weight_sum_layer.backward(dout)
+        dhs2, dh = self._weight_for_attention_layer.backward(dweight)
+        dhs = dhs1 + dhs2
+        return dhs, dh
+
+    def update_params(self):
+        pass
