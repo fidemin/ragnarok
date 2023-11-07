@@ -1,7 +1,7 @@
 import numpy as np
 
 from core.layer import Layer
-from language.layer import Embedding, GroupedLSTM, GroupedAffine
+from language.layer import Embedding, GroupedLSTM, GroupedAffine, GroupedAttention
 
 
 class Encoder:
@@ -205,6 +205,103 @@ class PeekySeq2Seq(Seq2Seq):
     def __init__(self, voca_size, wordvec_size, hidden_size):
         encoder = Encoder(voca_size, wordvec_size, hidden_size)
         decoder = PeekyDecoder(voca_size, wordvec_size, hidden_size)
+
+        self._encoder = encoder
+        self._decoder = decoder
+
+        self.params = self._encoder.params + self._decoder.params
+        self.grads = self._encoder.grads + self._decoder.grads
+
+
+class AttentionEncoder(Encoder):
+    def forward(self, xs: np.ndarray):
+        ds = self._embedding_layer.forward(xs)
+        hs = self._lstm_layer.forward(ds)
+        # return all output of sequences
+        self._hs = hs
+        return hs
+
+    def backward(self, dhs: np.ndarray):
+        dout = self._lstm_layer.backward(dhs)
+        self._embedding_layer.backward(dout)
+
+
+class AttentionDecoder(Decoder):
+    def __init__(self, voca_size, wordvec_size, hidden_size):
+        W_emb = np.random.randn(voca_size, wordvec_size) * 0.01
+        Wx_lstm = np.random.randn(wordvec_size, 4 * hidden_size) * (1 / np.sqrt(wordvec_size))
+        Wh_lstm = np.random.randn(hidden_size, 4 * hidden_size) * (1 / np.sqrt(hidden_size))
+        b_lstm = np.zeros((1, 4 * hidden_size))
+        W_affine = np.random.randn(2 * hidden_size, voca_size) * (1 / np.sqrt(hidden_size))
+        b_affine = np.zeros((1, voca_size))
+
+        embedding_layer = Embedding(W_emb)
+        lstm_layer = GroupedLSTM(Wx_lstm, Wh_lstm, b_lstm, stateful=True)
+        attention_layer = GroupedAttention()
+        affine_layer = GroupedAffine(W_affine, b_affine)
+
+        self._embedding_layer = embedding_layer
+        self._lstm_layer = lstm_layer
+        self._attention_layer = attention_layer  # no params, grads
+        self._affine_layer = affine_layer
+
+        self.params = self._embedding_layer.params + self._lstm_layer.params + self._affine_layer.params
+        self.grads = self._embedding_layer.grads + self._lstm_layer.grads + self._affine_layer.grads
+
+    def forward(self, xs: np.ndarray, hs: np.ndarray):
+        h = hs[:, -1, :]
+        self._set_lstm_state(h)
+        out = self._embedding_layer.forward(xs)
+        out = self._lstm_layer.forward(out)
+        c = self._attention_layer.forward(hs, out)
+        out = np.concatenate((c, out), axis=2)
+        out = self._affine_layer.forward(out)
+        return out
+
+    def backward(self, dout: np.ndarray):
+        # dout: N X T X 2H
+        dout = self._affine_layer.backward(dout)
+        N, T_dec, H_2 = dout.shape
+        H = H_2 // 2
+        dc, dout = np.split(dout, [H], axis=2)
+        dhs_enc, dhs_dec = self._attention_layer.backward(dc)
+        dout = self._lstm_layer.backward(dout + dhs_dec)
+        self._embedding_layer.backward(dout)
+
+        # TODO: The way to insert to get variable is required for Layer
+        dh = self._lstm_layer._dh
+        dhs_enc[:, -1, :] += dh
+
+        return dhs_enc
+
+    def generate(self, start_id, hs_enc, sample_size):
+        h = hs_enc[:, -1, :]
+        self._set_lstm_state(h)
+
+        sample_word_id = start_id
+
+        word_id_list = []
+
+        for _ in range(sample_size):
+            xs = np.array(sample_word_id).reshape((1, 1))
+            out = self._embedding_layer.forward(xs)
+            out = self._lstm_layer.forward(out)
+            c = self._attention_layer.forward(hs_enc, out)
+            out = np.concatenate((c, out), axis=2)
+            out = self._affine_layer.forward(out)
+
+            sample_word_id = np.argmax(out.flatten())
+            word_id_list.append(int(sample_word_id))
+
+        return word_id_list
+
+
+class AttentionSeq2Seq(Seq2Seq):
+    decoder_xs_key = 'decoder_xs'
+
+    def __init__(self, voca_size, wordvec_size, hidden_size):
+        encoder = AttentionEncoder(voca_size, wordvec_size, hidden_size)
+        decoder = AttentionDecoder(voca_size, wordvec_size, hidden_size)
 
         self._encoder = encoder
         self._decoder = decoder

@@ -515,7 +515,7 @@ class WeightSum(Layer):
         return out
 
     def backward(self, dout: np.ndarray):
-        # dout: N, H
+        # dout: N X H
         N, T, H = self._cache['shape']
         hs = self._cache['hs']
         weight = self._cache['weight']
@@ -631,7 +631,7 @@ class GroupedAttention(Layer):
         dhs_dec = np.zeros_like(douts)
 
         for t in range(T_dec):
-            dhs_enc_t, dhs_dec_t = self._layers[t].backward(douts)
+            dhs_enc_t, dhs_dec_t = self._layers[t].backward(douts[:, t, :])
             dhs_enc += dhs_enc_t
             dhs_dec[:, t, :] = dhs_dec_t
 
