@@ -35,7 +35,7 @@ class Square(Function):
     def forward(self, *variables: Variable):
         x_var = variables[0]
         output_ = np.square(x_var.data)
-        out_var = Variable(output_)
+        out_var = Variable(output_, creator=self)
         self.inputs = variables
         self.output = out_var
         return out_var
@@ -58,7 +58,7 @@ class Exp(Function):
     def forward(self, *variables: Variable):
         x_var = variables[0]
         out = np.exp(x_var.data)
-        out_var = Variable(out)
+        out_var = Variable(out, creator=self)
         self.inputs = variables
         self.output = out_var
         return out_var
