@@ -37,6 +37,16 @@ class TestSquare:
             f = Square()
             f(*test_input)
 
+    def test_gradient_check(self):
+        test_input = Variable(np.array([[1.0, 2.0, 3.0]]))
+        f1 = Square()
+        f2 = Square()
+
+        f1(test_input)
+        actual = f1.backward(Variable(1.0))
+        expected = numerical_diff(f2, test_input)
+        assert allclose(actual, expected)
+
 
 class TestExp:
     @pytest.mark.parametrize('test_input,expected', [
