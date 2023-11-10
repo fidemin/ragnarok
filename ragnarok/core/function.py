@@ -23,7 +23,7 @@ class Function:
 
 class Square(Function):
     """
-    Sqauare function returns square of values in Variable.
+    Square function returns square of values in Variable.
     """
 
     def backward(self, dout: Variable):
@@ -41,6 +41,28 @@ class Square(Function):
         var_length = len(variables)
         if var_length == 0 or var_length > 1:
             raise FunctionVariableError('There should be one input variable for Square function.')
+
+
+class Exp(Function):
+    """
+    Exp function returns exponential of Variable.
+    """
+
+    def backward(self, dout: Variable):
+        x_var = self._cache['x_var']
+        dx = x_var.data
+        return Variable(dx * dout.data)
+
+    def forward(self, *variables: Variable):
+        x_var = variables[0]
+        output_ = np.exp(x_var.data)
+        self._cache['x_var'] = x_var
+        return Variable(output_)
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length == 0 or var_length > 1:
+            raise FunctionVariableError('There should be one input variable for Exp function.')
 
 
 class FunctionVariableError(RuntimeError):
