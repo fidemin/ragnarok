@@ -18,8 +18,11 @@ class TestVariable:
     ])
     def test_initialization(self, test_input, creator):
         variable = Variable(test_input, creator)
+        grad = Variable(np.array([1.0, 2.0]))
+        variable.grad = grad
         assert np.all(variable.data == test_input)
         assert variable.creator == creator
+        assert variable.grad == grad
 
     @pytest.mark.parametrize('test_input', [
         'string',
