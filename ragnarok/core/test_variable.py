@@ -1,7 +1,9 @@
+import datetime
+
 import numpy as np
 import pytest
 
-from ragnarok.core.variable import Variable
+from ragnarok.core.variable import Variable, VariableError
 
 
 class TestVariable:
@@ -13,3 +15,11 @@ class TestVariable:
     def test_data(self, test_input):
         variable = Variable(test_input)
         assert np.all(test_input == variable.data)
+
+    @pytest.mark.parametrize('test_input', [
+        'string',
+        datetime.datetime.now()
+    ])
+    def test_raise_error_for_wrong_data_type(self, test_input):
+        with pytest.raises(VariableError):
+            variable = Variable(test_input)
