@@ -49,15 +49,15 @@ class Exp(Function):
     """
 
     def backward(self, dout: Variable):
-        x_var = self._cache['x_var']
-        dx = x_var.data
-        return Variable(dx * dout.data)
+        out = self._cache['out']
+        return Variable(out.data * dout.data)
 
     def forward(self, *variables: Variable):
         x_var = variables[0]
-        output_ = np.exp(x_var.data)
-        self._cache['x_var'] = x_var
-        return Variable(output_)
+        out = np.exp(x_var.data)
+        out_var = Variable(out)
+        self._cache['out'] = out_var
+        return out_var
 
     def _validate_variables(self, *variables: Variable):
         var_length = len(variables)
