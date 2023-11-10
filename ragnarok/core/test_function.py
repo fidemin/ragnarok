@@ -16,7 +16,7 @@ class TestSquare:
         f = Square()
         f(test_input)
         actual = f.backward(Variable(1.0))
-        assert np.allclose(actual.data, expected.data)
+        assert allclose(actual, expected)
 
     @pytest.mark.parametrize('test_input,expected', [
         (Variable(np.array([[1.0, 2.0, 3.0]])), Variable(np.array([[1.0, 4.0, 9.0]]))),
@@ -26,7 +26,7 @@ class TestSquare:
     def test_forward(self, test_input, expected):
         f = Square()
         actual = f(test_input)
-        assert np.allclose(actual.data, expected.data)
+        assert allclose(actual, expected)
 
     @pytest.mark.parametrize('test_input', [
         [Variable(np.array([[1.0, 2.0, 3.0]])), Variable(np.array([[1.0, 4.0, 9.0]]))],

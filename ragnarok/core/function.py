@@ -5,7 +5,8 @@ from ragnarok.core.variable import Variable
 
 class Function:
     def __init__(self):
-        self._cache = {}
+        self.inputs = None
+        self.output = None
 
     def __call__(self, *variables: Variable):
         self._validate_variables(*variables)
@@ -27,15 +28,17 @@ class Square(Function):
     """
 
     def backward(self, dout: Variable):
-        x_var = self._cache['x_var']
+        x_var = self.inputs[0]
         dx = 2 * x_var.data
         return Variable(dx * dout.data)
 
     def forward(self, *variables: Variable):
         x_var = variables[0]
         output_ = np.square(x_var.data)
-        self._cache['x_var'] = x_var
-        return Variable(output_)
+        out_var = Variable(output_)
+        self.inputs = variables
+        self.output = out_var
+        return out_var
 
     def _validate_variables(self, *variables: Variable):
         var_length = len(variables)
@@ -49,14 +52,15 @@ class Exp(Function):
     """
 
     def backward(self, dout: Variable):
-        out = self._cache['out']
+        out = self.output
         return Variable(out.data * dout.data)
 
     def forward(self, *variables: Variable):
         x_var = variables[0]
         out = np.exp(x_var.data)
         out_var = Variable(out)
-        self._cache['out'] = out_var
+        self.inputs = variables
+        self.output = out_var
         return out_var
 
     def _validate_variables(self, *variables: Variable):

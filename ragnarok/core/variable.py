@@ -2,19 +2,19 @@ import numpy as np
 
 
 class Variable:
-    def __init__(self, data: int | float | np.ndarray):
+    def __init__(self, data: int | float | np.ndarray | np.generic):
         """
         Args:
             data: numpy array or int or float
         """
 
-        if not (isinstance(data, int) or isinstance(data, float) or isinstance(data, np.ndarray)):
+        if not (isinstance(data, (int, float, np.ndarray, np.generic))):
             raise VariableError('data should be numpy array or int or float')
 
         self._data = data
 
     @property
-    def data(self) -> int | float | np.ndarray:
+    def data(self) -> int | float | np.ndarray | np.generic:
         return self._data
 
 

@@ -9,6 +9,7 @@ from ragnarok.core.variable import Variable, VariableError
 class TestVariable:
     @pytest.mark.parametrize('test_input', [
         np.array([[1.0, 2.0, 3.0]]),
+        np.array(1),
         3,
         3.0
     ])
