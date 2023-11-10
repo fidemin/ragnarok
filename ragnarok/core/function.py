@@ -30,14 +30,16 @@ class Square(Function):
     def backward(self, dout: Variable):
         x_var = self.inputs[0]
         dx = 2 * x_var.data
-        return Variable(dx * dout.data)
+        grad = Variable(dx * dout.data)
+        self.inputs[0].grad = grad
+        return grad
 
     def forward(self, *variables: Variable):
         x_var = variables[0]
         output_ = np.square(x_var.data)
         out_var = Variable(output_, creator=self)
-        self.inputs = variables
-        self.output = out_var
+        self.inputs: tuple[Variable] = variables
+        self.output: Variable = out_var
         return out_var
 
     def _validate_variables(self, *variables: Variable):
@@ -53,7 +55,9 @@ class Exp(Function):
 
     def backward(self, dout: Variable):
         out = self.output
-        return Variable(out.data * dout.data)
+        grad = Variable(out.data * dout.data)
+        self.inputs[0].grad = grad
+        return grad
 
     def forward(self, *variables: Variable):
         x_var = variables[0]

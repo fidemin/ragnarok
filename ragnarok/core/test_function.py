@@ -95,7 +95,7 @@ class TestExp:
 
 
 def test_define_by_run():
-    test_input = Variable(np.array([1.0, 2.0]))
+    test_input = Variable(np.array([0.1, 0.2]))
 
     f1 = Square()
     f2 = Exp()
@@ -105,9 +105,17 @@ def test_define_by_run():
     out2 = f2(out1)
     out3 = f3(out2)
 
+    dout3 = f3.backward(Variable(1.0))
+    dout2 = f2.backward(dout3)
+    dout1 = f1.backward(dout2)
+
     assert out3.creator == f3
     assert out3.creator.inputs == (out2,)
     assert out2.creator == f2
     assert out2.creator.inputs == (out1,)
     assert out1.creator == f1
     assert out1.creator.inputs == (test_input,)
+
+    assert dout3 == out2.grad
+    assert dout2 == out1.grad
+    assert dout1 == test_input.grad
