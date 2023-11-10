@@ -4,11 +4,17 @@ from ragnarok.core.variable import Variable
 
 
 class Function:
+    def __init__(self):
+        self._cache = {}
+
     def __call__(self, *variables: Variable):
         self._validate_variables(*variables)
-        return self._forward(*variables)
+        return self.forward(*variables)
 
-    def _forward(self, *variables: Variable):
+    def backward(self, dout: Variable):
+        raise NotImplementedError("Function.backward is not implemented")
+
+    def forward(self, *variables: Variable):
         raise NotImplementedError("Function._forward is not implemented")
 
     def _validate_variables(self, *variables: Variable):
@@ -20,9 +26,15 @@ class Square(Function):
     Sqauare function returns square of values in Variable.
     """
 
-    def _forward(self, *variables: Variable):
-        var = variables[0]
-        output_ = np.square(var.data)
+    def backward(self, dout: Variable):
+        x_var = self._cache['x_var']
+        dx = 2 * x_var.data
+        return Variable(dx * dout.data)
+
+    def forward(self, *variables: Variable):
+        x_var = variables[0]
+        output_ = np.square(x_var.data)
+        self._cache['x_var'] = x_var
         return Variable(output_)
 
     def _validate_variables(self, *variables: Variable):
