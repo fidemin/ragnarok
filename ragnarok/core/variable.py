@@ -14,6 +14,9 @@ class Variable:
         if not (isinstance(data, (int, float, np.ndarray, np.generic))):
             raise VariableError('data should be numpy array or int or float')
 
+        if isinstance(data, (int, float)):
+            data = np.array(data)
+
         self._data = data
         self._creator = creator
         self._grad = None
@@ -33,6 +36,28 @@ class Variable:
     @grad.setter
     def grad(self, value):
         self._grad = value
+
+    def backward(self):
+        if self._creator is None:
+            raise VariableError('creator is None. backward propagation is not possible.')
+
+        if self._grad is None:
+            self._grad = np.ones_like(self.data)
+
+        # initial value
+        creators = [self._creator]
+
+        # DFS to iterate all related variables: use pop and append
+        while creators:
+            creator = creators.pop()
+            dinputs = creator.backward(creator.output)
+            inputs = creator.inputs
+
+            for input_, dinput in zip(inputs, dinputs):
+                input_.grad = dinput
+                if input_.creator is not None:
+                    next_creator = input_.creator
+                    creators.append(next_creator)
 
 
 class VariableError(RuntimeError):

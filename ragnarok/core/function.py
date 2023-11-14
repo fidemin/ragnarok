@@ -31,8 +31,7 @@ class Square(Function):
         x_var = self.inputs[0]
         dx = 2 * x_var.data
         grad = Variable(dx * dout.data)
-        self.inputs[0].grad = grad
-        return grad
+        return (grad,)
 
     def forward(self, *variables: Variable):
         x_var = variables[0]
@@ -56,8 +55,7 @@ class Exp(Function):
     def backward(self, dout: Variable):
         out = self.output
         grad = Variable(out.data * dout.data)
-        self.inputs[0].grad = grad
-        return grad
+        return (grad,)
 
     def forward(self, *variables: Variable):
         x_var = variables[0]
