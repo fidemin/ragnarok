@@ -45,4 +45,10 @@ class TestVariable:
 
         out3.backward()
 
-        # TODO: check gradient for each inputs
+        test_input_derivative = 2 * np.exp(np.square(test_input.data)) * np.exp(
+            np.square(test_input.data)) * 2 * test_input.data
+        out1_derivative = 2 * np.exp(np.square(test_input.data)) * np.exp(np.square(test_input.data))
+        out2_derivative = 2 * np.exp(np.square(test_input.data))
+        assert np.allclose(test_input.grad.data, test_input_derivative)
+        assert np.allclose(out1.grad.data, out1_derivative)
+        assert np.allclose(out2.grad.data, out2_derivative)

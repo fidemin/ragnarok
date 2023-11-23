@@ -50,7 +50,7 @@ class Variable:
         # DFS to iterate all related variables: use pop and append
         while creators:
             creator = creators.pop()
-            dinputs = creator.backward(creator.output)
+            dinputs = creator.backward(creator.output.grad)
             inputs = creator.inputs
 
             for input_, dinput in zip(inputs, dinputs):
