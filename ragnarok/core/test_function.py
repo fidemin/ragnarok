@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ragnarok.core.function import Square, FunctionVariableError, Exp
+from ragnarok.core.function import Square, FunctionVariableError, Exp, Add
 from ragnarok.core.util import numerical_diff, allclose
 from ragnarok.core.variable import Variable
 
@@ -94,6 +94,48 @@ class TestExp:
         actual = f1.backward(Variable(1.0))
         expected = numerical_diff(f2, test_input)
         assert allclose(actual[0], expected)
+
+
+class TestAdd:
+    def test_forward(self):
+        test_input1 = Variable(np.array([0.1, 0.2]))
+        test_input2 = Variable(np.array([0.3, 0.4]))
+
+        f = Add()
+
+        expected = Variable(np.array([0.4, 0.6]))
+        actual = f.forward(test_input1, test_input2)
+
+        assert np.allclose(actual.data, expected.data)
+
+    def test_backward(self):
+        test_input1 = Variable(np.array([0.1, 0.2]))
+        test_input2 = Variable(np.array([0.3, 0.4]))
+
+        f = Add()
+        f(test_input1, test_input2)
+        dout = Variable(np.array([1.0, 2.0]))
+
+        expected0 = Variable(np.array([1.0, 2.0]))
+        expected1 = Variable(np.array([1.0, 2.0]))
+
+        dx0, dx1 = f.backward(dout)
+
+        assert np.allclose(dx0.data, expected0.data)
+        assert np.allclose(dx1.data, expected1.data)
+
+    def test_gradient_check(self):
+        f = Add()
+        test_inputs = [Variable(np.array([[3.0, 4.0]])), Variable(np.array([[6.0, 8.0]]))]
+
+        f(*test_inputs)
+
+        actual = f.backward(Variable(np.array(1.0)))
+
+        expected = numerical_diff(f, *test_inputs)
+
+        for i, dx in enumerate(actual):
+            assert allclose(dx, expected[i])
 
 
 def test_define_by_run():

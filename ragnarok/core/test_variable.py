@@ -33,6 +33,7 @@ class TestVariable:
             Variable(test_input)
 
     def test_backward(self):
+        # TODO: test_backward for Add function
         test_input = Variable(np.array([0.1, 0.2]))
 
         f1 = Square()

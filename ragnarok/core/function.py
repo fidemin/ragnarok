@@ -80,5 +80,20 @@ class Exp(Function):
             raise FunctionVariableError('There should be one input variable for Exp function.')
 
 
+class Add(Function):
+    def forward(self, *variables: Variable):
+        x0, x1 = variables
+        y = x0.data + x1.data
+        return Variable(y)
+
+    def backward(self, dout: Variable):
+        return dout, dout
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length != 2:
+            raise FunctionVariableError('There should be two input variable for Add function.')
+
+
 class FunctionVariableError(RuntimeError):
     pass
