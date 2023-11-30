@@ -12,12 +12,16 @@ class Function:
         self._validate_variables(*inputs)
         outputs = self.forward(*inputs)
 
+        if type(outputs) not in (tuple, list):
+            outputs = (outputs,)
+
         for output in outputs:
             output.set_creator(self)
 
         self.inputs = inputs
         self.outputs = outputs
-        return outputs
+
+        return outputs if len(outputs) > 1 else outputs[0]
 
     def backward(self, dout: Variable):
         raise NotImplementedError("Function.backward is not implemented")
@@ -45,7 +49,7 @@ class Square(Function):
         x_var = variables[0]
         out = np.square(x_var.data)
         out_var = Variable(out)
-        return out_var,
+        return out_var
 
     def _validate_variables(self, *variables: Variable):
         var_length = len(variables)
@@ -68,7 +72,7 @@ class Exp(Function):
         x_var = variables[0]
         out = np.exp(x_var.data)
         out_var = Variable(out)
-        return out_var,
+        return out_var
 
     def _validate_variables(self, *variables: Variable):
         var_length = len(variables)

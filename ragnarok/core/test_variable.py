@@ -39,9 +39,9 @@ class TestVariable:
         f2 = Exp()
         f3 = Square()
 
-        out1 = f1(test_input)[0]
-        out2 = f2(out1)[0]
-        out3 = f3(out2)[0]
+        out1 = f1(test_input)
+        out2 = f2(out1)
+        out3 = f3(out2)
 
         out3.backward()
 
