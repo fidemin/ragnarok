@@ -23,9 +23,10 @@ class TestSquare:
         (Variable(3), Variable(9)),
         (Variable(3.0), Variable(9.0))
     ])
-    def test_forward(self, test_input, expected):
+    def test_call(self, test_input, expected):
         f = Square()
-        actual = f(test_input)
+        actual = f(test_input)[0]
+        assert actual.creator is f
         assert allclose(actual, expected)
 
     @pytest.mark.parametrize('test_input', [
@@ -69,9 +70,10 @@ class TestExp:
         (Variable(3), Variable(20.085536923188)),
         (Variable(3.0), Variable(20.085536923188))
     ])
-    def test_forward(self, test_input, expected):
+    def test_call(self, test_input, expected):
         f = Exp()
-        actual = f(test_input)
+        actual = f(test_input)[0]
+        assert actual.creator is f
         assert allclose(actual, expected)
 
     @pytest.mark.parametrize('test_input', [
@@ -101,9 +103,9 @@ def test_define_by_run():
     f2 = Exp()
     f3 = Square()
 
-    out1 = f1(test_input)
-    out2 = f2(out1)
-    out3 = f3(out2)
+    out1 = f1(test_input)[0]
+    out2 = f2(out1)[0]
+    out3 = f3(out2)[0]
 
     dout3 = f3.backward(Variable(1.0))
     dout2 = f2.backward(dout3[0])

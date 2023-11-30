@@ -21,6 +21,9 @@ class Variable:
         self._creator = creator
         self._grad = None
 
+    def set_creator(self, creator):
+        self._creator = creator
+
     @property
     def data(self) -> int | float | np.ndarray | np.generic:
         return self._data
@@ -50,7 +53,9 @@ class Variable:
         # DFS to iterate all related variables: use pop and append
         while creators:
             creator = creators.pop()
-            dinputs = creator.backward(creator.output.grad)
+            # NOTE: outputs[0] is temporary code for backward compatibility of function with one output
+            # TODO: Should deal with multi outputs
+            dinputs = creator.backward(creator.outputs[0].grad)
             inputs = creator.inputs
 
             for input_, dinput in zip(inputs, dinputs):
