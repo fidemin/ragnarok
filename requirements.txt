@@ -4,3 +4,4 @@ pytest-mock==3.11.1
 keras==2.13.1
 tensorflow==2.13.0
 matplotlib==3.8.0
+memory-profiler==0.61.0
