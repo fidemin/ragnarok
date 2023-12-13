@@ -1,9 +1,32 @@
 import numpy as np
 import pytest
 
-from ragnarok.core.function import Square, FunctionVariableError, Exp, Add, Split
+from ragnarok.core.function import Square, FunctionVariableError, Exp, Add, Split, Function
 from ragnarok.core.util import numerical_diff, allclose
 from ragnarok.core.variable import Variable
+
+
+class FunctionForTest(Function):
+    def backward(self, *douts: Variable):
+        return douts[0]
+
+    def forward(self, *variables: Variable, **kwargs):
+        return variables[0]
+
+    def _validate_variables(self, *variables: Variable):
+        pass
+
+
+class TestFunction:
+    def test_call(self):
+        # generation of test_input is 0
+        test_input = Variable(np.array([1.0, 2.0, 3.0]))
+        f = FunctionForTest()
+        output = f(test_input)
+
+        assert output.gen == 1
+        assert f.gen == 0
+        assert output.creator == f
 
 
 class TestSquare:

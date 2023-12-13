@@ -7,6 +7,7 @@ class Function:
     def __init__(self):
         self.inputs = None
         self.outputs = None
+        self.gen = None
         self.kwargs = {}
 
     def __call__(self, *inputs: Variable, **kwargs):
@@ -15,6 +16,9 @@ class Function:
 
         if type(outputs) not in (tuple, list):
             outputs = (outputs,)
+
+        this_gen = max([input_.gen for input_ in inputs])
+        self.gen = this_gen
 
         for output in outputs:
             output.set_creator(self)

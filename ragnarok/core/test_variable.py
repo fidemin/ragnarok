@@ -102,16 +102,21 @@ class TestVariable:
 
     def test_backward_with_same_inputs(self):
         test_input = Variable(np.array([0.1, 0.2, 0.3]))
-        f = Add()
-        output = f(test_input, test_input)
+        f1 = Add()
+        f2 = Add()
+        output1 = f1(test_input, test_input)
+        output = f2(output1, test_input)
+
         output.backward()
 
-        expected = Variable(np.array([2.0, 2.0, 2.0]))
+        expected = Variable(np.array([3.0, 3.0, 3.0]))
         assert allclose(test_input.grad, expected)
 
     def test_set_creator(self):
         test_input = Variable(np.array([0.1, 0.2]))
         func = Square()
+        func.gen = test_input.gen
         test_input.set_creator(func)
 
         assert test_input.creator == func
+        assert test_input.gen == 1

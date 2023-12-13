@@ -20,9 +20,11 @@ class Variable:
         self._data = data
         self._creator = creator
         self._grad = None
+        self._gen = 0
 
     def set_creator(self, creator):
         self._creator = creator
+        self._gen = creator.gen + 1
 
     @property
     def data(self) -> int | float | np.ndarray | np.generic:
@@ -39,6 +41,14 @@ class Variable:
     @grad.setter
     def grad(self, value):
         self._grad = value
+
+    @property
+    def gen(self):
+        return self._gen
+
+    @gen.setter
+    def gen(self, value):
+        self._gen = value
 
     def backward(self):
         if self._creator is None:
