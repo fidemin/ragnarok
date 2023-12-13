@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ragnarok.core.function import Square, FunctionVariableError, Exp, Add
+from ragnarok.core.function import Square, FunctionVariableError, Exp, Add, Split
 from ragnarok.core.util import numerical_diff, allclose
 from ragnarok.core.variable import Variable
 
@@ -136,6 +136,41 @@ class TestAdd:
 
         for i, dx in enumerate(actual):
             assert allclose(dx, expected[i])
+
+
+class TestSplit:
+    @pytest.mark.parametrize('test_input,axis,expected', [
+        (Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])), 0,
+         [Variable(np.array([[1.0, 2.0, 3.0]])), Variable(np.array([[2.0, 4.0, 8.0]]))]),
+
+        (Variable(np.array([[1.0, 3.0], [2.0, 4.0]])), 1,
+         [Variable(np.array([[1.0], [2.0]])), Variable(np.array([[3.0], [4.0]]))]),
+
+    ])
+    def test_forward(self, test_input, axis, expected):
+        split = Split()
+        actual = split.forward(test_input, axis=axis)
+        assert len(actual) == len(expected)
+
+        for i in range(len(actual)):
+            assert allclose(actual[i], expected[i])
+
+    @pytest.mark.parametrize('test_input,axis,expected', [
+        ([Variable(np.array([[1.0, 2.0, 3.0]])), Variable(np.array([[2.0, 4.0, 8.0]]))], 0,
+         Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]]))),
+        ([Variable(np.array([[1.0], [2.0]])), Variable(np.array([[3.0], [4.0]]))], 1,
+         Variable(np.array([[1.0, 3.0], [2.0, 4.0]]))),
+
+    ])
+    def test_backward(self, test_input, axis, expected):
+        output_shape = expected.data.shape
+        forward_input = Variable(np.random.rand(*output_shape))
+
+        split = Split()
+        split(forward_input, axis=axis)
+        actual = split.backward(*test_input)
+
+        assert allclose(actual, expected)
 
 
 def test_define_by_run():

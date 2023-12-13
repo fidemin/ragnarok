@@ -1,9 +1,11 @@
 import datetime
+import math
 
 import numpy as np
 import pytest
 
-from ragnarok.core.function import Square, Exp
+from ragnarok.core.function import Square, Exp, Split, Add
+from ragnarok.core.util import allclose, numerical_diff
 from ragnarok.core.variable import Variable, VariableError
 
 
@@ -53,6 +55,51 @@ class TestVariable:
         assert np.allclose(test_input.grad.data, test_input_derivative)
         assert np.allclose(out1.grad.data, out1_derivative)
         assert np.allclose(out2.grad.data, out2_derivative)
+
+    def test_backward_complex(self):
+        """
+        function graph
+                  Exp
+        Split <         > Add
+                 Square
+        """
+        test_input = Variable(np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]))
+        expected = Variable(np.array([[math.exp(0.1), math.exp(0.2), math.exp(0.3)], [0.8, 1.0, 1.2]]))
+        f1 = Split()
+        f2_1 = Exp()
+        f2_2 = Square()
+        f3 = Add()
+
+        out1_1, out1_2 = f1(test_input, axis=0)
+        out2_1 = f2_1(out1_1)
+        out2_2 = f2_2(out1_2)
+        out = f3(out2_1, out2_2)
+        out.backward()
+
+        assert allclose(test_input.grad, expected)
+
+    def test_backward_complex_with_gradient_check(self):
+        test_input = Variable(np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]))
+        f1 = Split()
+        f2_1 = Exp()
+        f2_2 = Square()
+        f3 = Add()
+
+        out1_1, out1_2 = f1(test_input, axis=0)
+        out2_1 = f2_1(out1_1)
+        out2_2 = f2_2(out1_2)
+        out = f3(out2_1, out2_2)
+        out.backward()
+
+        def complex_function(*variables):
+            nout1_1, nout1_2 = f1(*variables, axis=0)
+            nout2_1 = f2_1(nout1_1)
+            nout2_2 = f2_2(nout1_2)
+            return f3(nout2_1, nout2_2)
+
+        expected = numerical_diff(complex_function, test_input)
+
+        assert allclose(test_input.grad, expected)
 
     def test_set_creator(self):
         test_input = Variable(np.array([0.1, 0.2]))

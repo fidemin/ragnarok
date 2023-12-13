@@ -53,8 +53,19 @@ class Variable:
         # DFS to iterate all related variables: use pop and append
         while functions:
             function = functions.pop()
-            # TODO: It is possible that the one of grads can be None with multi outputs
-            doutputs = [output.grad for output in function.outputs]
+            doutputs = []
+
+            skip_backward = False
+            for output in function.outputs:
+                if output.grad is None:
+                    # All of outputs of the function has not been processed yet.
+                    skip_backward = True
+                    break
+                doutputs.append(output.grad)
+
+            if skip_backward:
+                continue
+
             dinputs = function.backward(*doutputs)
             if not isinstance(dinputs, tuple):
                 dinputs = (dinputs,)

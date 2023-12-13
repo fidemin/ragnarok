@@ -7,10 +7,11 @@ class Function:
     def __init__(self):
         self.inputs = None
         self.outputs = None
+        self.kwargs = {}
 
-    def __call__(self, *inputs: Variable):
+    def __call__(self, *inputs: Variable, **kwargs):
         self._validate_variables(*inputs)
-        outputs = self.forward(*inputs)
+        outputs = self.forward(*inputs, **kwargs)
 
         if type(outputs) not in (tuple, list):
             outputs = (outputs,)
@@ -23,10 +24,10 @@ class Function:
 
         return outputs if len(outputs) > 1 else outputs[0]
 
-    def backward(self, dout: Variable):
+    def backward(self, *douts: Variable):
         raise NotImplementedError("Function.backward is not implemented")
 
-    def forward(self, *variables: Variable):
+    def forward(self, *variables: Variable, **kwargs):
         raise NotImplementedError("Function._forward is not implemented")
 
     def _validate_variables(self, *variables: Variable):
@@ -93,6 +94,26 @@ class Add(Function):
         var_length = len(variables)
         if var_length != 2:
             raise FunctionVariableError('There should be two input variable for Add function.')
+
+
+class Split(Function):
+    def forward(self, *variables: Variable, num_of_splits=2, axis=0):
+        self.kwargs['num_of_splits'] = num_of_splits
+        self.kwargs['axis'] = axis
+
+        x = variables[0]
+        ys_data = np.split(x.data, indices_or_sections=num_of_splits, axis=axis)
+        return [Variable(y_data) for y_data in ys_data]
+
+    def backward(self, *douts: Variable):
+        douts_data = [dout.data for dout in douts]
+        dx = np.concatenate(douts_data, axis=self.kwargs['axis'])
+        return dx
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length != 1:
+            raise FunctionVariableError('There should be one input variable for Split function.')
 
 
 class FunctionVariableError(RuntimeError):
