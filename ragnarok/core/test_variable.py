@@ -10,20 +10,19 @@ from ragnarok.core.variable import Variable, VariableError
 
 
 class TestVariable:
-    @pytest.mark.parametrize('test_input,creator,data', [
-        (np.array([[1.0, 2.0, 3.0]]), None, np.array([[1.0, 2.0, 3.0]])),
-        (np.array(1), None, np.array(1)),
-        (3, None, np.array(3)),
-        (3.0, None, np.array(3.0)),
-        (np.array([1.0]), Square(), np.array([1.0]))
+    @pytest.mark.parametrize('test_input,data', [
+        (np.array([[1.0, 2.0, 3.0]]), np.array([[1.0, 2.0, 3.0]])),
+        (np.array(1), np.array(1)),
+        (3, np.array(3)),
+        (3.0, np.array(3.0)),
+        (np.array([1.0]), np.array([1.0]))
 
     ])
-    def test_initialization(self, test_input, creator, data):
-        variable = Variable(test_input, creator)
+    def test_initialization(self, test_input, data):
+        variable = Variable(test_input)
         grad = Variable(np.array([1.0, 2.0]))
         variable.grad = grad
         assert np.all(variable.data == data)
-        assert variable.creator == creator
         assert variable.grad == grad
 
     @pytest.mark.parametrize('test_input', [

@@ -1,10 +1,11 @@
 import heapq
+import weakref
 
 import numpy as np
 
 
 class Variable:
-    def __init__(self, data: int | float | np.ndarray | np.generic, creator=None):
+    def __init__(self, data: int | float | np.ndarray | np.generic):
         """
         Args:
             data: numpy array or int or float
@@ -20,12 +21,12 @@ class Variable:
             data = np.array(data)
 
         self._data = data
-        self._creator = creator
+        self._creator = None
         self._grad = None
         self._gen = 0
 
     def set_creator(self, creator):
-        self._creator = creator
+        self._creator = weakref.ref(creator)
         self._gen = creator.gen + 1
 
     @property
@@ -34,7 +35,9 @@ class Variable:
 
     @property
     def creator(self):
-        return self._creator
+        if self._creator is not None:
+            return self._creator()
+        return None
 
     @property
     def grad(self):
@@ -63,8 +66,8 @@ class Variable:
         function_queue = []
         # idx used to prevent crash in heapq operation: if gen is same, comparing between function will crash.
         idx = 0
-        heapq.heappush(function_queue, (-self.creator.gen, idx, self._creator))
-        already_added_funcs = {self._creator}
+        heapq.heappush(function_queue, (-self.creator.gen, idx, self._creator()))
+        already_added_funcs = {self._creator()}
         idx += 1
 
         # DFS to iterate all related variables: use pop and append
