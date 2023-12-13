@@ -45,7 +45,7 @@ class Variable:
             raise VariableError('The creator of this variable is None. backward propagation is not possible.')
 
         if self._grad is None:
-            self._grad = np.ones_like(self.data)
+            self._grad = Variable(np.ones_like(self.data))
 
         # initial value
         functions = [self._creator]
@@ -73,7 +73,11 @@ class Variable:
             inputs = function.inputs
 
             for input_, dinput in zip(inputs, dinputs):
-                input_.grad = dinput
+                if input_.grad is not None:
+                    input_.grad = Variable(input_.grad.data + dinput.data)
+                else:
+                    input_.grad = dinput
+
                 if input_.creator is not None:
                     next_creator = input_.creator
                     functions.append(next_creator)

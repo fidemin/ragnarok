@@ -35,7 +35,6 @@ class TestVariable:
             Variable(test_input)
 
     def test_backward(self):
-        # TODO: test_backward for Add function
         test_input = Variable(np.array([0.1, 0.2]))
 
         f1 = Square()
@@ -99,6 +98,15 @@ class TestVariable:
 
         expected = numerical_diff(complex_function, test_input)
 
+        assert allclose(test_input.grad, expected)
+
+    def test_backward_with_same_inputs(self):
+        test_input = Variable(np.array([0.1, 0.2, 0.3]))
+        f = Add()
+        output = f(test_input, test_input)
+        output.backward()
+
+        expected = Variable(np.array([2.0, 2.0, 2.0]))
         assert allclose(test_input.grad, expected)
 
     def test_set_creator(self):
