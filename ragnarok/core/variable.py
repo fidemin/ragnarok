@@ -1,3 +1,5 @@
+import heapq
+
 import numpy as np
 
 
@@ -57,24 +59,19 @@ class Variable:
         if self._grad is None:
             self._grad = Variable(np.ones_like(self.data))
 
-        # initial value
-        functions = [self._creator]
+        # higher generation popped first
+        function_queue = []
+        # idx used to prevent crash in heapq operation: if gen is same, comparing between function will crash.
+        idx = 0
+        heapq.heappush(function_queue, (-self.creator.gen, idx, self._creator))
+        already_added_funcs = {self._creator}
+        idx += 1
 
         # DFS to iterate all related variables: use pop and append
-        while functions:
-            function = functions.pop()
-            doutputs = []
+        while function_queue:
+            _, _, function = heapq.heappop(function_queue)
 
-            skip_backward = False
-            for output in function.outputs:
-                if output.grad is None:
-                    # All of outputs of the function has not been processed yet.
-                    skip_backward = True
-                    break
-                doutputs.append(output.grad)
-
-            if skip_backward:
-                continue
+            doutputs = [output.grad for output in function.outputs]
 
             dinputs = function.backward(*doutputs)
             if not isinstance(dinputs, tuple):
@@ -90,7 +87,11 @@ class Variable:
 
                 if input_.creator is not None:
                     next_creator = input_.creator
-                    functions.append(next_creator)
+                    if next_creator in already_added_funcs:
+                        continue
+                    heapq.heappush(function_queue, (-next_creator.gen, idx, next_creator))
+                    already_added_funcs.add(next_creator)
+                    idx += 1
 
 
 class VariableError(RuntimeError):
