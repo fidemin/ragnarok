@@ -42,27 +42,30 @@ class Variable:
 
     def backward(self):
         if self._creator is None:
-            raise VariableError('creator is None. backward propagation is not possible.')
+            raise VariableError('The creator of this variable is None. backward propagation is not possible.')
 
         if self._grad is None:
             self._grad = np.ones_like(self.data)
 
         # initial value
-        creators = [self._creator]
+        functions = [self._creator]
 
         # DFS to iterate all related variables: use pop and append
-        while creators:
-            creator = creators.pop()
-            # NOTE: outputs[0] is temporary code for backward compatibility of function with one output
-            # TODO: Should deal with multi outputs
-            dinputs = creator.backward(creator.outputs[0].grad)
-            inputs = creator.inputs
+        while functions:
+            function = functions.pop()
+            # TODO: It is possible that the one of grads can be None with multi outputs
+            doutputs = [output.grad for output in function.outputs]
+            dinputs = function.backward(*doutputs)
+            if not isinstance(dinputs, tuple):
+                dinputs = (dinputs,)
+
+            inputs = function.inputs
 
             for input_, dinput in zip(inputs, dinputs):
                 input_.grad = dinput
                 if input_.creator is not None:
                     next_creator = input_.creator
-                    creators.append(next_creator)
+                    functions.append(next_creator)
 
 
 class VariableError(RuntimeError):
