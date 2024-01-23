@@ -5,7 +5,7 @@ import numpy as np
 
 
 class Variable:
-    def __init__(self, data: int | float | np.ndarray | np.generic):
+    def __init__(self, data: int | float | np.ndarray | np.generic, name=None):
         """
         Args:
             data: numpy array or int or float
@@ -20,6 +20,7 @@ class Variable:
         if isinstance(data, (int, float)):
             data = np.array(data)
 
+        self._name = name
         self._data = data
         self._creator = None
         self._grad = None
@@ -67,7 +68,7 @@ class Variable:
         # idx used to prevent crash in heapq operation: if gen is same, comparing between function will crash.
         idx = 0
         heapq.heappush(function_queue, (-self.creator.gen, idx, self._creator()))
-        already_added_funcs = {self._creator()}
+        visited = {self._creator()}
         idx += 1
 
         # DFS to iterate all related variables: use pop and append
@@ -84,16 +85,18 @@ class Variable:
 
             for input_, dinput in zip(inputs, dinputs):
                 if input_.grad is not None:
+                    # For the function has more than one input and same inputs are used for the function
+                    # e.g. Add()(x, x)
                     input_.grad = Variable(input_.grad.data + dinput.data)
                 else:
                     input_.grad = dinput
 
                 if input_.creator is not None:
                     next_creator = input_.creator
-                    if next_creator in already_added_funcs:
+                    if next_creator in visited:
                         continue
                     heapq.heappush(function_queue, (-next_creator.gen, idx, next_creator))
-                    already_added_funcs.add(next_creator)
+                    visited.add(next_creator)
                     idx += 1
 
 

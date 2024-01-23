@@ -25,6 +25,21 @@ class TestVariable:
         assert np.all(variable.data == data)
         assert variable.grad == grad
 
+    @pytest.mark.parametrize('test_input,data,name', [
+        (np.array([[1.0, 2.0, 3.0]]), np.array([[1.0, 2.0, 3.0]]), 'name1'),
+        (np.array(1), np.array(1), 'name2'),
+        (3, np.array(3), 'name3'),
+        (3.0, np.array(3.0), 'name4'),
+        (np.array([1.0]), np.array([1.0]), 'name5')
+    ])
+    def test_initialization_with_name(self, test_input, data, name):
+        variable = Variable(test_input, name)
+        grad = Variable(np.array([1.0, 2.0]))
+        variable.grad = grad
+        assert np.all(variable.data == data)
+        assert variable.grad == grad
+        assert variable._name == name
+
     @pytest.mark.parametrize('test_input', [
         'string',
         datetime.datetime.now()
