@@ -10,20 +10,23 @@ from ragnarok.core.variable import Variable, VariableError
 
 
 class TestVariable:
-    @pytest.mark.parametrize('test_input,data', [
-        (np.array([[1.0, 2.0, 3.0]]), np.array([[1.0, 2.0, 3.0]])),
-        (np.array(1), np.array(1)),
-        (3, np.array(3)),
-        (3.0, np.array(3.0)),
-        (np.array([1.0]), np.array([1.0]))
-
+    @pytest.mark.parametrize('test_input,data,shape,ndim,dtype', [
+        (np.array([[1.0, 2.0, 3.0]]), np.array([[1.0, 2.0, 3.0]]), (1, 3), 2, 'float64'),
+        (np.array(1), np.array(1), (), 0, 'int64'),
+        (3, np.array(3), (), 0, 'int64'),
+        (3.0, np.array(3.0), (), 0, 'float64'),
+        (np.array([1.0]), np.array([1.0]), (1,), 1, 'float64')
     ])
-    def test_initialization(self, test_input, data):
+    def test_initialization(self, test_input, data, shape, ndim, dtype):
         variable = Variable(test_input)
         grad = Variable(np.array([1.0, 2.0]))
         variable.grad = grad
         assert np.all(variable.data == data)
         assert variable.grad == grad
+        assert variable.shape == shape
+        assert variable._name is None
+        assert variable.ndim == ndim
+        assert variable.dtype == dtype
 
     @pytest.mark.parametrize('test_input,data,name', [
         (np.array([[1.0, 2.0, 3.0]]), np.array([[1.0, 2.0, 3.0]]), 'name1'),
@@ -35,9 +38,7 @@ class TestVariable:
     def test_initialization_with_name(self, test_input, data, name):
         variable = Variable(test_input, name)
         grad = Variable(np.array([1.0, 2.0]))
-        variable.grad = grad
         assert np.all(variable.data == data)
-        assert variable.grad == grad
         assert variable._name == name
 
     @pytest.mark.parametrize('test_input', [

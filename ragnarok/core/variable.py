@@ -56,6 +56,18 @@ class Variable:
     def gen(self, value):
         self._gen = value
 
+    @property
+    def shape(self):
+        return self._data.shape
+
+    @property
+    def ndim(self):
+        return self._data.ndim
+
+    @property
+    def dtype(self):
+        return self._data.dtype.name
+
     def backward(self):
         if self._creator is None:
             raise VariableError('The creator of this variable is None. backward propagation is not possible.')
