@@ -10,14 +10,14 @@ from ragnarok.core.variable import Variable, VariableError
 
 
 class TestVariable:
-    @pytest.mark.parametrize('test_input,data,shape,ndim,dtype', [
-        (np.array([[1.0, 2.0, 3.0]]), np.array([[1.0, 2.0, 3.0]]), (1, 3), 2, 'float64'),
-        (np.array(1), np.array(1), (), 0, 'int64'),
-        (3, np.array(3), (), 0, 'int64'),
-        (3.0, np.array(3.0), (), 0, 'float64'),
-        (np.array([1.0]), np.array([1.0]), (1,), 1, 'float64')
+    @pytest.mark.parametrize('test_input,data,shape,ndim,dtype,length', [
+        (np.array([[1.0, 2.0, 3.0]]), np.array([[1.0, 2.0, 3.0]]), (1, 3), 2, 'float64', 1),
+        (np.array(1), np.array(1), (), 0, 'int64', 0),
+        (3, np.array(3), (), 0, 'int64', 0),
+        (3.0, np.array(3.0), (), 0, 'float64', 0),
+        (np.array([1.0]), np.array([1.0]), (1,), 1, 'float64', 1)
     ])
-    def test_initialization(self, test_input, data, shape, ndim, dtype):
+    def test_initialization(self, test_input, data, shape, ndim, dtype, length):
         variable = Variable(test_input)
         grad = Variable(np.array([1.0, 2.0]))
         variable.grad = grad
@@ -27,6 +27,7 @@ class TestVariable:
         assert variable._name is None
         assert variable.ndim == ndim
         assert variable.dtype == dtype
+        assert len(variable) == length
 
     @pytest.mark.parametrize('test_input,data,name', [
         (np.array([[1.0, 2.0, 3.0]]), np.array([[1.0, 2.0, 3.0]]), 'name1'),
@@ -37,7 +38,6 @@ class TestVariable:
     ])
     def test_initialization_with_name(self, test_input, data, name):
         variable = Variable(test_input, name)
-        grad = Variable(np.array([1.0, 2.0]))
         assert np.all(variable.data == data)
         assert variable._name == name
 

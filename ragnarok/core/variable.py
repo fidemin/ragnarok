@@ -26,6 +26,12 @@ class Variable:
         self._grad = None
         self._gen = 0
 
+    def __len__(self):
+        return self._data.shape[0] if self._data.shape else 0
+
+    def __repr__(self):
+        return f'Variable({str(self._data)})'
+
     def set_creator(self, creator):
         self._creator = weakref.ref(creator)
         self._gen = creator.gen + 1
