@@ -8,6 +8,7 @@ class Function:
         self.inputs = None
         self.outputs = None
         self.gen = None
+        self._cache = {}
         self.kwargs = {}
 
     def __call__(self, *inputs: Variable, **kwargs):
@@ -98,6 +99,25 @@ class Add(Function):
         var_length = len(variables)
         if var_length != 2:
             raise FunctionVariableError('There should be two input variable for Add function.')
+
+
+class Multiply(Function):
+    def forward(self, *variables: Variable, **kwargs):
+        x0, x1 = variables
+        self._cache['x0'] = x0
+        self._cache['x1'] = x1
+        y = x0.data * x1.data
+        return Variable(y)
+
+    def backward(self, dout: Variable):
+        dx0 = self._cache['x1'].data * dout.data
+        dx1 = self._cache['x0'].data * dout.data
+        return Variable(dx0), Variable(dx1)
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length != 2:
+            raise FunctionVariableError('There should be two input variable for Multiply function.')
 
 
 class Split(Function):
