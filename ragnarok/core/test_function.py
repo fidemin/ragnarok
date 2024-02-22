@@ -82,7 +82,7 @@ class TestExp:
     ])
     def test_backward(self, test_input, expected):
         f = Exp()
-        f(test_input)
+        for_weak_ref = f(test_input)
         actual = f.backward(Variable(1.0))
         assert allclose(actual, expected)
 
@@ -113,7 +113,7 @@ class TestExp:
         f1 = Exp()
         f2 = Exp()
 
-        f1(test_input)
+        for_weak_ref = f1(test_input)
         actual = f1.backward(Variable(1.0))
         expected = numerical_diff(f2, test_input)
         assert allclose(actual, expected)

@@ -135,3 +135,50 @@ class TestVariable:
 
         assert test_input.creator == func
         assert test_input.gen == 1
+
+    def test__mult__(self):
+        test_input1 = Variable(np.array([0.1, 0.2]))
+        test_input2 = Variable(np.array([0.3, 0.4]))
+
+        expected = Variable(np.array([0.03, 0.08]))
+        actual = test_input1 * test_input2
+
+        assert allclose(actual, expected)
+
+    def test__mult__backward(self):
+        test_input1 = Variable(np.array([0.1, 0.2]))
+        test_input2 = Variable(np.array([0.3, 0.4]))
+
+        forward_result = test_input1 * test_input2
+
+        expected1 = Variable(np.array([0.3, 0.4]))
+        expected2 = Variable(np.array([0.1, 0.2]))
+
+        forward_result.backward()
+
+        assert allclose(test_input1.grad, expected1)
+        assert allclose(test_input2.grad, expected2)
+
+    def test__add__(self):
+        test_input1 = Variable(np.array([0.1, 0.2]))
+        test_input2 = Variable(np.array([0.3, 0.4]))
+
+        actual = test_input1 + test_input2
+
+        expected = Variable(np.array([0.4, 0.6]))
+
+        assert allclose(actual, expected)
+
+    def test_add__backward(self):
+        test_input1 = Variable(np.array([0.1, 0.2]))
+        test_input2 = Variable(np.array([0.3, 0.4]))
+
+        forward_result = test_input1 + test_input2
+
+        expected1 = Variable(np.array([1.0, 1.0]))
+        expected2 = Variable(np.array([1.0, 1.0]))
+
+        forward_result.backward()
+
+        assert allclose(test_input1.grad, expected1)
+        assert allclose(test_input2.grad, expected2)

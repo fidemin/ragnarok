@@ -1,5 +1,4 @@
 import heapq
-import weakref
 
 import numpy as np
 
@@ -32,8 +31,16 @@ class Variable:
     def __repr__(self):
         return f'Variable({str(self._data)})'
 
+    def __mul__(self, other):
+        from ragnarok.core.function import Multiply
+        return Multiply()(self, other)
+
+    def __add__(self, other):
+        from ragnarok.core.function import Add
+        return Add()(self, other)
+
     def set_creator(self, creator):
-        self._creator = weakref.ref(creator)
+        self._creator = creator
         self._gen = creator.gen + 1
 
     @property
@@ -42,9 +49,7 @@ class Variable:
 
     @property
     def creator(self):
-        if self._creator is not None:
-            return self._creator()
-        return None
+        return self._creator
 
     @property
     def grad(self):
@@ -85,15 +90,15 @@ class Variable:
         function_queue = []
         # idx used to prevent crash in heapq operation: if gen is same, comparing between function will crash.
         idx = 0
-        heapq.heappush(function_queue, (-self.creator.gen, idx, self._creator()))
-        visited = {self._creator()}
+        heapq.heappush(function_queue, (-self.creator.gen, idx, self.creator))
+        visited = {self.creator}
         idx += 1
 
         # DFS to iterate all related variables: use pop and append
         while function_queue:
             _, _, function = heapq.heappop(function_queue)
 
-            doutputs = [output.grad for output in function.outputs]
+            doutputs = [output().grad for output in function.outputs]
 
             dinputs = function.backward(*doutputs)
             if not isinstance(dinputs, tuple):

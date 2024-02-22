@@ -1,3 +1,5 @@
+import weakref
+
 import numpy as np
 
 from ragnarok.core.variable import Variable
@@ -25,7 +27,7 @@ class Function:
             output.set_creator(self)
 
         self.inputs = inputs
-        self.outputs = outputs
+        self.outputs = [weakref.ref(output) for output in outputs]
 
         return outputs if len(outputs) > 1 else outputs[0]
 
@@ -70,7 +72,7 @@ class Exp(Function):
 
     def backward(self, *douts: Variable):
         dout = douts[0]
-        out = self.outputs[0]
+        out = self.outputs[0]()
         grad = Variable(out.data * dout.data)
         return grad
 
