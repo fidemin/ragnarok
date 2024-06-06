@@ -156,7 +156,9 @@ class TestVariable:
     @pytest.mark.parametrize('test_input1,test_input2,expected', [
         (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([0.03, 0.08]))),
         (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.03, 0.06]))),
+        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([0.03, 0.06]))),
         (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.03, 0.04]))),
+        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(np.array([0.03, 0.04]))),
     ])
     def test__mult__(self, test_input1, test_input2, expected):
         actual = test_input1 * test_input2
@@ -181,7 +183,9 @@ class TestVariable:
     @pytest.mark.parametrize('test_input1,test_input2,expected', [
         (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([0.4, 0.6]))),
         (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.4, 0.5]))),
+        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([0.4, 0.5]))),
         (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.4, 0.5]))),
+        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(np.array([0.4, 0.5]))),
     ])
     def test__add__(self, test_input1, test_input2, expected):
         actual = test_input1 + test_input2
@@ -189,8 +193,8 @@ class TestVariable:
         assert allclose(actual, expected)
 
     @pytest.mark.parametrize('test_input1,test_input2,expected1,expected2', [
-        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([1.0, 1.0])),
-         Variable(np.array([1.0, 1.0]))),
+        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])),
+         Variable(np.array([1.0, 1.0])), Variable(np.array([1.0, 1.0]))),
         (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([1.0, 1.0])), Variable(1.0)),
         (0.1, Variable(np.array([0.3, 0.4])), Variable(1.0), Variable(np.array([1.0, 1.0]))),
     ])

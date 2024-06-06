@@ -4,6 +4,8 @@ import numpy as np
 
 
 class Variable:
+    __array_priority__ = 200
+
     def __init__(self, data: int | float | np.ndarray | np.generic, name=None):
         """
         Args:
