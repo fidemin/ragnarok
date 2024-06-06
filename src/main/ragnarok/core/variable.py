@@ -35,9 +35,17 @@ class Variable:
         from src.main.ragnarok.core.function import Multiply
         return Multiply()(self, other)
 
+    def __rmul__(self, other):
+        from src.main.ragnarok.core.function import Multiply
+        return Multiply()(other, self)
+
     def __add__(self, other):
         from src.main.ragnarok.core.function import Add
         return Add()(self, other)
+
+    def __radd__(self, other):
+        from src.main.ragnarok.core.function import Add
+        return Add()(other, self)
 
     def set_creator(self, creator):
         self._creator = creator

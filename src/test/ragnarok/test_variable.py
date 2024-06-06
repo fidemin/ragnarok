@@ -153,52 +153,55 @@ class TestVariable:
         assert test_input.creator == func
         assert test_input.gen == 1
 
-    def test__mult__(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
-
-        expected = Variable(np.array([0.03, 0.08]))
+    @pytest.mark.parametrize('test_input1,test_input2,expected', [
+        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([0.03, 0.08]))),
+        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.03, 0.06]))),
+        (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.03, 0.04]))),
+    ])
+    def test__mult__(self, test_input1, test_input2, expected):
         actual = test_input1 * test_input2
 
         assert allclose(actual, expected)
 
-    def test__mult__backward(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
-
+    @pytest.mark.parametrize('test_input1,test_input2,expected1,expected2', [
+        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])),
+         Variable(np.array([0.3, 0.4])), Variable(np.array([0.1, 0.2]))),
+        (Variable(np.array([0.1, 0.2])), 0.3, Variable(0.3), Variable(np.array([0.1, 0.2]))),
+        (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.3, 0.4])), Variable(0.1)),
+    ])
+    def test__mult__backward(self, test_input1, test_input2, expected1, expected2):
         forward_result = test_input1 * test_input2
 
-        expected1 = Variable(np.array([0.3, 0.4]))
-        expected2 = Variable(np.array([0.1, 0.2]))
-
         forward_result.backward()
+        inputs = forward_result.creator.inputs
 
-        assert allclose(test_input1.grad, expected1)
-        assert allclose(test_input2.grad, expected2)
+        assert allclose(inputs[0].grad, expected1)
+        assert allclose(inputs[1].grad, expected2)
 
-    def test__add__(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
-
+    @pytest.mark.parametrize('test_input1,test_input2,expected', [
+        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([0.4, 0.6]))),
+        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.4, 0.5]))),
+        (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.4, 0.5]))),
+    ])
+    def test__add__(self, test_input1, test_input2, expected):
         actual = test_input1 + test_input2
-
-        expected = Variable(np.array([0.4, 0.6]))
 
         assert allclose(actual, expected)
 
-    def test_add__backward(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
-
+    @pytest.mark.parametrize('test_input1,test_input2,expected1,expected2', [
+        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([1.0, 1.0])),
+         Variable(np.array([1.0, 1.0]))),
+        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([1.0, 1.0])), Variable(1.0)),
+        (0.1, Variable(np.array([0.3, 0.4])), Variable(1.0), Variable(np.array([1.0, 1.0]))),
+    ])
+    def test_add__backward(self, test_input1, test_input2, expected1, expected2):
         forward_result = test_input1 + test_input2
 
-        expected1 = Variable(np.array([1.0, 1.0]))
-        expected2 = Variable(np.array([1.0, 1.0]))
-
         forward_result.backward()
+        inputs = forward_result.creator.inputs
 
-        assert allclose(test_input1.grad, expected1)
-        assert allclose(test_input2.grad, expected2)
+        assert allclose(inputs[0].grad, expected1)
+        assert allclose(inputs[1].grad, expected2)
 
 
 @pytest.mark.parametrize("input_value, expected_type", [
