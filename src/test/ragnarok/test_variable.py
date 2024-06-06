@@ -60,7 +60,7 @@ class TestVariable:
         out2 = f2(out1)
         out3 = f3(out2)
 
-        out3.backward()
+        out3.backward(retain_grad=True)
 
         test_input_derivative = 2 * np.exp(np.square(test_input.data)) * np.exp(
             np.square(test_input.data)) * 2 * test_input.data

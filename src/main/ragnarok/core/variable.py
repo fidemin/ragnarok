@@ -79,24 +79,25 @@ class Variable:
     def dtype(self):
         return self._data.dtype.name
 
-    def backward(self):
+    def backward(self, retain_grad=False):
         if self._creator is None:
             raise VariableError('The creator of this variable is None. backward propagation is not possible.')
 
         if self._grad is None:
+            # initialize with first grad as 1
             self._grad = Variable(np.ones_like(self.data))
 
         # higher generation popped first
         function_queue = []
         # idx used to prevent crash in heapq operation: if gen is same, comparing between function will crash.
         idx = 0
-        heapq.heappush(function_queue, (-self.creator.gen, idx, self.creator))
+        heapq.heappush(function_queue, ((-self.creator.gen, idx), self.creator))
         visited = {self.creator}
         idx += 1
 
         # DFS to iterate all related variables: use pop and append
         while function_queue:
-            _, _, function = heapq.heappop(function_queue)
+            _, function = heapq.heappop(function_queue)
 
             doutputs = [output().grad for output in function.outputs]
 
@@ -118,9 +119,13 @@ class Variable:
                     next_creator = input_.creator
                     if next_creator in visited:
                         continue
-                    heapq.heappush(function_queue, (-next_creator.gen, idx, next_creator))
+                    heapq.heappush(function_queue, ((-next_creator.gen, idx), next_creator))
                     visited.add(next_creator)
                     idx += 1
+            if not retain_grad:
+                # In general case, current output grad is not needed anymore
+                for output in function.outputs:
+                    output().grad = None
 
 
 class VariableError(RuntimeError):
