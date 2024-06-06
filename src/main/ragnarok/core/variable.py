@@ -130,3 +130,9 @@ class Variable:
 
 class VariableError(RuntimeError):
     pass
+
+
+def to_variable(x: int | float | np.ndarray | np.generic | Variable) -> Variable:
+    if isinstance(x, Variable):
+        return x
+    return Variable(x)

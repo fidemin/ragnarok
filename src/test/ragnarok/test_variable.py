@@ -6,7 +6,7 @@ import pytest
 
 from src.main.ragnarok.core.function import Square, Exp, Split, Add
 from src.main.ragnarok.core.util import allclose, numerical_diff
-from src.main.ragnarok.core.variable import Variable, VariableError
+from src.main.ragnarok.core.variable import Variable, VariableError, to_variable
 
 
 class TestVariable:
@@ -199,3 +199,21 @@ class TestVariable:
 
         assert allclose(test_input1.grad, expected1)
         assert allclose(test_input2.grad, expected2)
+
+
+@pytest.mark.parametrize("input_value, expected_type", [
+    (1, Variable),
+    (1.0, Variable),
+    (np.array([1, 2, 3]), Variable),
+    (np.float32(1.0), Variable),
+])
+def test_to_variable(input_value, expected_type):
+    result = to_variable(input_value)
+    assert isinstance(result, expected_type)
+    assert np.all(result.data == input_value)
+
+
+def test_to_variable__from_variable():
+    input_value = Variable(np.array([1, 2, 3]))
+    result = to_variable(input_value)
+    assert result is input_value
