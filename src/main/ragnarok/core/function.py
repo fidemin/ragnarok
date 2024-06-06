@@ -126,6 +126,21 @@ class Multiply(Function):
             raise FunctionVariableError('There should be two input variable for Multiply function.')
 
 
+class Negative(Function):
+    def forward(self, *variables: Variable):
+        x = variables[0]
+        return Variable(-x.data)
+
+    def backward(self, *douts: Variable):
+        dout = douts[0]
+        return Variable(-dout.data)
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length != 1:
+            raise FunctionVariableError('There should be one input variable for Negative function.')
+
+
 class Split(Function):
     def forward(self, *variables: Variable, num_of_splits=2, axis=0):
         self.kwargs['num_of_splits'] = num_of_splits

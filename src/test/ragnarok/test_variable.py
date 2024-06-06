@@ -180,6 +180,15 @@ class TestVariable:
         assert allclose(inputs[0].grad, expected1)
         assert allclose(inputs[1].grad, expected2)
 
+    @pytest.mark.parametrize('test_input,expected', [
+        (Variable(np.array([0.1, 0.2])), Variable(np.array([-0.1, -0.2]))),
+        (np.array([0.1, 0.2]), Variable(np.array([-0.1, -0.2]))),
+    ])
+    def test__neg__(self, test_input, expected):
+        actual = -test_input
+
+        assert allclose(actual, expected)
+
     @pytest.mark.parametrize('test_input1,test_input2,expected', [
         (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([0.4, 0.6]))),
         (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.4, 0.5]))),

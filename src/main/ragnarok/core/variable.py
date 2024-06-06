@@ -49,6 +49,10 @@ class Variable:
         from src.main.ragnarok.core.function import Add
         return Add()(other, self)
 
+    def __neg__(self):
+        from src.main.ragnarok.core.function import Negative
+        return Negative()(self)
+
     def set_creator(self, creator):
         self._creator = creator
         self._gen = creator.gen + 1

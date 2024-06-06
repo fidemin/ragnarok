@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from src.main.ragnarok.core.config import using_backprop
-from src.main.ragnarok.core.function import Square, FunctionVariableError, Exp, Add, Split, Function, Multiply
+from src.main.ragnarok.core.function import Square, FunctionVariableError, Exp, Add, Split, Function, Multiply, Negative
 from src.main.ragnarok.core.util import numerical_diff, allclose
 from src.main.ragnarok.core.variable import Variable
 
@@ -220,6 +220,41 @@ class TestMultiply:
 
         for i, dx in enumerate(actual):
             assert allclose(dx, expected[i])
+
+
+class TestNegative:
+    @pytest.mark.parametrize('test_input,expected', [
+        (Variable(np.array([0.1, 0.2])), Variable(np.array([-0.1, -0.2]))),
+    ])
+    def test_forward(self, test_input, expected):
+        f = Negative()
+        actual = f.forward(test_input)
+
+        assert allclose(actual, expected)
+
+    def test_backward(self):
+        test_input = Variable(np.array([1.1, 1.2]))
+
+        f = Negative()
+        f(test_input)
+        dout = Variable(np.array([1.0, 2.0]))
+
+        expected = Variable(np.array([-1.0, -2.0]))
+        actual = f.backward(dout)
+
+        assert allclose(actual, expected)
+
+    def test_gradient_check(self):
+        f = Negative()
+        test_input = Variable(np.array([[1.0, 2.0]]))
+
+        f(test_input)
+
+        actual = f.backward(Variable(np.array(1.0)))
+
+        expected = numerical_diff(f, test_input)
+
+        assert allclose(actual, expected)
 
 
 class TestSplit:
