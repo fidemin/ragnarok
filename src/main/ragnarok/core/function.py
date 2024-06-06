@@ -107,6 +107,21 @@ class Add(Function):
             raise FunctionVariableError('There should be two input variable for Add function.')
 
 
+class Subtract(Function):
+    def forward(self, *variables: Variable):
+        x0, x1 = variables
+        y = x0.data - x1.data
+        return Variable(y)
+
+    def backward(self, dout: Variable):
+        return dout, -dout
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length != 2:
+            raise FunctionVariableError('There should be two input variable for Subtract function.')
+
+
 class Multiply(Function):
     def forward(self, *variables: Variable, **kwargs):
         x0, x1 = variables

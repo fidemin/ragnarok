@@ -49,6 +49,14 @@ class Variable:
         from src.main.ragnarok.core.function import Add
         return Add()(other, self)
 
+    def __sub__(self, other):
+        from src.main.ragnarok.core.function import Subtract
+        return Subtract()(self, other)
+
+    def __rsub__(self, other):
+        from src.main.ragnarok.core.function import Subtract
+        return Subtract()(other, self)
+
     def __neg__(self):
         from src.main.ragnarok.core.function import Negative
         return Negative()(self)

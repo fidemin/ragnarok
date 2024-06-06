@@ -205,10 +205,41 @@ class TestVariable:
         (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])),
          Variable(np.array([1.0, 1.0])), Variable(np.array([1.0, 1.0]))),
         (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([1.0, 1.0])), Variable(1.0)),
+        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([1.0, 1.0])), Variable(1.0)),
         (0.1, Variable(np.array([0.3, 0.4])), Variable(1.0), Variable(np.array([1.0, 1.0]))),
+        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(1.0), Variable(np.array([1.0, 1.0]))),
     ])
     def test_add__backward(self, test_input1, test_input2, expected1, expected2):
         forward_result = test_input1 + test_input2
+
+        forward_result.backward()
+        inputs = forward_result.creator.inputs
+
+        assert allclose(inputs[0].grad, expected1)
+        assert allclose(inputs[1].grad, expected2)
+
+    @pytest.mark.parametrize('test_input1,test_input2,expected', [
+        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([-0.2, -0.2]))),
+        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([-0.2, -0.1]))),
+        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([-0.2, -0.1]))),
+        (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([-0.2, -0.3]))),
+        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(np.array([-0.2, -0.3]))),
+    ])
+    def test_sub__(self, test_input1, test_input2, expected):
+        actual = test_input1 - test_input2
+
+        assert allclose(actual, expected)
+
+    @pytest.mark.parametrize('test_input1,test_input2,expected1,expected2', [
+        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])),
+         Variable(np.array([1.0, 1.0])), Variable(np.array([-1.0, -1.0]))),
+        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([1.0, 1.0])), Variable(-1.0)),
+        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([1.0, 1.0])), Variable(-1.0)),
+        (0.1, Variable(np.array([0.3, 0.4])), Variable(1.0), Variable(np.array([-1.0, -1.0]))),
+        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(1.0), Variable(np.array([-1.0, -1.0]))),
+    ])
+    def test_sub__backward(self, test_input1, test_input2, expected1, expected2):
+        forward_result = test_input1 - test_input2
 
         forward_result.backward()
         inputs = forward_result.creator.inputs
