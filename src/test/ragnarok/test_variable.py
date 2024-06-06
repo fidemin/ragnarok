@@ -169,10 +169,45 @@ class TestVariable:
         (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])),
          Variable(np.array([0.3, 0.4])), Variable(np.array([0.1, 0.2]))),
         (Variable(np.array([0.1, 0.2])), 0.3, Variable(0.3), Variable(np.array([0.1, 0.2]))),
+        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(0.3), Variable(np.array([0.1, 0.2]))),
         (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.3, 0.4])), Variable(0.1)),
+        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(np.array([0.3, 0.4])), Variable(0.1)),
     ])
     def test__mult__backward(self, test_input1, test_input2, expected1, expected2):
         forward_result = test_input1 * test_input2
+
+        forward_result.backward()
+        inputs = forward_result.creator.inputs
+
+        assert allclose(inputs[0].grad, expected1)
+        assert allclose(inputs[1].grad, expected2)
+
+    @pytest.mark.parametrize('test_input1,test_input2,expected', [
+        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([0.1 / 0.3, 0.2 / 0.4]))),
+        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.1 / 0.3, 0.2 / 0.3]))),
+        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([0.1 / 0.3, 0.2 / 0.3]))),
+        (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.1 / 0.3, 0.1 / 0.4]))),
+        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(np.array([0.1 / 0.3, 0.1 / 0.4]))),
+    ])
+    def test__true_div__(self, test_input1, test_input2, expected):
+        actual = test_input1 / test_input2
+
+        assert allclose(actual, expected)
+
+    @pytest.mark.parametrize('test_input1,test_input2,expected1,expected2', [
+        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])),
+         Variable(np.array([1.0 / 0.3, 1.0 / 0.4])), Variable(np.array([-0.1 / 0.3 ** 2, -0.2 / 0.4 ** 2]))),
+        (Variable(np.array([0.1, 0.2])), 0.3,
+         Variable(np.array([1.0 / 0.3, 1.0 / 0.3])), Variable(np.array([-0.1 / 0.3 ** 2, -0.2 / 0.3 ** 2]))),
+        (Variable(np.array([0.1, 0.2])), np.array([0.3]),
+         Variable(np.array([1.0 / 0.3, 1.0 / 0.3])), Variable(np.array([-0.1 / 0.3 ** 2, -0.2 / 0.3 ** 2]))),
+        (0.1, Variable(np.array([0.3, 0.4])),
+         Variable(np.array([1.0 / 0.3, 1.0 / 0.4])), Variable(np.array([-0.1 / 0.3 ** 2, -0.1 / 0.4 ** 2]))),
+        (np.array([0.1]), Variable(np.array([0.3, 0.4])),
+         Variable(np.array([1.0 / 0.3, 1.0 / 0.4])), Variable(np.array([-0.1 / 0.3 ** 2, -0.1 / 0.4 ** 2]))),
+    ])
+    def test__true_div_backward(self, test_input1, test_input2, expected1, expected2):
+        forward_result = test_input1 / test_input2
 
         forward_result.backward()
         inputs = forward_result.creator.inputs

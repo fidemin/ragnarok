@@ -57,6 +57,14 @@ class Variable:
         from src.main.ragnarok.core.function import Subtract
         return Subtract()(other, self)
 
+    def __truediv__(self, other):
+        from src.main.ragnarok.core.function import Divide
+        return Divide()(self, other)
+
+    def __rtruediv__(self, other):
+        from src.main.ragnarok.core.function import Divide
+        return Divide()(other, self)
+
     def __neg__(self):
         from src.main.ragnarok.core.function import Negative
         return Negative()(self)

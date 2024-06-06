@@ -141,6 +141,25 @@ class Multiply(Function):
             raise FunctionVariableError('There should be two input variable for Multiply function.')
 
 
+class Divide(Function):
+    def forward(self, *variables: Variable):
+        x0, x1 = variables
+        self._cache['x0'] = x0
+        self._cache['x1'] = x1
+        y = x0.data / x1.data
+        return Variable(y)
+
+    def backward(self, dout: Variable):
+        dx0 = dout.data / self._cache['x1'].data
+        dx1 = -dout.data * self._cache['x0'].data / (self._cache['x1'].data ** 2)
+        return Variable(dx0), Variable(dx1)
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length != 2:
+            raise FunctionVariableError('There should be two input variable for Divide function.')
+
+
 class Negative(Function):
     def forward(self, *variables: Variable):
         x = variables[0]
