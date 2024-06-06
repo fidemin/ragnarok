@@ -7,8 +7,8 @@ from src.main.ragnarok.core.variable import Variable
 
 @profile
 def function_graph_with_large_data():
-    for _ in range(10):
-        x = Variable(np.random.randn(100000))
+    for _ in range(1000):
+        x = Variable(np.random.randn(10000))
         y = Square()(Square()(x))
 
 
