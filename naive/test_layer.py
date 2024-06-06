@@ -1,6 +1,6 @@
 import numpy as np
 
-from core.activation import sigmoid
+from src.main.core import sigmoid
 from naive.layer import Layer
 
 

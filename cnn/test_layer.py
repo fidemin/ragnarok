@@ -1,7 +1,7 @@
 import numpy as np
 
 from cnn.layer import Convolution, Pooling
-from core.optimizer import SGD
+from src.main.core import SGD
 
 
 class TestConvolution:

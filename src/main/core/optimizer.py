@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from core.learning_rate import LearningRate
+from src.main.core.learning_rate import LearningRate
 
 
 class Optimizer(metaclass=ABCMeta):

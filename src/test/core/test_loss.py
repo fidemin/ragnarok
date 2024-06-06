@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from core import loss
+from src.main.core import loss
 
 
 @pytest.mark.parametrize(

@@ -1,8 +1,8 @@
 import numpy as np
 
-from core.layer import Affine, Sigmoid
-from core.net import Net
-from core.optimizer import SGD
+from src.main.core.layer import Affine, Sigmoid
+from src.main.core.net import Net
+from src.main.core.optimizer import SGD
 
 
 def test_predict():

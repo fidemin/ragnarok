@@ -1,9 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from core.layer import Affine, Sigmoid, SoftmaxWithLoss
-from core.net import NeuralNet
-from core.optimizer import SGD
+from src.main.core.layer import Affine, Sigmoid, SoftmaxWithLoss
+from src.main.core import NeuralNet
+from src.main.core import SGD
 from examples.common import mnist_load_data
 
 if __name__ == '__main__':

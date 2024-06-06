@@ -1,6 +1,6 @@
 import numpy as np
 
-from core import numerical
+from src.main.core import numerical
 
 
 class Layer:

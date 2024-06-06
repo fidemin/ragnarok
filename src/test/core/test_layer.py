@@ -1,6 +1,7 @@
 import numpy as np
 
-from core import layer, numerical, activation
+from src.main.core import layer
+from src.main.core import activation, numerical
 
 
 class TestRelu:

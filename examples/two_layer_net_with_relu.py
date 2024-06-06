@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
-from core import net, layer
-from core.optimizer import *
+from src.main.core import layer
+from src.main.core import net
 from examples.common import mnist_load_data
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 import numpy as np
 
-from core.layer import Layer
+from src.main.core.layer import Layer
 from language.layer import Embedding, GroupedLSTM, GroupedAffine, GroupedAttention
 
 

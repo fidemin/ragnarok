@@ -4,9 +4,9 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from core.activation import softmax
-from core.loss import cross_entropy
-from core.optimizer import SGD
+from src.main.core import softmax
+from src.main.core import cross_entropy
+from src.main.core import SGD
 from language.layer import CBOWInput, CBOWInputEmbedding, EmbeddingDot, NegativeSampling, LSTM, GroupedLSTM, Embedding, \
     GroupedAffine, GroupedSoftmaxWithLoss, WeightSum, WeightForAttention
 from language.util import UnigramSampler

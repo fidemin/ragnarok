@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from . import numerical
+from src.main.core import numerical
 
 
 def func1(x: np.ndarray) -> np.ndarray:

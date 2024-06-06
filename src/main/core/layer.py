@@ -3,8 +3,8 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from core import activation, loss
-from core.optimizer import Optimizer
+from src.main.core import loss, activation
+from src.main.core.optimizer import Optimizer
 
 
 class Layer(metaclass=ABCMeta):

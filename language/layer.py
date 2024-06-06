@@ -2,10 +2,10 @@ from functools import reduce
 
 import numpy as np
 
-from core import activation, loss
-from core.activation import sigmoid, tanh
-from core.layer import Layer, Affine, LayerException, SigmoidWithLoss, Softmax
-from core.optimizer import Optimizer
+from src.main.core import loss, activation
+from src.main.core import sigmoid, tanh
+from src.main.core.layer import Layer, Affine, LayerException, SigmoidWithLoss, Softmax
+from src.main.core import Optimizer
 from language.util import UnigramSampler
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 
-from core import loss
-from core.activation import sigmoid, softmax
+from src.main.core import loss
+from src.main.core import sigmoid, softmax
 from naive.layer import Layer
 
 

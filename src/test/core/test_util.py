@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pytest
 
-from core.util import clip_grads
+from src.main.core.util import clip_grads
 
 
 @pytest.mark.parametrize('grads,expected', [

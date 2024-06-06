@@ -3,9 +3,9 @@ import time
 import numpy as np
 from matplotlib import pyplot as plt
 
-from core.layer import Affine
-from core.net import Net
-from core.optimizer import Adam
+from src.main.core.layer import Affine
+from src.main.core import Net
+from src.main.core import Adam
 from language.layer import CBOWInputEmbedding, NegativeSampling
 from language.util import process_text, ContextTargetConverter, WordIdConverter, convert_to_one_hot_encoding, \
     most_similar_words, UnigramSampler

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from . import activation
+from src.main.core import activation
 
 
 def test_step():

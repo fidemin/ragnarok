@@ -1,8 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from core.net import NeuralNet
-from core.optimizer import SGD
+from src.main.core import NeuralNet
+from src.main.core import SGD
 from language.layer import Embedding, GroupedLSTM, GroupedAffine, GroupedSoftmaxWithLoss
 from language.util import process_text, WordIdConverter, convert_to_one_hot_encoding
 

@@ -3,9 +3,9 @@ from datetime import datetime
 import numpy as np
 from matplotlib import pyplot as plt
 
-from core.learning_rate import InverseSqrt
-from core.net import NeuralNet
-from core.optimizer import Adam
+from src.main.core.learning_rate import InverseSqrt
+from src.main.core import NeuralNet
+from src.main.core import Adam
 from data.sum_data_creator import create_sum_examples, convert_sum_examples_to_str
 from language.layer import GroupedSoftmaxWithLoss
 from language.seq2seq import Seq2Seq, AttentionSeq2Seq

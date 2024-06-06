@@ -1,8 +1,8 @@
 import numpy as np
 
 from cnn.util import img2col, fil2col, col2fil, col2img
-from core.layer import Layer
-from core.optimizer import Optimizer
+from src.main.core.layer import Layer
+from src.main.core import Optimizer
 
 
 class Convolution(Layer):

@@ -2,9 +2,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from cnn.layer import Convolution, Pooling
-from core.layer import Relu, Affine
-from core.net import Net
-from core.optimizer import SGD
+from src.main.core.layer import Relu, Affine
+from src.main.core import Net
+from src.main.core import SGD
 from examples.common import mnist_load_data
 
 if __name__ == '__main__':

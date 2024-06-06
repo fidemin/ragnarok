@@ -2,9 +2,9 @@ import pickle
 
 import numpy as np
 
-from core.layer import Layer, SoftmaxWithLoss
-from core.optimizer import Optimizer
-from core.util import clip_grads
+from src.main.core.layer import Layer, SoftmaxWithLoss
+from src.main.core.optimizer import Optimizer
+from src.main.core.util import clip_grads
 
 
 class Net:

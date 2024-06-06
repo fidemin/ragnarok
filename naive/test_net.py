@@ -3,7 +3,7 @@ import copy
 import numpy as np
 import pytest
 
-from core.activation import sigmoid
+from src.main.core import sigmoid
 from naive.net import Net, NetInitException
 
 
