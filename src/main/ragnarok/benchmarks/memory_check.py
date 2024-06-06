@@ -1,8 +1,8 @@
 import numpy as np
 from memory_profiler import profile
 
-from ragnarok.core.function import Square
-from ragnarok.core.variable import Variable
+from src.main.ragnarok.core.function import Square
+from src.main.ragnarok.core.variable import Variable
 
 
 @profile

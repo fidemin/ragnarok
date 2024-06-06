@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from ragnarok.core.function import Square, FunctionVariableError, Exp, Add, Split, Function, Multiply
-from ragnarok.core.util import numerical_diff, allclose
-from ragnarok.core.variable import Variable
+from src.main.ragnarok.core.function import Square, FunctionVariableError, Exp, Add, Split, Function, Multiply
+from src.main.ragnarok.core.util import numerical_diff, allclose
+from src.main.ragnarok.core.variable import Variable
 
 
 class FunctionForTest(Function):

@@ -1,7 +1,7 @@
 import numpy as np
 
-from ragnarok.core.function import Function
-from ragnarok.core.variable import Variable
+from src.main.ragnarok.core.function import Function
+from src.main.ragnarok.core.variable import Variable
 
 
 def numerical_diff(f: Function, *xs: Variable, eps=1e-4):

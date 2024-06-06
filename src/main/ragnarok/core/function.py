@@ -2,7 +2,7 @@ import weakref
 
 import numpy as np
 
-from ragnarok.core.variable import Variable
+from src.main.ragnarok.core.variable import Variable
 
 
 class Function:

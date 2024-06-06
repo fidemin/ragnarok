@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from ragnarok.core.function import Square, Add
-from ragnarok.core.util import numerical_diff, allclose
-from ragnarok.core.variable import Variable
+from src.main.ragnarok.core.function import Square, Add
+from src.main.ragnarok.core.util import numerical_diff, allclose
+from src.main.ragnarok.core.variable import Variable
 
 
 @pytest.mark.parametrize(

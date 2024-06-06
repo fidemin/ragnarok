@@ -4,9 +4,9 @@ import math
 import numpy as np
 import pytest
 
-from ragnarok.core.function import Square, Exp, Split, Add
-from ragnarok.core.util import allclose, numerical_diff
-from ragnarok.core.variable import Variable, VariableError
+from src.main.ragnarok.core.function import Square, Exp, Split, Add
+from src.main.ragnarok.core.util import allclose, numerical_diff
+from src.main.ragnarok.core.variable import Variable, VariableError
 
 
 class TestVariable:

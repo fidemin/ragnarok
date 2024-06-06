@@ -32,11 +32,11 @@ class Variable:
         return f'Variable({str(self._data)})'
 
     def __mul__(self, other):
-        from ragnarok.core.function import Multiply
+        from src.main.ragnarok.core.function import Multiply
         return Multiply()(self, other)
 
     def __add__(self, other):
-        from ragnarok.core.function import Add
+        from src.main.ragnarok.core.function import Add
         return Add()(self, other)
 
     def set_creator(self, creator):
