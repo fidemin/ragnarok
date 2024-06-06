@@ -169,3 +169,6 @@ downloads/**
 # python pickle
 *.pkl
 
+
+# dat file
+*.dat
