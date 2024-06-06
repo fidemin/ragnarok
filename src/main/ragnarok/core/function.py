@@ -2,6 +2,7 @@ import weakref
 
 import numpy as np
 
+from src.main.ragnarok.core.config import Config
 from src.main.ragnarok.core.variable import Variable
 
 
@@ -20,14 +21,16 @@ class Function:
         if type(outputs) not in (tuple, list):
             outputs = (outputs,)
 
-        this_gen = max([input_.gen for input_ in inputs])
-        self.gen = this_gen
+        if Config.enable_backprop:
+            # these are only used for backpropagation
+            this_gen = max([input_.gen for input_ in inputs])
+            self.gen = this_gen
 
-        for output in outputs:
-            output.set_creator(self)
+            for output in outputs:
+                output.set_creator(self)
 
-        self.inputs = inputs
-        self.outputs = [weakref.ref(output) for output in outputs]
+            self.inputs = inputs
+            self.outputs = [weakref.ref(output) for output in outputs]
 
         return outputs if len(outputs) > 1 else outputs[0]
 
