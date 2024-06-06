@@ -30,7 +30,6 @@ class TestFunction:
         assert output.creator == f
 
     def test_call_with_using_backprop_false(self):
-        # generation of test_input is 0
         test_input = Variable(np.array([1.0, 2.0, 3.0]))
         with using_backprop(False):
             f = FunctionForTest()
@@ -39,6 +38,14 @@ class TestFunction:
         assert f.gen is None
         assert f.inputs is None
         assert f.outputs is None
+
+    def test_call__using_float_int(self):
+        f = FunctionForTest()
+        output = f(3.0, 4)
+        for input_ in f.inputs:
+            assert isinstance(input_, Variable)
+        assert f.inputs[0].data == 3.0
+        assert f.inputs[1].data == 4
 
 
 class TestSquare:
@@ -266,8 +273,8 @@ def test_define_by_run():
     f1.backward(dout2)
 
     assert out3.creator == f3
-    assert out3.creator.inputs == (out2,)
+    assert out3.creator.inputs == [out2]
     assert out2.creator == f2
-    assert out2.creator.inputs == (out1,)
+    assert out2.creator.inputs == [out1]
     assert out1.creator == f1
-    assert out1.creator.inputs == (test_input,)
+    assert out1.creator.inputs == [test_input]
