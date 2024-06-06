@@ -3,7 +3,7 @@ import weakref
 import numpy as np
 
 from src.main.ragnarok.core.config import Config
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.variable import Variable, to_variable
 
 
 class Function:
@@ -14,7 +14,8 @@ class Function:
         self._cache = {}
         self.kwargs = {}
 
-    def __call__(self, *inputs: Variable, **kwargs):
+    def __call__(self, *inputs: int | float | np.ndarray | np.generic | Variable, **kwargs):
+        inputs = [to_variable(input_) for input_ in inputs]
         self._validate_variables(*inputs)
         outputs = self.forward(*inputs, **kwargs)
 

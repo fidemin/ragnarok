@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from src.main.ragnarok.core.config import using_backprop
 from src.main.ragnarok.core.function import Square, FunctionVariableError, Exp, Add, Split, Function, Multiply
 from src.main.ragnarok.core.util import numerical_diff, allclose
 from src.main.ragnarok.core.variable import Variable
@@ -27,6 +28,17 @@ class TestFunction:
         assert output.gen == 1
         assert f.gen == 0
         assert output.creator == f
+
+    def test_call_with_using_backprop_false(self):
+        # generation of test_input is 0
+        test_input = Variable(np.array([1.0, 2.0, 3.0]))
+        with using_backprop(False):
+            f = FunctionForTest()
+            output = f(test_input, using_backprop=False)
+
+        assert f.gen is None
+        assert f.inputs is None
+        assert f.outputs is None
 
 
 class TestSquare:
