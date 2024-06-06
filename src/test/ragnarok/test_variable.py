@@ -70,6 +70,23 @@ class TestVariable:
         assert np.allclose(out1.grad.data, out1_derivative)
         assert np.allclose(out2.grad.data, out2_derivative)
 
+    def test_backward__with_no_retain_grad(self):
+        test_input = Variable(np.array([0.1, 0.2]))
+
+        f1 = Square()
+        f2 = Exp()
+        f3 = Square()
+
+        out1 = f1(test_input)
+        out2 = f2(out1)
+        out3 = f3(out2)
+
+        out3.backward()
+
+        assert out1.grad is None
+        assert out2.grad is None
+        assert test_input.grad is not None
+
     def test_backward_complex(self):
         """
         function graph
