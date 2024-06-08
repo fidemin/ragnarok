@@ -4,7 +4,7 @@ from src.main.ragnarok.core.function import Function
 from src.main.ragnarok.core.variable import Variable
 
 
-def numerical_diff(f: Function, *xs: Variable, eps=1e-4):
+def numerical_diff(f: Function, *xs: Variable, eps=1e-4, **extra):
     dxs = [Variable(np.zeros_like(x.data)) for x in xs]
 
     for i, x in enumerate(xs):
@@ -17,10 +17,10 @@ def numerical_diff(f: Function, *xs: Variable, eps=1e-4):
                 original_value = data[idx]
 
                 data[idx] = original_value - eps
-                ys_h_minus = f(*xs)
+                ys_h_minus = f(*xs, **extra)
 
                 data[idx] = original_value + eps
-                ys_h_plus = f(*xs)
+                ys_h_plus = f(*xs, **extra)
 
                 data[idx] = original_value
 

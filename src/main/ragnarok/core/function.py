@@ -160,6 +160,27 @@ class Divide(Function):
             raise FunctionVariableError('There should be two input variable for Divide function.')
 
 
+class Pow(Function):
+    def forward(self, *variables: Variable, **kwargs):
+        x = variables[0]
+        power = kwargs['power']
+        self._cache['x'] = x
+        self._cache['power'] = power
+        y = x.data ** power
+        return Variable(y)
+
+    def backward(self, dout: Variable):
+        x = self._cache['x']
+        power = self._cache['power']
+        dx = power * (x.data ** (power - 1)) * dout.data
+        return Variable(dx)
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length != 1:
+            raise FunctionVariableError('There should be two input variable for Pow function.')
+
+
 class Negative(Function):
     def forward(self, *variables: Variable):
         x = variables[0]

@@ -69,6 +69,10 @@ class Variable:
         from src.main.ragnarok.core.function import Negative
         return Negative()(self)
 
+    def __pow__(self, power, modulo=None):
+        from src.main.ragnarok.core.function import Pow
+        return Pow()(self, power=power)
+
     def set_creator(self, creator):
         self._creator = creator
         self._gen = creator.gen + 1

@@ -224,6 +224,13 @@ class TestVariable:
 
         assert allclose(actual, expected)
 
+    def test__pow__(self):
+        test_input = Variable(np.array([0.1, 0.2]))
+        actual = test_input ** 2
+
+        expected = Variable(np.array([0.01, 0.04]))
+        assert allclose(actual, expected)
+
     @pytest.mark.parametrize('test_input1,test_input2,expected', [
         (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([0.4, 0.6]))),
         (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.4, 0.5]))),

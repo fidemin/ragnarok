@@ -3,7 +3,7 @@ import pytest
 
 from src.main.ragnarok.core.config import using_backprop
 from src.main.ragnarok.core.function import Square, FunctionVariableError, Exp, Add, Split, Function, Multiply, \
-    Negative, Subtract, Divide
+    Negative, Subtract, Divide, Pow
 from src.main.ragnarok.core.util import numerical_diff, allclose
 from src.main.ragnarok.core.variable import Variable
 
@@ -338,6 +338,41 @@ class TestNegative:
         actual = f.backward(Variable(np.array(1.0)))
 
         expected = numerical_diff(f, test_input)
+
+        assert allclose(actual, expected)
+
+
+class TestPow:
+    @pytest.mark.parametrize('test_input,power,expected', [
+        (Variable(np.array([0.1, 0.2])), 2, Variable(np.array([0.01, 0.04]))),
+    ])
+    def test_forward(self, test_input, power, expected):
+        f = Pow()
+        actual = f.forward(test_input, power=power)
+
+        assert allclose(actual, expected)
+
+    @pytest.mark.parametrize('test_input,power,expected', [
+        (Variable(np.array([0.1, 0.2])), 2, Variable(np.array([2 * (0.1 ** 1) * 1.0, 2 * (0.2 ** 1) * 2.0]))),
+    ])
+    def test_backward(self, test_input, power, expected):
+        f = Pow()
+        f(test_input, power=power)
+        dout = Variable(np.array([1.0, 2.0]))
+
+        actual = f.backward(dout)
+
+        assert allclose(actual, expected)
+
+    def test_gradient_check(self):
+        f = Pow()
+        test_input = Variable(np.array([[1.0, 2.0]]))
+
+        f(test_input, power=2)
+
+        actual = f.backward(Variable(np.array(1.0)))
+
+        expected = numerical_diff(f, test_input, power=2)
 
         assert allclose(actual, expected)
 
