@@ -2,11 +2,11 @@ from typing import List
 
 from src.main.ragnarok.core.function import Function
 from src.main.ragnarok.core.variable import Variable
-from src.main.ragnarok.graph.node import VariableNode, FunctionNode
+from src.main.ragnarok.graph.node import DotVariableNode, DotFunctionNode
 
 
 def draw_variable(variable: Variable, verbose: bool) -> str:
-    return VariableNode(
+    return DotVariableNode(
         id(variable),
         shape=variable.shape,
         dtype=variable.dtype,
@@ -14,7 +14,7 @@ def draw_variable(variable: Variable, verbose: bool) -> str:
 
 
 def draw_function(func: Function) -> str:
-    return FunctionNode(
+    return DotFunctionNode(
         id(func),
         name=func.__class__.__name__,
         input_ids=[id(input_variable) for input_variable in func.inputs],

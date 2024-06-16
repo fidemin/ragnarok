@@ -1,8 +1,10 @@
 from typing import Optional
 
 
-class VariableNode:
-    def __init__(self, id_, *, name: str = '', shape: Optional[tuple] = None, dtype: str = None):
+class DotVariableNode:
+    def __init__(
+        self, id_, *, name: str = "", shape: Optional[tuple] = None, dtype: str = None
+    ):
         self._id = id_
         self._name = name
         self._shape = shape
@@ -23,7 +25,7 @@ class VariableNode:
             if not self._name:
                 pass
             elif self._name and (self._shape or self._dtype):
-                name += ':'
+                name += ":"
                 label_subs.append(name)
             else:
                 label_subs.append(name)
@@ -34,7 +36,7 @@ class VariableNode:
             if self._dtype is not None:
                 label_subs.append(str(self._dtype))
 
-            label = ' '.join(label_subs)
+            label = " ".join(label_subs)
         else:
             label = self._name
 
@@ -45,7 +47,7 @@ class VariableNode:
         return self.to_str(verbose=verbose)
 
 
-class FunctionNode:
+class DotFunctionNode:
     def __init__(self, id_, name: str, *, input_ids: list[int], output_ids: list[int]):
         self._id = id_
         self._name = name
@@ -60,13 +62,13 @@ class FunctionNode:
     def draw(self):
         str_list = [self.to_str()]
 
-        edge_format = '{} -> {}'
+        edge_format = "{} -> {}"
         for input_id in self._input_ids:
             str_list.append(edge_format.format(input_id, self._id))
         for output_id in self._output_ids:
             str_list.append(edge_format.format(self._id, output_id))
 
-        return '\n'.join(str_list)
+        return "\n".join(str_list)
 
     def __str__(self):
         return self.to_str()
