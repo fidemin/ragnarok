@@ -18,7 +18,7 @@ class VariableNode:
         return self._to_str(verbose=verbose)
 
     def _to_str(self, *, verbose=False):
-        node_format = '{} [label="{}", color=orange, style=filled]'
+        str_format = '{} [label="{}", color=orange, style=filled]'
         name = self._name
 
         if verbose:
@@ -41,5 +41,35 @@ class VariableNode:
         else:
             label = self._name
 
-        formatted = node_format.format(self._id, label)
+        formatted = str_format.format(self._id, label)
         return formatted
+
+
+class FunctionNode:
+    def __init__(self, id_, name: str, *, input_ids: list[int], output_ids: list[int]):
+        self._id = id_
+        self._name = name
+        self._input_ids = input_ids
+        self._output_ids = output_ids
+
+    def to_str(self):
+        str_format = '{} [label="{}", color=lightblue, style=filled, shape=box]'
+        formatted = str_format.format(self._id, self._name)
+        return formatted
+
+    def to_str_with_edge(self):
+        str_list = [self.to_str()]
+
+        edge_format = '{} -> {}'
+        for input_id in self._input_ids:
+            str_list.append(edge_format.format(input_id, self._id))
+        for output_id in self._output_ids:
+            str_list.append(edge_format.format(self._id, output_id))
+
+        return '\n'.join(str_list)
+
+    def __str__(self):
+        return self.to_str()
+
+    def __repr__(self):
+        return self.to_str()

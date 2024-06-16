@@ -1,6 +1,6 @@
 import pytest
 
-from src.main.ragnarok.graph.node import VariableNode
+from src.main.ragnarok.graph.node import VariableNode, FunctionNode
 
 
 class TestVariableNode:
@@ -24,3 +24,20 @@ class TestVariableNode:
             kwargs['dtype'] = dtype
         node = VariableNode(id_, **kwargs)
         assert node.to_str(verbose=True) == expected
+
+
+class TestFunctionNode:
+    @pytest.mark.parametrize('id_, name, input_ids, output_ids, expected', [
+        (0, 'Square', [], [], '0 [label="Square", color=lightblue, style=filled, shape=box]'),
+    ])
+    def test_to_str(self, id_, name, input_ids, output_ids, expected):
+        node = FunctionNode(id_, name, input_ids=input_ids, output_ids=output_ids)
+        assert node.to_str() == expected
+
+    @pytest.mark.parametrize('id_, name, input_ids, output_ids, expected_list', [
+        (0, 'Square', [1, 2], [3, 4],
+         ['0 [label="Square", color=lightblue, style=filled, shape=box]', '1 -> 0', '2 -> 0', '0 -> 3', '0 -> 4']),
+    ])
+    def test_to_str_with_edge(self, id_, name, input_ids, output_ids, expected_list):
+        node = FunctionNode(id_, name, input_ids=input_ids, output_ids=output_ids)
+        assert node.to_str_with_edge() == '\n'.join(expected_list)
