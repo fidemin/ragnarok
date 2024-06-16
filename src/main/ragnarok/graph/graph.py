@@ -1,48 +1,55 @@
-from collections import namedtuple
 from typing import List
 
+from src.main.ragnarok.core.function import Function
+from src.main.ragnarok.core.variable import Variable
 from src.main.ragnarok.graph.node import VariableNode, FunctionNode
 
-InputVariableNode = namedtuple('InputVariableNode', ['id', 'name', 'shape', 'dtype', 'create_func_id'])
-InputFunctionNode = namedtuple('InputFunctionNode', ['id', 'name', 'input_ids', 'output_ids'])
+
+def draw_variable(variable: Variable, verbose: bool) -> str:
+    return VariableNode(
+        id(variable),
+        shape=variable.shape,
+        dtype=variable.dtype,
+    ).draw(verbose=verbose)
 
 
-class Graph:
-    def __init__(self, start_variable_id: int, variable_list: List[InputVariableNode], function_list):
-        self._start_variable_id = start_variable_id
-        self._variable_dict = {variable.id: variable for variable in variable_list}
-        self._function_dict = {function.id: function for function in function_list}
+def draw_function(func: Function) -> str:
+    return FunctionNode(
+        id(func),
+        name=func.__class__.__name__,
+        input_ids=[id(input_variable) for input_variable in func.inputs],
+        output_ids=[id(output_weak()) for output_weak in func.outputs],
+    ).draw()
+
+
+class DotGraph:
+    def __init__(self, output: Variable):
+        self._output = output
 
     def draw(self, verbose=False):
-        result_list = []
-        start_input_variable_node = self._variable_dict[self._start_variable_id]
+        result_list = [draw_variable(self._output, verbose=verbose)]
+
         seen_funcs = set()
         drawn_vars = set()
-        func_stack = []
-        if start_input_variable_node.create_func_id is not None:
-            func_stack.append(start_input_variable_node.create_func_id)
-        variable_node = VariableNode(start_input_variable_node.id, name=start_input_variable_node.name,
-                                     shape=start_input_variable_node.shape, dtype=start_input_variable_node.dtype)
-        result_list.append(variable_node.draw(verbose=verbose))
+        func_stack: List[Function] = []
+
+        if self._output.creator is not None:
+            func_stack.append(self._output.creator)
 
         while func_stack:
-            func_id = func_stack.pop()
+            func = func_stack.pop()
+            func_id = id(func)
             if func_id in seen_funcs:
                 continue
             seen_funcs.add(func_id)
-            input_func_node = self._function_dict[func_id]
-            func_node = FunctionNode(input_func_node.id, name=input_func_node.name, input_ids=input_func_node.input_ids,
-                                     output_ids=input_func_node.output_ids)
-            result_list.append(func_node.draw())
-            for input_id in input_func_node.input_ids:
-                input_node = self._variable_dict[input_id]
-                if input_id not in drawn_vars:
-                    # same variable does not need to be drawn more than once
-                    variable_node = VariableNode(input_node.id, name=input_node.name, shape=input_node.shape,
-                                                 dtype=input_node.dtype)
-                    drawn_vars.add(input_node.id)
-                    result_list.append(variable_node.draw(verbose=verbose))
-                if input_node.create_func_id is not None:
-                    func_stack.append(input_node.create_func_id)
+            result_list.append(draw_function(func))
 
-        return 'digraph G {\n' + '\n'.join(result_list) + '\n}'
+            for input_variable in func.inputs:
+                input_id = id(input_variable)
+                if input_id not in drawn_vars:
+                    result_list.append(draw_variable(input_variable, verbose=verbose))
+                    drawn_vars.add(input_id)
+                if input_variable.creator is not None:
+                    func_stack.append(input_variable.creator)
+
+        return "digraph G {\n" + "\n".join(result_list) + "\n}"

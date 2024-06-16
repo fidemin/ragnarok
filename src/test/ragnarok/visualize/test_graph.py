@@ -1,47 +1,99 @@
-import pytest
+import numpy as np
 
-from src.main.ragnarok.graph.graph import Graph, InputVariableNode, InputFunctionNode
+from src.main.ragnarok.core.function import Add, Square
+from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.graph.graph import DotGraph
 
 
-class TestGraph:
-    @pytest.mark.parametrize('start_variable_id, variable_list, function_list, expected_list', [
-        # no function
-        (1, [InputVariableNode(1, 'x', (2, 3), 'float32', None)], [],
-         ['1 [label="x: (2, 3) float32", color=orange, style=filled]']),
-        # only one function
-        (1,
-         [InputVariableNode(1, 'y', (2, 3), 'float32', 0),
-          InputVariableNode(2, 'x', None, None, None)],
-         [InputFunctionNode(0, 'Square', [2], [1])],
-         ['1 [label="y: (2, 3) float32", color=orange, style=filled]',
-          '0 [label="Square", color=lightblue, style=filled, shape=box]', '2 -> 0', '0 -> 1',
-          '2 [label="x", color=orange, style=filled]']),
+class TestDotGraph:
+    def test_draw_simple(self):
+        variable = Variable(
+            np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+        )
+        dot_graph = DotGraph(variable)
+        result_list = [
+            f'{id(variable)} [label="(2, 3) float32", color=orange, style=filled]'
+        ]
+        assert (
+            dot_graph.draw(verbose=True)
+            == "digraph G {\n" + "\n".join(result_list) + "\n}"
+        )
 
-        # same input ids
-        (1,
-         [InputVariableNode(1, 'y', None, None, 2), InputVariableNode(3, 'x', None, None, None)],
-         [InputFunctionNode(2, 'Square', [3, 3], [1])],
-         ['1 [label="y", color=orange, style=filled]',
-          '2 [label="Square", color=lightblue, style=filled, shape=box]', '3 -> 2', '3 -> 2', '2 -> 1',
-          '3 [label="x", color=orange, style=filled]']),
+    def test_draw_one_function(self):
+        variable1 = Variable(
+            np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+        )
+        variable2 = Variable(
+            np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+        )
+        function = Add()
+        output = function(variable1, variable2)
+        dot_graph = DotGraph(output)
 
-        # complex graph
-        (1,
-         [InputVariableNode(1, 'y', None, None, 2), InputVariableNode(3, 'x3', None, None, 5),
-          InputVariableNode(4, 'x4', None, None, 5), InputVariableNode(6, 'x6', None, None, None),
-          InputVariableNode(7, 'x7', None, None, None)],
-         [InputFunctionNode(2, 'Square', [3, 4], [1]), InputFunctionNode(5, 'Square2', [6, 7], [3, 4])],
-         ['1 [label="y", color=orange, style=filled]',
-          '2 [label="Square", color=lightblue, style=filled, shape=box]', '3 -> 2', '4 -> 2', '2 -> 1',
-          '3 [label="x3", color=orange, style=filled]',
-          '4 [label="x4", color=orange, style=filled]',
-          '5 [label="Square2", color=lightblue, style=filled, shape=box]', '6 -> 5', '7 -> 5', '5 -> 3', '5 -> 4',
-          '6 [label="x6", color=orange, style=filled]',
-          '7 [label="x7", color=orange, style=filled]'
-          ]),
-    ])
-    def test_draw(self, start_variable_id, variable_list, function_list, expected_list):
-        graph = Graph(start_variable_id, variable_list, function_list)
-        actual = graph.draw(verbose=True)
-        expected = 'digraph G {\n' + '\n'.join(expected_list) + '\n}'
-        assert actual == expected
+        result_list = [
+            f'{id(output)} [label="(2, 3) float32", color=orange, style=filled]',
+            f'{id(function)} [label="Add", color=lightblue, style=filled, shape=box]',
+            f"{id(variable1)} -> {id(function)}",
+            f"{id(variable2)} -> {id(function)}",
+            f"{id(function)} -> {id(output)}",
+            f'{id(variable1)} [label="(2, 3) float32", color=orange, style=filled]',
+            f'{id(variable2)} [label="(2, 3) float32", color=orange, style=filled]',
+        ]
+        assert (
+            dot_graph.draw(verbose=True)
+            == "digraph G {\n" + "\n".join(result_list) + "\n}"
+        )
+
+    def test_draw_one_func_with_same_input(self):
+        variable1 = Variable(
+            np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+        )
+        function = Add()
+        output = function(variable1, variable1)
+        dot_graph = DotGraph(output)
+
+        result_list = [
+            f'{id(output)} [label="(2, 3) float32", color=orange, style=filled]',
+            f'{id(function)} [label="Add", color=lightblue, style=filled, shape=box]',
+            f"{id(variable1)} -> {id(function)}",
+            f"{id(variable1)} -> {id(function)}",
+            f"{id(function)} -> {id(output)}",
+            f'{id(variable1)} [label="(2, 3) float32", color=orange, style=filled]',
+        ]
+        assert (
+            dot_graph.draw(verbose=True)
+            == "digraph G {\n" + "\n".join(result_list) + "\n}"
+        )
+
+    def test_draw_complex(self):
+        variable1 = Variable(
+            np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+        )
+        variable2 = Variable(
+            np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+        )
+        function1 = Add()
+        mid_output = function1(variable1, variable2)
+
+        function2 = Square()
+        output = function2(mid_output)
+
+        dot_graph = DotGraph(output)
+
+        result_list = [
+            f'{id(output)} [label="(2, 3) float32", color=orange, style=filled]',
+            f'{id(function2)} [label="Square", color=lightblue, style=filled, shape=box]',
+            f"{id(mid_output)} -> {id(function2)}",
+            f"{id(function2)} -> {id(output)}",
+            f'{id(mid_output)} [label="(2, 3) float32", color=orange, style=filled]',
+            f'{id(function1)} [label="Add", color=lightblue, style=filled, shape=box]',
+            f"{id(variable1)} -> {id(function1)}",
+            f"{id(variable2)} -> {id(function1)}",
+            f"{id(function1)} -> {id(mid_output)}",
+            f'{id(variable1)} [label="(2, 3) float32", color=orange, style=filled]',
+            f'{id(variable2)} [label="(2, 3) float32", color=orange, style=filled]',
+        ]
+        assert (
+            dot_graph.draw(verbose=True)
+            == "digraph G {\n" + "\n".join(result_list) + "\n}"
+        )
