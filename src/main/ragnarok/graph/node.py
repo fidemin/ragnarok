@@ -9,15 +9,12 @@ class VariableNode:
         self._dtype = dtype
 
     def __str__(self):
-        return self._to_str(verbose=True)
+        return self.to_str(verbose=True)
 
     def __repr__(self):
-        return self._to_str(verbose=True)
+        return self.to_str(verbose=True)
 
     def to_str(self, *, verbose=False):
-        return self._to_str(verbose=verbose)
-
-    def _to_str(self, *, verbose=False):
         str_format = '{} [label="{}", color=orange, style=filled]'
         name = self._name
 
@@ -44,6 +41,9 @@ class VariableNode:
         formatted = str_format.format(self._id, label)
         return formatted
 
+    def draw(self, verbose=False):
+        return self.to_str(verbose=verbose)
+
 
 class FunctionNode:
     def __init__(self, id_, name: str, *, input_ids: list[int], output_ids: list[int]):
@@ -57,7 +57,7 @@ class FunctionNode:
         formatted = str_format.format(self._id, self._name)
         return formatted
 
-    def to_str_with_edge(self):
+    def draw(self):
         str_list = [self.to_str()]
 
         edge_format = '{} -> {}'
