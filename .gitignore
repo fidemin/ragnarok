@@ -175,3 +175,6 @@ downloads/**
 
 # macbook
 .DS_Store
+
+# temp directory
+temp/
