@@ -149,6 +149,7 @@ class Variable:
 
             doutputs = [output().grad for output in function.outputs]
 
+            # For first-order differentiation, backpropagation of grad variable is not needed
             with using_config("enable_backprop", enable_backprop_for_grad):
                 dinputs = function.backward(*doutputs)
                 if not isinstance(dinputs, tuple):
