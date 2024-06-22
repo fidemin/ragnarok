@@ -10,13 +10,23 @@ from src.main.ragnarok.core.variable import Variable, VariableError, to_variable
 
 
 class TestVariable:
-    @pytest.mark.parametrize('test_input,data,shape,ndim,dtype,length', [
-        (np.array([[1.0, 2.0, 3.0]]), np.array([[1.0, 2.0, 3.0]]), (1, 3), 2, 'float64', 1),
-        (np.array(1), np.array(1), (), 0, 'int64', 0),
-        (3, np.array(3), (), 0, 'int64', 0),
-        (3.0, np.array(3.0), (), 0, 'float64', 0),
-        (np.array([1.0]), np.array([1.0]), (1,), 1, 'float64', 1)
-    ])
+    @pytest.mark.parametrize(
+        "test_input,data,shape,ndim,dtype,length",
+        [
+            (
+                np.array([[1.0, 2.0, 3.0]]),
+                np.array([[1.0, 2.0, 3.0]]),
+                (1, 3),
+                2,
+                "float64",
+                1,
+            ),
+            (np.array(1), np.array(1), (), 0, "int64", 0),
+            (3, np.array(3), (), 0, "int64", 0),
+            (3.0, np.array(3.0), (), 0, "float64", 0),
+            (np.array([1.0]), np.array([1.0]), (1,), 1, "float64", 1),
+        ],
+    )
     def test_initialization(self, test_input, data, shape, ndim, dtype, length):
         variable = Variable(test_input)
         grad = Variable(np.array([1.0, 2.0]))
@@ -29,22 +39,22 @@ class TestVariable:
         assert variable.dtype == dtype
         assert len(variable) == length
 
-    @pytest.mark.parametrize('test_input,data,name', [
-        (np.array([[1.0, 2.0, 3.0]]), np.array([[1.0, 2.0, 3.0]]), 'name1'),
-        (np.array(1), np.array(1), 'name2'),
-        (3, np.array(3), 'name3'),
-        (3.0, np.array(3.0), 'name4'),
-        (np.array([1.0]), np.array([1.0]), 'name5')
-    ])
+    @pytest.mark.parametrize(
+        "test_input,data,name",
+        [
+            (np.array([[1.0, 2.0, 3.0]]), np.array([[1.0, 2.0, 3.0]]), "name1"),
+            (np.array(1), np.array(1), "name2"),
+            (3, np.array(3), "name3"),
+            (3.0, np.array(3.0), "name4"),
+            (np.array([1.0]), np.array([1.0]), "name5"),
+        ],
+    )
     def test_initialization_with_name(self, test_input, data, name):
         variable = Variable(test_input, name)
         assert np.all(variable.data == data)
         assert variable._name == name
 
-    @pytest.mark.parametrize('test_input', [
-        'string',
-        datetime.datetime.now()
-    ])
+    @pytest.mark.parametrize("test_input", ["string", datetime.datetime.now()])
     def test_raise_error_for_wrong_data_type(self, test_input):
         with pytest.raises(VariableError):
             Variable(test_input)
@@ -62,9 +72,16 @@ class TestVariable:
 
         out3.backward(retain_grad=True)
 
-        test_input_derivative = 2 * np.exp(np.square(test_input.data)) * np.exp(
-            np.square(test_input.data)) * 2 * test_input.data
-        out1_derivative = 2 * np.exp(np.square(test_input.data)) * np.exp(np.square(test_input.data))
+        test_input_derivative = (
+            2
+            * np.exp(np.square(test_input.data))
+            * np.exp(np.square(test_input.data))
+            * 2
+            * test_input.data
+        )
+        out1_derivative = (
+            2 * np.exp(np.square(test_input.data)) * np.exp(np.square(test_input.data))
+        )
         out2_derivative = 2 * np.exp(np.square(test_input.data))
         assert np.allclose(test_input.grad.data, test_input_derivative)
         assert np.allclose(out1.grad.data, out1_derivative)
@@ -95,7 +112,9 @@ class TestVariable:
                  Square
         """
         test_input = Variable(np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]))
-        expected = Variable(np.array([[math.exp(0.1), math.exp(0.2), math.exp(0.3)], [0.8, 1.0, 1.2]]))
+        expected = Variable(
+            np.array([[math.exp(0.1), math.exp(0.2), math.exp(0.3)], [0.8, 1.0, 1.2]])
+        )
         f1 = Split()
         f2_1 = Exp()
         f2_2 = Square()
@@ -153,26 +172,68 @@ class TestVariable:
         assert test_input.creator == func
         assert test_input.gen == 1
 
-    @pytest.mark.parametrize('test_input1,test_input2,expected', [
-        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([0.03, 0.08]))),
-        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.03, 0.06]))),
-        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([0.03, 0.06]))),
-        (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.03, 0.04]))),
-        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(np.array([0.03, 0.04]))),
-    ])
+    @pytest.mark.parametrize(
+        "test_input1,test_input2,expected",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([0.03, 0.08])),
+            ),
+            (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.03, 0.06]))),
+            (
+                Variable(np.array([0.1, 0.2])),
+                np.array([0.3]),
+                Variable(np.array([0.03, 0.06])),
+            ),
+            (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.03, 0.04]))),
+            (
+                np.array([0.1]),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([0.03, 0.04])),
+            ),
+        ],
+    )
     def test__mult__(self, test_input1, test_input2, expected):
         actual = test_input1 * test_input2
 
         assert allclose(actual, expected)
 
-    @pytest.mark.parametrize('test_input1,test_input2,expected1,expected2', [
-        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])),
-         Variable(np.array([0.3, 0.4])), Variable(np.array([0.1, 0.2]))),
-        (Variable(np.array([0.1, 0.2])), 0.3, Variable(0.3), Variable(np.array([0.1, 0.2]))),
-        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(0.3), Variable(np.array([0.1, 0.2]))),
-        (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.3, 0.4])), Variable(0.1)),
-        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(np.array([0.3, 0.4])), Variable(0.1)),
-    ])
+    @pytest.mark.parametrize(
+        "test_input1,test_input2,expected1,expected2",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([0.1, 0.2])),
+            ),
+            (
+                Variable(np.array([0.1, 0.2])),
+                0.3,
+                Variable(0.3),
+                Variable(np.array([0.1, 0.2])),
+            ),
+            (
+                Variable(np.array([0.1, 0.2])),
+                np.array([0.3]),
+                Variable(0.3),
+                Variable(np.array([0.1, 0.2])),
+            ),
+            (
+                0.1,
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([0.3, 0.4])),
+                Variable(0.1),
+            ),
+            (
+                np.array([0.1]),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([0.3, 0.4])),
+                Variable(0.1),
+            ),
+        ],
+    )
     def test__mult__backward(self, test_input1, test_input2, expected1, expected2):
         forward_result = test_input1 * test_input2
 
@@ -182,30 +243,76 @@ class TestVariable:
         assert allclose(inputs[0].grad, expected1)
         assert allclose(inputs[1].grad, expected2)
 
-    @pytest.mark.parametrize('test_input1,test_input2,expected', [
-        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([0.1 / 0.3, 0.2 / 0.4]))),
-        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.1 / 0.3, 0.2 / 0.3]))),
-        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([0.1 / 0.3, 0.2 / 0.3]))),
-        (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.1 / 0.3, 0.1 / 0.4]))),
-        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(np.array([0.1 / 0.3, 0.1 / 0.4]))),
-    ])
+    @pytest.mark.parametrize(
+        "test_input1,test_input2,expected",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([0.1 / 0.3, 0.2 / 0.4])),
+            ),
+            (
+                Variable(np.array([0.1, 0.2])),
+                0.3,
+                Variable(np.array([0.1 / 0.3, 0.2 / 0.3])),
+            ),
+            (
+                Variable(np.array([0.1, 0.2])),
+                np.array([0.3]),
+                Variable(np.array([0.1 / 0.3, 0.2 / 0.3])),
+            ),
+            (
+                0.1,
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([0.1 / 0.3, 0.1 / 0.4])),
+            ),
+            (
+                np.array([0.1]),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([0.1 / 0.3, 0.1 / 0.4])),
+            ),
+        ],
+    )
     def test__true_div__(self, test_input1, test_input2, expected):
         actual = test_input1 / test_input2
 
         assert allclose(actual, expected)
 
-    @pytest.mark.parametrize('test_input1,test_input2,expected1,expected2', [
-        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])),
-         Variable(np.array([1.0 / 0.3, 1.0 / 0.4])), Variable(np.array([-0.1 / 0.3 ** 2, -0.2 / 0.4 ** 2]))),
-        (Variable(np.array([0.1, 0.2])), 0.3,
-         Variable(np.array([1.0 / 0.3, 1.0 / 0.3])), Variable(np.array([-0.1 / 0.3 ** 2, -0.2 / 0.3 ** 2]))),
-        (Variable(np.array([0.1, 0.2])), np.array([0.3]),
-         Variable(np.array([1.0 / 0.3, 1.0 / 0.3])), Variable(np.array([-0.1 / 0.3 ** 2, -0.2 / 0.3 ** 2]))),
-        (0.1, Variable(np.array([0.3, 0.4])),
-         Variable(np.array([1.0 / 0.3, 1.0 / 0.4])), Variable(np.array([-0.1 / 0.3 ** 2, -0.1 / 0.4 ** 2]))),
-        (np.array([0.1]), Variable(np.array([0.3, 0.4])),
-         Variable(np.array([1.0 / 0.3, 1.0 / 0.4])), Variable(np.array([-0.1 / 0.3 ** 2, -0.1 / 0.4 ** 2]))),
-    ])
+    @pytest.mark.parametrize(
+        "test_input1,test_input2,expected1,expected2",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([1.0 / 0.3, 1.0 / 0.4])),
+                Variable(np.array([-0.1 / 0.3**2, -0.2 / 0.4**2])),
+            ),
+            (
+                Variable(np.array([0.1, 0.2])),
+                0.3,
+                Variable(np.array([1.0 / 0.3, 1.0 / 0.3])),
+                Variable(np.array([-0.1 / 0.3**2, -0.2 / 0.3**2])),
+            ),
+            (
+                Variable(np.array([0.1, 0.2])),
+                np.array([0.3]),
+                Variable(np.array([1.0 / 0.3, 1.0 / 0.3])),
+                Variable(np.array([-0.1 / 0.3**2, -0.2 / 0.3**2])),
+            ),
+            (
+                0.1,
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([1.0 / 0.3, 1.0 / 0.4])),
+                Variable(np.array([-0.1 / 0.3**2, -0.1 / 0.4**2])),
+            ),
+            (
+                np.array([0.1]),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([1.0 / 0.3, 1.0 / 0.4])),
+                Variable(np.array([-0.1 / 0.3**2, -0.1 / 0.4**2])),
+            ),
+        ],
+    )
     def test__true_div_backward(self, test_input1, test_input2, expected1, expected2):
         forward_result = test_input1 / test_input2
 
@@ -215,10 +322,13 @@ class TestVariable:
         assert allclose(inputs[0].grad, expected1)
         assert allclose(inputs[1].grad, expected2)
 
-    @pytest.mark.parametrize('test_input,expected', [
-        (Variable(np.array([0.1, 0.2])), Variable(np.array([-0.1, -0.2]))),
-        (np.array([0.1, 0.2]), Variable(np.array([-0.1, -0.2]))),
-    ])
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        [
+            (Variable(np.array([0.1, 0.2])), Variable(np.array([-0.1, -0.2]))),
+            (np.array([0.1, 0.2]), Variable(np.array([-0.1, -0.2]))),
+        ],
+    )
     def test__neg__(self, test_input, expected):
         actual = -test_input
 
@@ -226,31 +336,73 @@ class TestVariable:
 
     def test__pow__(self):
         test_input = Variable(np.array([0.1, 0.2]))
-        actual = test_input ** 2
+        actual = test_input**2
 
         expected = Variable(np.array([0.01, 0.04]))
         assert allclose(actual, expected)
 
-    @pytest.mark.parametrize('test_input1,test_input2,expected', [
-        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([0.4, 0.6]))),
-        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.4, 0.5]))),
-        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([0.4, 0.5]))),
-        (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.4, 0.5]))),
-        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(np.array([0.4, 0.5]))),
-    ])
+    @pytest.mark.parametrize(
+        "test_input1,test_input2,expected",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([0.4, 0.6])),
+            ),
+            (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([0.4, 0.5]))),
+            (
+                Variable(np.array([0.1, 0.2])),
+                np.array([0.3]),
+                Variable(np.array([0.4, 0.5])),
+            ),
+            (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([0.4, 0.5]))),
+            (
+                np.array([0.1]),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([0.4, 0.5])),
+            ),
+        ],
+    )
     def test__add__(self, test_input1, test_input2, expected):
         actual = test_input1 + test_input2
 
         assert allclose(actual, expected)
 
-    @pytest.mark.parametrize('test_input1,test_input2,expected1,expected2', [
-        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])),
-         Variable(np.array([1.0, 1.0])), Variable(np.array([1.0, 1.0]))),
-        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([1.0, 1.0])), Variable(1.0)),
-        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([1.0, 1.0])), Variable(1.0)),
-        (0.1, Variable(np.array([0.3, 0.4])), Variable(1.0), Variable(np.array([1.0, 1.0]))),
-        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(1.0), Variable(np.array([1.0, 1.0]))),
-    ])
+    @pytest.mark.parametrize(
+        "test_input1,test_input2,expected1,expected2",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([1.0, 1.0])),
+                Variable(np.array([1.0, 1.0])),
+            ),
+            (
+                Variable(np.array([0.1, 0.2])),
+                0.3,
+                Variable(np.array([1.0, 1.0])),
+                Variable(1.0),
+            ),
+            (
+                Variable(np.array([0.1, 0.2])),
+                np.array([0.3]),
+                Variable(np.array([1.0, 1.0])),
+                Variable(1.0),
+            ),
+            (
+                0.1,
+                Variable(np.array([0.3, 0.4])),
+                Variable(1.0),
+                Variable(np.array([1.0, 1.0])),
+            ),
+            (
+                np.array([0.1]),
+                Variable(np.array([0.3, 0.4])),
+                Variable(1.0),
+                Variable(np.array([1.0, 1.0])),
+            ),
+        ],
+    )
     def test_add__backward(self, test_input1, test_input2, expected1, expected2):
         forward_result = test_input1 + test_input2
 
@@ -260,26 +412,68 @@ class TestVariable:
         assert allclose(inputs[0].grad, expected1)
         assert allclose(inputs[1].grad, expected2)
 
-    @pytest.mark.parametrize('test_input1,test_input2,expected', [
-        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])), Variable(np.array([-0.2, -0.2]))),
-        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([-0.2, -0.1]))),
-        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([-0.2, -0.1]))),
-        (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([-0.2, -0.3]))),
-        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(np.array([-0.2, -0.3]))),
-    ])
+    @pytest.mark.parametrize(
+        "test_input1,test_input2,expected",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([-0.2, -0.2])),
+            ),
+            (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([-0.2, -0.1]))),
+            (
+                Variable(np.array([0.1, 0.2])),
+                np.array([0.3]),
+                Variable(np.array([-0.2, -0.1])),
+            ),
+            (0.1, Variable(np.array([0.3, 0.4])), Variable(np.array([-0.2, -0.3]))),
+            (
+                np.array([0.1]),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([-0.2, -0.3])),
+            ),
+        ],
+    )
     def test_sub__(self, test_input1, test_input2, expected):
         actual = test_input1 - test_input2
 
         assert allclose(actual, expected)
 
-    @pytest.mark.parametrize('test_input1,test_input2,expected1,expected2', [
-        (Variable(np.array([0.1, 0.2])), Variable(np.array([0.3, 0.4])),
-         Variable(np.array([1.0, 1.0])), Variable(np.array([-1.0, -1.0]))),
-        (Variable(np.array([0.1, 0.2])), 0.3, Variable(np.array([1.0, 1.0])), Variable(-1.0)),
-        (Variable(np.array([0.1, 0.2])), np.array([0.3]), Variable(np.array([1.0, 1.0])), Variable(-1.0)),
-        (0.1, Variable(np.array([0.3, 0.4])), Variable(1.0), Variable(np.array([-1.0, -1.0]))),
-        (np.array([0.1]), Variable(np.array([0.3, 0.4])), Variable(1.0), Variable(np.array([-1.0, -1.0]))),
-    ])
+    @pytest.mark.parametrize(
+        "test_input1,test_input2,expected1,expected2",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                Variable(np.array([0.3, 0.4])),
+                Variable(np.array([1.0, 1.0])),
+                Variable(np.array([-1.0, -1.0])),
+            ),
+            (
+                Variable(np.array([0.1, 0.2])),
+                0.3,
+                Variable(np.array([1.0, 1.0])),
+                Variable(-1.0),
+            ),
+            (
+                Variable(np.array([0.1, 0.2])),
+                np.array([0.3]),
+                Variable(np.array([1.0, 1.0])),
+                Variable(-1.0),
+            ),
+            (
+                0.1,
+                Variable(np.array([0.3, 0.4])),
+                Variable(1.0),
+                Variable(np.array([-1.0, -1.0])),
+            ),
+            (
+                np.array([0.1]),
+                Variable(np.array([0.3, 0.4])),
+                Variable(1.0),
+                Variable(np.array([-1.0, -1.0])),
+            ),
+        ],
+    )
     def test_sub__backward(self, test_input1, test_input2, expected1, expected2):
         forward_result = test_input1 - test_input2
 
@@ -289,13 +483,29 @@ class TestVariable:
         assert allclose(inputs[0].grad, expected1)
         assert allclose(inputs[1].grad, expected2)
 
+    def test_second_order_differentiation(self):
+        x = Variable(np.array([2.0]))
+        y: Variable = x**4 - x**2 - x
+        y.backward(enable_backprop_for_grad=True)
+        assert allclose(x.grad, Variable(np.array([27.0])))
 
-@pytest.mark.parametrize("input_value, expected_type", [
-    (1, Variable),
-    (1.0, Variable),
-    (np.array([1, 2, 3]), Variable),
-    (np.float32(1.0), Variable),
-])
+        gx = x.grad
+        x.clear_grad()
+        gx.backward()
+
+        expected = Variable(np.array([46.0]))
+        assert allclose(x.grad, expected)
+
+
+@pytest.mark.parametrize(
+    "input_value, expected_type",
+    [
+        (1, Variable),
+        (1.0, Variable),
+        (np.array([1, 2, 3]), Variable),
+        (np.float32(1.0), Variable),
+    ],
+)
 def test_to_variable(input_value, expected_type):
     result = to_variable(input_value)
     assert isinstance(result, expected_type)

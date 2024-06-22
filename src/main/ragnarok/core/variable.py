@@ -125,6 +125,9 @@ class Variable:
     def dtype(self):
         return self._data.dtype.name
 
+    def clear_grad(self):
+        self._grad = None
+
     def backward(self, retain_grad=False, enable_backprop_for_grad=False):
         if self._creator is None:
             raise VariableError(
@@ -161,7 +164,7 @@ class Variable:
                     if input_.grad is not None:
                         # For the function has more than one input and same inputs are used for the function
                         # e.g. Add()(x, x)
-                        input_.grad = Variable(input_.grad.data + dinput.data)
+                        input_.grad = input_.grad + dinput
                     else:
                         input_.grad = dinput
 
