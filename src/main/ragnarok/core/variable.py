@@ -2,6 +2,8 @@ import heapq
 
 import numpy as np
 
+from src.main.ragnarok.core.config import using_config
+
 
 class Variable:
     __array_priority__ = 200
@@ -16,7 +18,7 @@ class Variable:
         """
 
         if not (isinstance(data, (int, float, np.ndarray, np.generic))):
-            raise VariableError('data should be numpy array or int or float')
+            raise VariableError("data should be numpy array or int or float")
 
         if isinstance(data, (int, float)):
             data = np.array(data)
@@ -31,46 +33,56 @@ class Variable:
         return self._data.shape[0] if self._data.shape else 0
 
     def __repr__(self):
-        return f'Variable({str(self._data)})'
+        return f"Variable({str(self._data)})"
 
     def __mul__(self, other):
         from src.main.ragnarok.core.function import Multiply
+
         return Multiply()(self, other)
 
     def __rmul__(self, other):
         from src.main.ragnarok.core.function import Multiply
+
         return Multiply()(other, self)
 
     def __add__(self, other):
         from src.main.ragnarok.core.function import Add
+
         return Add()(self, other)
 
     def __radd__(self, other):
         from src.main.ragnarok.core.function import Add
+
         return Add()(other, self)
 
     def __sub__(self, other):
         from src.main.ragnarok.core.function import Subtract
+
         return Subtract()(self, other)
 
     def __rsub__(self, other):
         from src.main.ragnarok.core.function import Subtract
+
         return Subtract()(other, self)
 
     def __truediv__(self, other):
         from src.main.ragnarok.core.function import Divide
+
         return Divide()(self, other)
 
     def __rtruediv__(self, other):
         from src.main.ragnarok.core.function import Divide
+
         return Divide()(other, self)
 
     def __neg__(self):
         from src.main.ragnarok.core.function import Negative
+
         return Negative()(self)
 
     def __pow__(self, power, modulo=None):
         from src.main.ragnarok.core.function import Pow
+
         return Pow()(self, power=power)
 
     def set_creator(self, creator):
@@ -113,9 +125,11 @@ class Variable:
     def dtype(self):
         return self._data.dtype.name
 
-    def backward(self, retain_grad=False):
+    def backward(self, retain_grad=False, enable_backprop_for_grad=False):
         if self._creator is None:
-            raise VariableError('The creator of this variable is None. backward propagation is not possible.')
+            raise VariableError(
+                "The creator of this variable is None. backward propagation is not possible."
+            )
 
         if self._grad is None:
             # initialize with first grad as 1
@@ -135,27 +149,30 @@ class Variable:
 
             doutputs = [output().grad for output in function.outputs]
 
-            dinputs = function.backward(*doutputs)
-            if not isinstance(dinputs, tuple):
-                dinputs = (dinputs,)
+            with using_config("enable_backprop", enable_backprop_for_grad):
+                dinputs = function.backward(*doutputs)
+                if not isinstance(dinputs, tuple):
+                    dinputs = (dinputs,)
 
-            inputs = function.inputs
+                inputs = function.inputs
 
-            for input_, dinput in zip(inputs, dinputs):
-                if input_.grad is not None:
-                    # For the function has more than one input and same inputs are used for the function
-                    # e.g. Add()(x, x)
-                    input_.grad = Variable(input_.grad.data + dinput.data)
-                else:
-                    input_.grad = dinput
+                for input_, dinput in zip(inputs, dinputs):
+                    if input_.grad is not None:
+                        # For the function has more than one input and same inputs are used for the function
+                        # e.g. Add()(x, x)
+                        input_.grad = Variable(input_.grad.data + dinput.data)
+                    else:
+                        input_.grad = dinput
 
-                if input_.creator is not None:
-                    next_creator = input_.creator
-                    if next_creator in visited:
-                        continue
-                    heapq.heappush(function_queue, ((-next_creator.gen, idx), next_creator))
-                    visited.add(next_creator)
-                    idx += 1
+                    if input_.creator is not None:
+                        next_creator = input_.creator
+                        if next_creator in visited:
+                            continue
+                        heapq.heappush(
+                            function_queue, ((-next_creator.gen, idx), next_creator)
+                        )
+                        visited.add(next_creator)
+                        idx += 1
             if not retain_grad:
                 # In general case, current output grad is not needed anymore
                 for output in function.outputs:
