@@ -2,8 +2,21 @@ import numpy as np
 import pytest
 
 from src.main.ragnarok.core.config import using_backprop
-from src.main.ragnarok.core.function import Square, FunctionVariableError, Exp, Add, Split, Function, Multiply, \
-    Negative, Subtract, Divide, Pow
+from src.main.ragnarok.core.function import (
+    Square,
+    FunctionVariableError,
+    Exp,
+    Add,
+    Split,
+    Function,
+    Multiply,
+    Negative,
+    Subtract,
+    Divide,
+    Pow,
+    Sin,
+    Cos,
+)
 from src.main.ragnarok.core.util import numerical_diff, allclose
 from src.main.ragnarok.core.variable import Variable
 
@@ -50,32 +63,50 @@ class TestFunction:
 
 
 class TestSquare:
-    @pytest.mark.parametrize('test_input,expected', [
-        (Variable(np.array([[1.0, 2.0, 3.0]])), Variable(np.array([[2.0, 4.0, 6.0]]))),
-        (Variable(3), Variable(6)),
-        (Variable(3.0), Variable(6.0))
-    ])
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0, 3.0]])),
+                Variable(np.array([[2.0, 4.0, 6.0]])),
+            ),
+            (Variable(3), Variable(6)),
+            (Variable(3.0), Variable(6.0)),
+        ],
+    )
     def test_backward(self, test_input, expected):
         f = Square()
         f(test_input)
         actual = f.backward(Variable(1.0))
         assert allclose(actual, expected)
 
-    @pytest.mark.parametrize('test_input,expected', [
-        (Variable(np.array([[1.0, 2.0, 3.0]])), Variable(np.array([[1.0, 4.0, 9.0]]))),
-        (Variable(3), Variable(9)),
-        (Variable(3.0), Variable(9.0))
-    ])
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0, 3.0]])),
+                Variable(np.array([[1.0, 4.0, 9.0]])),
+            ),
+            (Variable(3), Variable(9)),
+            (Variable(3.0), Variable(9.0)),
+        ],
+    )
     def test_call(self, test_input, expected):
         f = Square()
         actual = f(test_input)
         assert actual.creator is f
         assert allclose(actual, expected)
 
-    @pytest.mark.parametrize('test_input', [
-        [Variable(np.array([[1.0, 2.0, 3.0]])), Variable(np.array([[1.0, 4.0, 9.0]]))],
-        []
-    ])
+    @pytest.mark.parametrize(
+        "test_input",
+        [
+            [
+                Variable(np.array([[1.0, 2.0, 3.0]])),
+                Variable(np.array([[1.0, 4.0, 9.0]])),
+            ],
+            [],
+        ],
+    )
     def test__validate_variables(self, test_input):
         with pytest.raises(FunctionVariableError):
             f = Square()
@@ -93,36 +124,50 @@ class TestSquare:
 
 
 class TestExp:
-    @pytest.mark.parametrize('test_input,expected', [
-        (
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        [
+            (
                 Variable(np.array([[1.0, 2.0, 3.0]])),
-                Variable(np.array([[2.718281828459, 7.389056098931, 20.085536923188]]))),
-        (Variable(3), Variable(20.085536923188)),
-        (Variable(3.0), Variable(20.085536923188))
-    ])
+                Variable(np.array([[2.718281828459, 7.389056098931, 20.085536923188]])),
+            ),
+            (Variable(3), Variable(20.085536923188)),
+            (Variable(3.0), Variable(20.085536923188)),
+        ],
+    )
     def test_backward(self, test_input, expected):
         f = Exp()
         for_weak_ref = f(test_input)
         actual = f.backward(Variable(1.0))
         assert allclose(actual, expected)
 
-    @pytest.mark.parametrize('test_input,expected', [
-        (
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        [
+            (
                 Variable(np.array([[1.0, 2.0, 3.0]])),
-                Variable(np.array([[2.718281828459, 7.389056098931, 20.085536923188]]))),
-        (Variable(3), Variable(20.085536923188)),
-        (Variable(3.0), Variable(20.085536923188))
-    ])
+                Variable(np.array([[2.718281828459, 7.389056098931, 20.085536923188]])),
+            ),
+            (Variable(3), Variable(20.085536923188)),
+            (Variable(3.0), Variable(20.085536923188)),
+        ],
+    )
     def test_call(self, test_input, expected):
         f = Exp()
         actual = f(test_input)
         assert actual.creator is f
         assert allclose(actual, expected)
 
-    @pytest.mark.parametrize('test_input', [
-        [Variable(np.array([[1.0, 2.0, 3.0]])), Variable(np.array([[1.0, 4.0, 9.0]]))],
-        []
-    ])
+    @pytest.mark.parametrize(
+        "test_input",
+        [
+            [
+                Variable(np.array([[1.0, 2.0, 3.0]])),
+                Variable(np.array([[1.0, 4.0, 9.0]])),
+            ],
+            [],
+        ],
+    )
     def test__validate_variables(self, test_input):
         with pytest.raises(FunctionVariableError):
             f = Exp()
@@ -169,7 +214,10 @@ class TestAdd:
 
     def test_gradient_check(self):
         f = Add()
-        test_inputs = [Variable(np.array([[3.0, 4.0]])), Variable(np.array([[6.0, 8.0]]))]
+        test_inputs = [
+            Variable(np.array([[3.0, 4.0]])),
+            Variable(np.array([[6.0, 8.0]])),
+        ]
 
         f(*test_inputs)
 
@@ -211,7 +259,10 @@ class TestSubtract:
 
     def test_gradient_check(self):
         f = Subtract()
-        test_inputs = [Variable(np.array([[3.0, 4.0]])), Variable(np.array([[6.0, 8.0]]))]
+        test_inputs = [
+            Variable(np.array([[3.0, 4.0]])),
+            Variable(np.array([[6.0, 8.0]])),
+        ]
 
         f(*test_inputs)
 
@@ -253,7 +304,10 @@ class TestMultiply:
 
     def test_gradient_check(self):
         f = Multiply()
-        test_inputs = [Variable(np.array([[3.0, 4.0]])), Variable(np.array([[6.0, 8.0]]))]
+        test_inputs = [
+            Variable(np.array([[3.0, 4.0]])),
+            Variable(np.array([[6.0, 8.0]])),
+        ]
 
         f(*test_inputs)
 
@@ -286,7 +340,7 @@ class TestDivide:
         dout = Variable(np.array([1.0, 2.0]))
 
         expected1 = Variable(np.array([1.0 / 0.3, 2.0 / 0.4]))
-        expected2 = Variable(np.array([-1.0 * 0.1 / 0.3 ** 2, -2.0 * 0.2 / 0.4 ** 2]))
+        expected2 = Variable(np.array([-1.0 * 0.1 / 0.3**2, -2.0 * 0.2 / 0.4**2]))
 
         actual1, actual2 = f.backward(dout)
 
@@ -295,7 +349,10 @@ class TestDivide:
 
     def test_gradient_check(self):
         f = Divide()
-        test_inputs = [Variable(np.array([[3.0, 4.0]])), Variable(np.array([[6.0, 8.0]]))]
+        test_inputs = [
+            Variable(np.array([[3.0, 4.0]])),
+            Variable(np.array([[6.0, 8.0]])),
+        ]
 
         f(*test_inputs)
 
@@ -308,9 +365,12 @@ class TestDivide:
 
 
 class TestNegative:
-    @pytest.mark.parametrize('test_input,expected', [
-        (Variable(np.array([0.1, 0.2])), Variable(np.array([-0.1, -0.2]))),
-    ])
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        [
+            (Variable(np.array([0.1, 0.2])), Variable(np.array([-0.1, -0.2]))),
+        ],
+    )
     def test_forward(self, test_input, expected):
         f = Negative()
         actual = f.forward(test_input)
@@ -343,18 +403,28 @@ class TestNegative:
 
 
 class TestPow:
-    @pytest.mark.parametrize('test_input,power,expected', [
-        (Variable(np.array([0.1, 0.2])), 2, Variable(np.array([0.01, 0.04]))),
-    ])
+    @pytest.mark.parametrize(
+        "test_input,power,expected",
+        [
+            (Variable(np.array([0.1, 0.2])), 2, Variable(np.array([0.01, 0.04]))),
+        ],
+    )
     def test_forward(self, test_input, power, expected):
         f = Pow()
         actual = f.forward(test_input, power=power)
 
         assert allclose(actual, expected)
 
-    @pytest.mark.parametrize('test_input,power,expected', [
-        (Variable(np.array([0.1, 0.2])), 2, Variable(np.array([2 * (0.1 ** 1) * 1.0, 2 * (0.2 ** 1) * 2.0]))),
-    ])
+    @pytest.mark.parametrize(
+        "test_input,power,expected",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                2,
+                Variable(np.array([2 * (0.1**1) * 1.0, 2 * (0.2**1) * 2.0])),
+            ),
+        ],
+    )
     def test_backward(self, test_input, power, expected):
         f = Pow()
         f(test_input, power=power)
@@ -377,15 +447,110 @@ class TestPow:
         assert allclose(actual, expected)
 
 
+class TestSin:
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                Variable(np.array([np.sin(0.1), np.sin(0.2)])),
+            ),
+        ],
+    )
+    def test_forward(self, test_input, expected):
+        f = Sin()
+        actual = f.forward(test_input)
+
+        assert allclose(actual, expected)
+
+    def test_backward(self):
+        test_input = Variable(np.array([0.1, 0.2]))
+
+        f = Sin()
+        f(test_input)
+        dout = Variable(np.array([1.0, 1.0]))
+
+        expected = Variable(np.array([np.cos(0.1), np.cos(0.2)]))
+        actual = f.backward(dout)
+
+        assert allclose(actual, expected)
+
+    def test_gradient_check(self):
+        f = Sin()
+        test_input = Variable(np.array([[0.1, 0.2]]))
+
+        f(test_input)
+
+        actual = f.backward(Variable(np.array(1.0)))
+
+        expected = numerical_diff(f, test_input)
+
+        assert allclose(actual, expected)
+
+
+class TestCos:
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                Variable(np.array([np.cos(0.1), np.cos(0.2)])),
+            ),
+        ],
+    )
+    def test_forward(self, test_input, expected):
+        f = Cos()
+        actual = f.forward(test_input)
+
+        assert allclose(actual, expected)
+
+    def test_backward(self):
+        test_input = Variable(np.array([0.1, 0.2]))
+
+        f = Cos()
+        f(test_input)
+        dout = Variable(np.array([1.0, 1.0]))
+
+        expected = Variable(np.array([-np.sin(0.1), -np.sin(0.2)]))
+        actual = f.backward(dout)
+
+        assert allclose(actual, expected)
+
+    def test_gradient_check(self):
+        f = Cos()
+        test_input = Variable(np.array([[0.1, 0.2]]))
+
+        f(test_input)
+
+        actual = f.backward(Variable(np.array(1.0)))
+
+        expected = numerical_diff(f, test_input)
+
+        assert allclose(actual, expected)
+
+
 class TestSplit:
-    @pytest.mark.parametrize('test_input,axis,expected', [
-        (Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])), 0,
-         [Variable(np.array([[1.0, 2.0, 3.0]])), Variable(np.array([[2.0, 4.0, 8.0]]))]),
-
-        (Variable(np.array([[1.0, 3.0], [2.0, 4.0]])), 1,
-         [Variable(np.array([[1.0], [2.0]])), Variable(np.array([[3.0], [4.0]]))]),
-
-    ])
+    @pytest.mark.parametrize(
+        "test_input,axis,expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                0,
+                [
+                    Variable(np.array([[1.0, 2.0, 3.0]])),
+                    Variable(np.array([[2.0, 4.0, 8.0]])),
+                ],
+            ),
+            (
+                Variable(np.array([[1.0, 3.0], [2.0, 4.0]])),
+                1,
+                [
+                    Variable(np.array([[1.0], [2.0]])),
+                    Variable(np.array([[3.0], [4.0]])),
+                ],
+            ),
+        ],
+    )
     def test_forward(self, test_input, axis, expected):
         split = Split()
         actual = split.forward(test_input, axis=axis)
@@ -394,13 +559,27 @@ class TestSplit:
         for i in range(len(actual)):
             assert allclose(actual[i], expected[i])
 
-    @pytest.mark.parametrize('test_input,axis,expected', [
-        ([Variable(np.array([[1.0, 2.0, 3.0]])), Variable(np.array([[2.0, 4.0, 8.0]]))], 0,
-         Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]]))),
-        ([Variable(np.array([[1.0], [2.0]])), Variable(np.array([[3.0], [4.0]]))], 1,
-         Variable(np.array([[1.0, 3.0], [2.0, 4.0]]))),
-
-    ])
+    @pytest.mark.parametrize(
+        "test_input,axis,expected",
+        [
+            (
+                [
+                    Variable(np.array([[1.0, 2.0, 3.0]])),
+                    Variable(np.array([[2.0, 4.0, 8.0]])),
+                ],
+                0,
+                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+            ),
+            (
+                [
+                    Variable(np.array([[1.0], [2.0]])),
+                    Variable(np.array([[3.0], [4.0]])),
+                ],
+                1,
+                Variable(np.array([[1.0, 3.0], [2.0, 4.0]])),
+            ),
+        ],
+    )
     def test_backward(self, test_input, axis, expected):
         output_shape = expected.data.shape
         forward_input = Variable(np.random.rand(*output_shape))

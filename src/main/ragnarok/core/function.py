@@ -208,6 +208,48 @@ class Negative(Function):
             )
 
 
+class Sin(Function):
+    def forward(self, *variables: Variable):
+        x = variables[0]
+        return Variable(np.sin(x.data))
+
+    def backward(self, dout: Variable):
+        x = self.inputs[0]
+        return cos(x) * dout
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length != 1:
+            raise FunctionVariableError(
+                "There should be one input variable for Sin function."
+            )
+
+
+def sin(x: Variable) -> Variable:
+    return Sin()(x)
+
+
+class Cos(Function):
+    def forward(self, *variables: Variable):
+        x = variables[0]
+        return Variable(np.cos(x.data))
+
+    def backward(self, dout: Variable):
+        x = self.inputs[0]
+        return -sin(x) * dout
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length != 1:
+            raise FunctionVariableError(
+                "There should be one input variable for Cos function."
+            )
+
+
+def cos(x: Variable) -> Variable:
+    return Cos()(x)
+
+
 class Split(Function):
     def forward(self, *variables: Variable, num_of_splits=2, axis=0):
         x = variables[0]
