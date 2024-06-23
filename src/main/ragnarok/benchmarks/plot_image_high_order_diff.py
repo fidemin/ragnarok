@@ -9,12 +9,12 @@ if __name__ == "__main__":
     x = Variable(np.array([1.0, 2.0]), name="x")
     y: Variable = Tanh()(x)
     y.name = "y"
-    y.backward(enable_backprop_for_grad=True)
+    y.backward(enable_double_backprop=True)
 
     for i in range(3):
         gx: Variable = x.grad
         x.clear_grad()
-        gx.backward(enable_backprop_for_grad=True)
+        gx.backward(enable_double_backprop=True)
 
         graph = DotGraph(gx)
         plot_graph(

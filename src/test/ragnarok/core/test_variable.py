@@ -486,7 +486,7 @@ class TestVariable:
     def test_second_order_differentiation(self):
         x = Variable(np.array([2.0]))
         y: Variable = x**4 - x**2 - x
-        y.backward(enable_backprop_for_grad=True)
+        y.backward(enable_double_backprop=True)
         assert allclose(x.grad, Variable(np.array([27.0])))
 
         gx = x.grad

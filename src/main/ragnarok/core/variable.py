@@ -136,7 +136,7 @@ class Variable:
     def clear_grad(self):
         self._grad = None
 
-    def backward(self, retain_grad=False, enable_backprop_for_grad=False):
+    def backward(self, retain_grad=False, enable_double_backprop=False):
         if self._creator is None:
             raise VariableError(
                 "The creator of this variable is None. backward propagation is not possible."
@@ -161,7 +161,7 @@ class Variable:
             doutputs = [output().grad for output in function.outputs]
 
             # For first-order differentiation, backpropagation of grad variable is not needed
-            with using_config("enable_backprop", enable_backprop_for_grad):
+            with using_config("enable_backprop", enable_double_backprop):
                 dinputs = function.backward(*doutputs)
                 if not isinstance(dinputs, tuple):
                     dinputs = (dinputs,)
