@@ -43,8 +43,7 @@ class TestDotVariableNode:
     )
     def test_to_str_verbose_true(self, id_, name, shape, dtype, expected):
         kwargs = {}
-        if name is not None:
-            kwargs["name"] = name
+        kwargs["name"] = name
         if shape is not None:
             kwargs["shape"] = shape
         if dtype is not None:
@@ -91,8 +90,7 @@ class TestDotVariableNode:
     )
     def test_draw_verbose_true(self, id_, name, shape, dtype, expected):
         kwargs = {}
-        if name is not None:
-            kwargs["name"] = name
+        kwargs["name"] = name
         if shape is not None:
             kwargs["shape"] = shape
         if dtype is not None:

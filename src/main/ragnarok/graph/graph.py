@@ -8,6 +8,7 @@ from src.main.ragnarok.graph.node import DotVariableNode, DotFunctionNode
 def draw_variable(variable: Variable, verbose: bool) -> str:
     return DotVariableNode(
         id(variable),
+        name=variable.name,
         shape=variable.shape,
         dtype=variable.dtype,
     ).draw(verbose=verbose)

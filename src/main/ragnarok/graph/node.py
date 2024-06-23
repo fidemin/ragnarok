@@ -6,7 +6,7 @@ class DotVariableNode:
         self, id_, *, name: str = "", shape: Optional[tuple] = None, dtype: str = None
     ):
         self._id = id_
-        self._name = name
+        self._name = name if name is not None else ""
         self._shape = shape
         self._dtype = dtype
 

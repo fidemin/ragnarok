@@ -114,6 +114,14 @@ class Variable:
         self._gen = value
 
     @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    @property
     def shape(self):
         return self._data.shape
 
