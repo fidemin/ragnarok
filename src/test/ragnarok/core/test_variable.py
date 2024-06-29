@@ -496,6 +496,16 @@ class TestVariable:
         expected = Variable(np.array([46.0]))
         assert allclose(x.grad, expected)
 
+    def test_reshape(self):
+        x = Variable(np.array([[1, 2, 3], [4, 5, 6]]))
+        y = x.reshape(3, 2)
+        assert y.shape == (3, 2)
+        assert allclose(y, Variable(np.array([[1, 2], [3, 4], [5, 6]])))
+
+        y = x.reshape((3, 2))
+        assert y.shape == (3, 2)
+        assert allclose(y, Variable(np.array([[1, 2], [3, 4], [5, 6]])))
+
 
 @pytest.mark.parametrize(
     "input_value, expected_type",

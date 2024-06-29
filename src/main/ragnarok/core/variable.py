@@ -136,6 +136,15 @@ class Variable:
     def clear_grad(self):
         self._grad = None
 
+    def reshape(self, *shape):
+        from src.main.ragnarok.core.function import Reshape
+
+        # if shape is tuple of tuple, convert to tuple
+        if len(shape) == 1 and isinstance(shape[0], tuple):
+            shape = shape[0]
+
+        return Reshape()(self, shape=shape)
+
     def backward(self, retain_grad=False, enable_double_backprop=False):
         if self._creator is None:
             raise VariableError(
