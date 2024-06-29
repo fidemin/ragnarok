@@ -18,6 +18,7 @@ from src.main.ragnarok.core.function import (
     Cos,
     Tanh,
     Reshape,
+    Transpose,
 )
 from src.main.ragnarok.core.util import numerical_diff, allclose
 from src.main.ragnarok.core.variable import Variable
@@ -679,6 +680,112 @@ class TestReshape:
         actual = split.backward(test_input)
 
         assert allclose(actual, expected)
+
+
+class TestTranspose:
+    @pytest.mark.parametrize(
+        "test_input,transpose, expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                None,
+                Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+            ),
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                (1, 0),
+                Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+            ),
+            # more complex case
+            (
+                Variable(
+                    np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+                ),
+                (1, 0, 2),
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [5.0, 6.0]],
+                            [[3.0, 4.0], [7.0, 8.0]],
+                        ]
+                    )
+                ),
+            ),
+        ],
+    )
+    def test_forward(self, test_input, transpose, expected):
+        f = Transpose()
+        if transpose:
+            actual = f.forward(test_input, transpose=transpose)
+        else:
+            actual = f.forward(test_input)
+
+        assert allclose(actual, expected)
+
+    @pytest.mark.parametrize(
+        "test_input,transpose, expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+                None,
+                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+            ),
+            (
+                Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+                (1, 0),
+                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+            ),
+            # more complex case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [5.0, 6.0]],
+                            [[3.0, 4.0], [7.0, 8.0]],
+                        ]
+                    )
+                ),
+                (1, 0, 2),
+                Variable(
+                    np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+                ),
+            ),
+        ],
+    )
+    def test_backward(self, test_input, transpose, expected):
+        output_shape = expected.shape
+        forward_input = Variable(np.random.rand(*output_shape))
+
+        f = Transpose()
+        if transpose:
+            f(forward_input, transpose=transpose)
+        else:
+            f(forward_input)
+        actual = f.backward(test_input)
+
+        assert allclose(actual, expected)
+
+    @pytest.mark.parametrize(
+        "test_input,transpose",
+        [
+            # multi inputs
+            (
+                [
+                    Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+                    Variable(1.0),
+                ],
+                (1, 0, 2),
+            ),
+            # transpose is not tuple
+            (
+                [Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]]))],
+                1,
+            ),
+        ],
+    )
+    def test_validate_variables(self, test_input, transpose):
+        with pytest.raises(FunctionVariableError):
+            f = Transpose()(*test_input, transpose=transpose)
 
 
 def test_define_by_run():

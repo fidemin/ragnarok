@@ -506,6 +506,55 @@ class TestVariable:
         assert y.shape == (3, 2)
         assert allclose(y, Variable(np.array([[1, 2], [3, 4], [5, 6]])))
 
+    @pytest.mark.parametrize(
+        "test_input,transpose, expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+                None,
+                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+            ),
+            (
+                Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+                (1, 0),
+                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+            ),
+            # more complex case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [5.0, 6.0]],
+                            [[3.0, 4.0], [7.0, 8.0]],
+                        ]
+                    )
+                ),
+                (1, 0, 2),
+                Variable(
+                    np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+                ),
+            ),
+        ],
+    )
+    def test_transpose(self, test_input, transpose, expected):
+        if not transpose:
+            actual = test_input.transpose()
+        else:
+            actual = test_input.transpose(*transpose)
+
+        assert allclose(actual, expected)
+
+        if transpose:
+            actual = test_input.transpose(transpose)
+
+        assert allclose(actual, expected)
+
+    def test_T(self):
+        x = Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]]))
+        y = x.T
+        expected = Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]]))
+        assert allclose(y, expected)
+
 
 @pytest.mark.parametrize(
     "input_value, expected_type",

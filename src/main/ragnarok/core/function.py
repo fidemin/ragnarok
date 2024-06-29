@@ -320,5 +320,35 @@ class Reshape(Function):
             )
 
 
+class Transpose(Function):
+    def forward(self, *variables: Variable, **kwargs):
+        transpose = kwargs.get("transpose", None)
+        x = variables[0]
+        if transpose is None:
+            y_var = x.data.T
+        else:
+            y_var = x.data.transpose(transpose)
+        return Variable(y_var)
+
+    def backward(self, *douts: Variable):
+        dout = douts[0]
+        transpose = self.kwargs.get("transpose", None)
+        dx = Transpose()(dout, transpose=transpose)
+        return dx
+
+    def _validate_variables(self, *variables: Variable, **kwargs):
+        transpose = kwargs.get("transpose", None)
+        if transpose is not None and not isinstance(transpose, tuple):
+            raise FunctionVariableError(
+                "transpose should be a tuple for Transpose function."
+            )
+
+        var_length = len(variables)
+        if var_length != 1:
+            raise FunctionVariableError(
+                "There should be one input variable for Transpose function."
+            )
+
+
 class FunctionVariableError(RuntimeError):
     pass

@@ -1,4 +1,5 @@
 import heapq
+from typing import Optional
 
 import numpy as np
 
@@ -144,6 +145,21 @@ class Variable:
             shape = shape[0]
 
         return Reshape()(self, shape=shape)
+
+    def transpose(self, *transpose: Optional[int | tuple]):
+        from src.main.ragnarok.core.function import Transpose
+
+        if not transpose:
+            return Transpose()(self)
+
+        if len(transpose) == 1 and isinstance(transpose[0], tuple):
+            transpose = transpose[0]
+
+        return Transpose()(self, transpose=transpose)
+
+    @property
+    def T(self):
+        return self.transpose()
 
     def backward(self, retain_grad=False, enable_double_backprop=False):
         if self._creator is None:
