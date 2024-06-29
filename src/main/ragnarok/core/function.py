@@ -18,7 +18,9 @@ class Function:
         self, *inputs: int | float | np.ndarray | np.generic | Variable, **kwargs
     ):
         inputs = [to_variable(input_) for input_ in inputs]
-        self._validate_variables(*inputs)
+        # _validate_variable
+
+        self._validate_variables(*inputs, **kwargs)
         outputs = self.forward(*inputs, **kwargs)
 
         if type(outputs) not in (tuple, list):
@@ -44,7 +46,7 @@ class Function:
     def forward(self, *variables: Variable, **kwargs):
         raise NotImplementedError("Function._forward is not implemented")
 
-    def _validate_variables(self, *variables: Variable):
+    def _validate_variables(self, *variables: Variable, **kwargs):
         raise NotImplementedError("Function._validate_input is not implemented")
 
 
@@ -184,7 +186,14 @@ class Pow(Function):
         dx = power * (x ** (power - 1)) * dout
         return dx
 
-    def _validate_variables(self, *variables: Variable):
+    def _validate_variables(self, *variables: Variable, **kwargs):
+        if "power" not in kwargs:
+            raise FunctionVariableError("power is required for Pow function.")
+        power = kwargs["power"]
+        if not isinstance(power, (int, float)):
+            raise FunctionVariableError(
+                "power should be int or float for Pow function."
+            )
         var_length = len(variables)
         if var_length != 1:
             raise FunctionVariableError(
@@ -279,11 +288,35 @@ class Split(Function):
         dx = np.concatenate(douts_data, axis=self.kwargs["axis"])
         return Variable(dx)
 
-    def _validate_variables(self, *variables: Variable):
+    def _validate_variables(self, *variables: Variable, **kwargs):
         var_length = len(variables)
         if var_length != 1:
             raise FunctionVariableError(
                 "There should be one input variable for Split function."
+            )
+
+
+class Reshape(Function):
+    def forward(self, *variables: Variable, **kwargs):
+        shape = kwargs["shape"]
+        x = variables[0]
+        y = x.data.reshape(shape)
+        return Variable(y)
+
+    def backward(self, *douts: Variable):
+        dx = douts[0].data.reshape(self.inputs[0].shape)
+        return Variable(dx)
+
+    def _validate_variables(self, *variables: Variable, **kwargs):
+        if "shape" not in kwargs:
+            raise FunctionVariableError("shape is required for Reshape function.")
+        shape = kwargs["shape"]
+        if not isinstance(shape, tuple):
+            raise FunctionVariableError("shape should be a tuple for Reshape function.")
+        var_length = len(variables)
+        if var_length != 1:
+            raise FunctionVariableError(
+                "There should be one input variable for Reshape function."
             )
 
 

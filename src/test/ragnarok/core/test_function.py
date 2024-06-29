@@ -17,6 +17,7 @@ from src.main.ragnarok.core.function import (
     Sin,
     Cos,
     Tanh,
+    Reshape,
 )
 from src.main.ragnarok.core.util import numerical_diff, allclose
 from src.main.ragnarok.core.variable import Variable
@@ -48,7 +49,7 @@ class TestFunction:
         test_input = Variable(np.array([1.0, 2.0, 3.0]))
         with using_backprop(False):
             f = FunctionForTest()
-            output = f(test_input, using_backprop=False)
+            output = f(test_input)
 
         assert f.gen is None
         assert f.inputs is None
@@ -629,6 +630,53 @@ class TestSplit:
         split = Split()
         split(forward_input, axis=axis)
         actual = split.backward(*test_input)
+
+        assert allclose(actual, expected)
+
+
+class TestReshape:
+    @pytest.mark.parametrize(
+        "test_input,shape,expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                (3, 2),
+                Variable(np.array([[1.0, 2.0], [3.0, 2.0], [4.0, 8.0]])),
+            ),
+            (
+                Variable(np.array([[1.0, 3.0], [2.0, 4.0]])),
+                (4,),
+                Variable(np.array([1.0, 3.0, 2.0, 4.0])),
+            ),
+        ],
+    )
+    def test_forward(self, test_input, shape, expected):
+        split = Reshape()
+        actual = split.forward(test_input, shape=shape)
+        assert allclose(actual, expected)
+
+    @pytest.mark.parametrize(
+        "test_input,shape,expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0], [3.0, 2.0], [4.0, 8.0]])),
+                (3, 2),
+                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+            ),
+            (
+                Variable(np.array([1.0, 3.0, 2.0, 4.0])),
+                (2, 2),
+                Variable(np.array([[1.0, 3.0], [2.0, 4.0]])),
+            ),
+        ],
+    )
+    def test_backward(self, test_input, shape, expected):
+        output_shape = expected.data.shape
+        forward_input = Variable(np.random.rand(*output_shape))
+
+        split = Reshape()
+        split(forward_input, shape=shape)
+        actual = split.backward(test_input)
 
         assert allclose(actual, expected)
 
