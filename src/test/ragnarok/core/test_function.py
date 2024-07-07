@@ -984,6 +984,215 @@ class TestBroadcastTo:
         print("error message: ", exc_info.value)
 
     @pytest.mark.parametrize(
+        "test_input,shape,expected",
+        [
+            # (3, 2) -> (3, 2) case: no change
+            (
+                Variable(
+                    np.array(
+                        [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                    )
+                ),
+                (3, 2),
+                Variable(
+                    np.array(
+                        [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                    )
+                ),
+            ),
+            # (3, 2) -> (2, 3, 2) broadcast case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                            [[4.0, 5.0], [5.0, 6.0], [6.0, 7.0]],
+                        ]
+                    )
+                ),
+                (2, 3, 2),
+                Variable(np.array([[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]])),
+            ),
+            # (1, 3, 2) -> (2, 3, 2) case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                            [[4.0, 5.0], [5.0, 6.0], [6.0, 7.0]],
+                        ]
+                    )
+                ),
+                (2, 3, 2),
+                Variable(np.array([[[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]]])),
+            ),
+            # (2, 1, 2) -> (2, 3, 2) broadcast case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                            [[4.0, 5.0], [5.0, 6.0], [6.0, 7.0]],
+                        ]
+                    )
+                ),
+                (2, 3, 2),
+                Variable(
+                    np.array(
+                        [
+                            [[6.0, 9.0]],
+                            [[15.0, 18.0]],
+                        ]
+                    )
+                ),
+            ),
+            # (2, 3, 1) -> (2, 3, 2) broadcast case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                            [[4.0, 5.0], [5.0, 6.0], [6.0, 7.0]],
+                        ]
+                    )
+                ),
+                (2, 3, 2),
+                Variable(
+                    np.array(
+                        [
+                            [[3.0], [5.0], [7.0]],
+                            [[9.0], [11.0], [13.0]],
+                        ]
+                    )
+                ),
+            ),
+            # (2, 1, 2, 1) -> (2, 3, 2, 2) broadcast case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[1.0, 2.0], [2.0, 3.0]],
+                                [[2.0, 3.0], [3.0, 4.0]],
+                                [[3.0, 4.0], [4.0, 5.0]],
+                            ],
+                            [
+                                [[4.0, 5.0], [5.0, 6.0]],
+                                [[5.0, 6.0], [6.0, 7.0]],
+                                [[6.0, 7.0], [7.0, 8.0]],
+                            ],
+                        ]
+                    )
+                ),
+                (2, 3, 2, 2),
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[15.0], [21.0]],
+                            ],
+                            [
+                                [[33.0], [39.0]],
+                            ],
+                        ]
+                    )
+                ),
+            ),
+            # (1, 2, 2) -> (2, 3, 2, 2) broadcast case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[1.0, 2.0], [2.0, 3.0]],
+                                [[2.0, 3.0], [3.0, 4.0]],
+                                [[3.0, 4.0], [4.0, 5.0]],
+                            ],
+                            [
+                                [[4.0, 5.0], [5.0, 6.0]],
+                                [[5.0, 6.0], [6.0, 7.0]],
+                                [[6.0, 7.0], [7.0, 8.0]],
+                            ],
+                        ]
+                    )
+                ),
+                (2, 3, 2, 2),
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[21.0, 27.0], [27.0, 33.0]],
+                            ]
+                        ]
+                    )
+                ),
+            ),
+            # (3, 1, 2) -> (2, 3, 2, 2) broadcast case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[1.0, 2.0], [2.0, 3.0]],
+                                [[2.0, 3.0], [3.0, 4.0]],
+                                [[3.0, 4.0], [4.0, 5.0]],
+                            ],
+                            [
+                                [[4.0, 5.0], [5.0, 6.0]],
+                                [[5.0, 6.0], [6.0, 7.0]],
+                                [[6.0, 7.0], [7.0, 8.0]],
+                            ],
+                        ]
+                    )
+                ),
+                (2, 3, 2, 2),
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[12.0, 16.0]],
+                                [[16.0, 20.0]],
+                                [[20.0, 24.0]],
+                            ],
+                        ]
+                    )
+                ),
+            ),
+        ],
+    )
+    def test_backward(self, test_input, shape, expected):
+        output_shape = expected.data.shape
+        forward_input = Variable(np.random.rand(*output_shape))
+
+        f = BroadcastTo()
+        f(forward_input, shape=shape)
+        actual = f.backward(test_input)
+
+        assert allclose(actual, expected)
+
+    def test_gradient_check(self):
+        f = BroadcastTo()
+        shape = (3, 2)
+        test_input = Variable(np.random.rand(*shape))
+
+        f(test_input, shape=(2, 3, 2))
+
+        variable = Variable(
+            np.array(
+                [
+                    [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]],
+                    [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]],
+                ]
+            )
+        )
+
+        actual = f.backward(variable)
+
+        expected = numerical_diff(f, test_input, shape=(2, 3, 2))
+
+        assert allclose(actual, expected)
+
+    @pytest.mark.parametrize(
         "test_input, shape",
         [
             # no shape

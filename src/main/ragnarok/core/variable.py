@@ -134,6 +134,9 @@ class Variable:
     def dtype(self):
         return self._data.dtype.name
 
+    def copy(self):
+        return Variable(self._data.copy())
+
     def clear_grad(self):
         self._grad = None
 

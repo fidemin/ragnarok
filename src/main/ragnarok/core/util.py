@@ -16,11 +16,12 @@ def numerical_diff(f: Function, *xs: Variable, eps=1e-4, **extra):
                 idx = next(index_iter)
                 original_value = data[idx]
 
+                # deepcopy variable to handle case like broadcast. (data overwrite for ys_h_plus affects ys_h_minus.)
                 data[idx] = original_value - eps
-                ys_h_minus = f(*xs, **extra)
+                ys_h_minus = f(*xs, **extra).copy()
 
                 data[idx] = original_value + eps
-                ys_h_plus = f(*xs, **extra)
+                ys_h_plus = f(*xs, **extra).copy()
 
                 data[idx] = original_value
 
@@ -34,5 +35,5 @@ def numerical_diff(f: Function, *xs: Variable, eps=1e-4, **extra):
     return dxs if len(dxs) > 1 else dxs[0]
 
 
-def allclose(var1: Variable, var2: Variable, atol=1.e-8):
+def allclose(var1: Variable, var2: Variable, atol=1.0e-8):
     return np.allclose(var1.data, var2.data, atol=atol)

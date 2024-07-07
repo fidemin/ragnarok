@@ -413,7 +413,7 @@ class BroadcastTo(Function):
         return Variable(y_var)
 
     def backward(self, *douts: Variable):
-        to_shape = self.kwargs["shape"]
+        to_shape = self.inputs[0].shape
         dx = sum_to(douts[0], to_shape)
         return dx
 
