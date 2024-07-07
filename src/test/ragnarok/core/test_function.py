@@ -19,6 +19,7 @@ from src.main.ragnarok.core.function import (
     Tanh,
     Reshape,
     Transpose,
+    SumTo,
 )
 from src.main.ragnarok.core.util import numerical_diff, allclose
 from src.main.ragnarok.core.variable import Variable
@@ -786,6 +787,196 @@ class TestTranspose:
     def test_validate_variables(self, test_input, transpose):
         with pytest.raises(FunctionVariableError):
             f = Transpose()(*test_input, transpose=transpose)
+
+
+class TestSumTo:
+    @pytest.mark.parametrize(
+        "test_input,shape,expected",
+        [
+            # (2, 3, 2) -> (2, 3, 2) case: no sum required
+            (
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                            [[4.0, 5.0], [5.0, 6.0], [6.0, 7.0]],
+                        ]
+                    )
+                ),
+                (2, 3, 2),
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                            [[4.0, 5.0], [5.0, 6.0], [6.0, 7.0]],
+                        ]
+                    )
+                ),
+            ),
+            # (2, 3, 2) -> (3, 2) case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                            [[4.0, 5.0], [5.0, 6.0], [6.0, 7.0]],
+                        ]
+                    )
+                ),
+                (3, 2),
+                Variable(np.array([[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]])),
+            ),
+            # (2, 3, 2) -> (1, 3, 2) case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                            [[4.0, 5.0], [5.0, 6.0], [6.0, 7.0]],
+                        ]
+                    )
+                ),
+                (1, 3, 2),
+                Variable(np.array([[[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]]])),
+            ),
+            # (2, 3, 2) -> (2, 1, 2) case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                            [[4.0, 5.0], [5.0, 6.0], [6.0, 7.0]],
+                        ]
+                    )
+                ),
+                (2, 1, 2),
+                Variable(
+                    np.array(
+                        [
+                            [[6.0, 9.0]],
+                            [[15.0, 18.0]],
+                        ]
+                    )
+                ),
+            ),
+            # (2, 3, 2) -> (2, 3, 1) case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                            [[4.0, 5.0], [5.0, 6.0], [6.0, 7.0]],
+                        ]
+                    )
+                ),
+                (2, 3, 1),
+                Variable(
+                    np.array(
+                        [
+                            [[3.0], [5.0], [7.0]],
+                            [[9.0], [11.0], [13.0]],
+                        ]
+                    )
+                ),
+            ),
+            # (2, 3, 2, 2) -> (2, 1, 2, 1) case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[1.0, 2.0], [2.0, 3.0]],
+                                [[2.0, 3.0], [3.0, 4.0]],
+                                [[3.0, 4.0], [4.0, 5.0]],
+                            ],
+                            [
+                                [[4.0, 5.0], [5.0, 6.0]],
+                                [[5.0, 6.0], [6.0, 7.0]],
+                                [[6.0, 7.0], [7.0, 8.0]],
+                            ],
+                        ]
+                    )
+                ),
+                (2, 1, 2, 1),
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[15.0], [21.0]],
+                            ],
+                            [
+                                [[33.0], [39.0]],
+                            ],
+                        ]
+                    )
+                ),
+            ),
+            # (2, 3, 2, 2) -> (1, 2, 2) case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[1.0, 2.0], [2.0, 3.0]],
+                                [[2.0, 3.0], [3.0, 4.0]],
+                                [[3.0, 4.0], [4.0, 5.0]],
+                            ],
+                            [
+                                [[4.0, 5.0], [5.0, 6.0]],
+                                [[5.0, 6.0], [6.0, 7.0]],
+                                [[6.0, 7.0], [7.0, 8.0]],
+                            ],
+                        ]
+                    )
+                ),
+                (1, 2, 2),
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[21.0, 27.0], [27.0, 33.0]],
+                            ]
+                        ]
+                    )
+                ),
+            ),
+            # (2, 3, 2, 2) -> (3, 1, 2) case
+            (
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[1.0, 2.0], [2.0, 3.0]],
+                                [[2.0, 3.0], [3.0, 4.0]],
+                                [[3.0, 4.0], [4.0, 5.0]],
+                            ],
+                            [
+                                [[4.0, 5.0], [5.0, 6.0]],
+                                [[5.0, 6.0], [6.0, 7.0]],
+                                [[6.0, 7.0], [7.0, 8.0]],
+                            ],
+                        ]
+                    )
+                ),
+                (3, 1, 2),
+                Variable(
+                    np.array(
+                        [
+                            [
+                                [[12.0, 16.0]],
+                                [[16.0, 20.0]],
+                                [[20.0, 24.0]],
+                            ],
+                        ]
+                    )
+                ),
+            ),
+        ],
+    )
+    def test_forward(self, test_input, shape, expected):
+        f = SumTo()
+        actual = f.forward(test_input, shape=shape)
+        assert allclose(actual, expected)
 
 
 def test_define_by_run():

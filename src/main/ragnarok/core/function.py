@@ -41,6 +41,9 @@ class Function:
         return outputs if len(outputs) > 1 else outputs[0]
 
     def backward(self, *douts: Variable):
+        # NOTE: backward should be implemented based on variable operation or other forward function
+        #   to support high order differentiation
+        # DO NOT use numpy operation here
         raise NotImplementedError("Function.backward is not implemented")
 
     def forward(self, *variables: Variable, **kwargs):
@@ -347,6 +350,84 @@ class Transpose(Function):
         if var_length != 1:
             raise FunctionVariableError(
                 "There should be one input variable for Transpose function."
+            )
+
+
+def _find_axis_to_for_sum_to(from_shape: tuple, to_shape: tuple) -> (tuple, tuple):
+    """
+    Find axis to sum from shape to to_shape.
+    Can deal with following cases.
+    1. from_shape is larger than to_shape and the last elements of from_shape is equal to to_shape.
+    e.g. (2, 3, 4, 5) -> (3, 4, 5)
+    2. from_shape is equal to to_shape and the summed shape elements are 1 in to_shape.
+    e.g. (2, 3, 4, 5) -> (2, 1, 4, 5)
+    3. Combination of 1 and 2.
+    e.g. (2, 3, 4, 5) -> (1, 4, 5)
+    e.g. (2, 3, 4, 5) -> (3, 1, 5)
+
+    Args:
+        from_shape: shape to sum
+        to_shape: shape to sum to
+
+    Returns:
+        axis_without_keepdims: axis to sum without keepdims
+        axis_with_keepdims: axis to sum with keepdims
+    """
+
+    from_shape_len = len(from_shape)
+    to_shape_len = len(to_shape)
+    diff_len = from_shape_len - to_shape_len
+    if diff_len < 0:
+        raise ValueError(
+            f"The length of {from_shape} should be smaller than or equal to {to_shape}."
+        )
+
+    axis_without_keepdims = tuple()
+    if diff_len:
+        axis_without_keepdims = tuple(range(0, diff_len))
+
+    axis_with_keepdims = []
+    for i, (x1, x2) in enumerate(zip(from_shape[diff_len:], to_shape)):
+        if x1 != x2 and x2 != 1:
+            raise ValueError(f"The shape {from_shape} can not be summed to {to_shape}.")
+
+        if x2 == 1:
+            axis_with_keepdims.append(i)
+
+    return axis_without_keepdims, tuple(axis_with_keepdims)
+
+
+class SumTo(Function):
+    def forward(self, *variables: Variable, **kwargs):
+        shape = kwargs["shape"]
+        x = variables[0]
+        axis_without_keepdims, axis_with_keepdims = _find_axis_to_for_sum_to(
+            x.shape, shape
+        )
+
+        y_var = x.data
+
+        if axis_without_keepdims:
+            y_var = np.sum(y_var, axis=axis_without_keepdims, keepdims=False)
+
+        if axis_with_keepdims:
+            y_var = np.sum(y_var, axis=axis_with_keepdims, keepdims=True)
+
+        return Variable(y_var)
+
+    def backward(self, *douts: Variable):
+        raise NotImplementedError("SumTo.backward is not implemented")
+
+    def _validate_variables(self, *variables: Variable, **kwargs):
+        if "shape" not in kwargs:
+            raise FunctionVariableError("shape is required for SumTo function.")
+        shape = kwargs["shape"]
+        if not isinstance(shape, tuple):
+            raise FunctionVariableError("shape should be a tuple for SumTo function.")
+        var_length = len(variables)
+        if var_length != 1:
+            raise FunctionVariableError(
+                "There should be one input variable for SumTo function."
             )
 
 
