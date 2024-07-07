@@ -451,7 +451,9 @@ class SumTo(Function):
         return Variable(y_var)
 
     def backward(self, *douts: Variable):
-        raise NotImplementedError("SumTo.backward is not implemented")
+        to_shape = self.inputs[0].shape
+        dx = BroadcastTo()(douts[0], shape=to_shape)
+        return dx
 
     def _validate_variables(self, *variables: Variable, **kwargs):
         if "shape" not in kwargs:
