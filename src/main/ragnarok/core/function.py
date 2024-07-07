@@ -107,11 +107,16 @@ class Exp(Function):
 class Add(Function):
     def forward(self, *variables: Variable):
         x0, x1 = variables
-        y = x0.data + x1.data
+        y = x0.data + x1.data  # NOTE: If shape is different, numpy will broadcast
         return Variable(y)
 
-    def backward(self, dout: Variable):
-        return dout, dout
+    def backward(self, *dout: Variable):
+        dout = dout[0]
+
+        # To handle broadcast, sum to the shape of input variable
+        dx0 = sum_to(dout, self.inputs[0].shape)
+        dx1 = sum_to(dout, self.inputs[1].shape)
+        return dx0, dx1
 
     def _validate_variables(self, *variables: Variable):
         var_length = len(variables)

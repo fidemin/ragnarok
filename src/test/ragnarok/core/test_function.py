@@ -201,32 +201,66 @@ class TestAdd:
 
         assert np.allclose(actual.data, expected.data)
 
-    def test_backward(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
+    @pytest.mark.parametrize(
+        "shape1, shape2 ,dout, expected1, expected2",
+        [
+            # same shape case
+            (
+                (2,),
+                (2,),
+                Variable(np.array([1.0, 2.0])),
+                Variable(np.array([1.0, 2.0])),
+                Variable(np.array([1.0, 2.0])),
+            ),
+            # broadcast case
+            (
+                (2,),
+                (3, 2),
+                Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])),
+                Variable(np.array([6.0, 9.0])),
+                Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])),
+            ),
+        ],
+    )
+    def test_backward(self, shape1, shape2, dout, expected1, expected2):
+        var1 = Variable(np.random.rand(*shape1))
+        var2 = Variable(np.random.rand(*shape2))
 
         f = Add()
-        f(test_input1, test_input2)
-        dout = Variable(np.array([1.0, 2.0]))
-
-        expected0 = Variable(np.array([1.0, 2.0]))
-        expected1 = Variable(np.array([1.0, 2.0]))
+        f(var1, var2)
 
         dx0, dx1 = f.backward(dout)
 
-        assert np.allclose(dx0.data, expected0.data)
-        assert np.allclose(dx1.data, expected1.data)
+        assert np.allclose(dx0.data, expected1.data)
+        assert np.allclose(dx1.data, expected2.data)
 
-    def test_gradient_check(self):
+    @pytest.mark.parametrize(
+        "shape1, shape2 ,dout",
+        [
+            # same shape case
+            (
+                (2,),
+                (2,),
+                Variable(np.array([1.0, 1.0])),
+            ),
+            # broadcast case
+            (
+                (2,),
+                (3, 2),
+                Variable(np.array([[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]])),
+            ),
+        ],
+    )
+    def test_gradient_check(self, shape1, shape2, dout):
         f = Add()
         test_inputs = [
-            Variable(np.array([[3.0, 4.0]])),
-            Variable(np.array([[6.0, 8.0]])),
+            Variable(np.random.rand(*shape1)),
+            Variable(np.random.rand(*shape2)),
         ]
 
         f(*test_inputs)
 
-        actual = f.backward(Variable(np.array(1.0)))
+        actual = f.backward(dout)
 
         expected = numerical_diff(f, *test_inputs)
 
