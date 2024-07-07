@@ -307,6 +307,7 @@ class Reshape(Function):
         return Variable(y)
 
     def backward(self, *douts: Variable):
+        # TODO: Should be implemented with Function not numpy operation
         dx = douts[0].data.reshape(self.inputs[0].shape)
         return Variable(dx)
 
@@ -399,6 +400,38 @@ def _find_axis_to_for_sum_to(from_shape: tuple, to_shape: tuple) -> (tuple, tupl
     return axis_without_keepdims, tuple(axis_with_keepdims)
 
 
+class BroadcastTo(Function):
+    def forward(self, *variables: Variable, **kwargs):
+        shape = kwargs["shape"]
+        x = variables[0]
+        try:
+            y_var = np.broadcast_to(x.data, shape)
+        except ValueError as e:
+            raise FunctionVariableError(
+                f"Can not broadcast {x.shape} to {shape}: {str(e)}"
+            )
+        return Variable(y_var)
+
+    def backward(self, *douts: Variable):
+        to_shape = self.kwargs["shape"]
+        dx = sum_to(douts[0], to_shape)
+        return dx
+
+    def _validate_variables(self, *variables: Variable, **kwargs):
+        if "shape" not in kwargs:
+            raise FunctionVariableError("shape is required for BroadcastTo function.")
+        shape = kwargs["shape"]
+        if not isinstance(shape, tuple):
+            raise FunctionVariableError(
+                "shape should be a tuple for BroadcastTo function."
+            )
+        var_length = len(variables)
+        if var_length != 1:
+            raise FunctionVariableError(
+                "There should be one input variable for BroadcastTo function."
+            )
+
+
 class SumTo(Function):
     def forward(self, *variables: Variable, **kwargs):
         shape = kwargs["shape"]
@@ -431,6 +464,10 @@ class SumTo(Function):
             raise FunctionVariableError(
                 "There should be one input variable for SumTo function."
             )
+
+
+def sum_to(x: Variable, shape: tuple) -> Variable:
+    return SumTo()(x, shape=shape)
 
 
 class FunctionVariableError(RuntimeError):
