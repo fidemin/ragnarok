@@ -978,6 +978,60 @@ class TestSumTo:
         actual = f.forward(test_input, shape=shape)
         assert allclose(actual, expected)
 
+    @pytest.mark.parametrize(
+        "from_shape, to_shape",
+        [
+            # The length of the given shape is larger than the length of the input
+            (
+                (2, 3),
+                (1, 2, 3),
+            ),
+            # The from_shape can not sum to to_shape
+            (
+                (2, 3, 2),
+                (3, 3),
+            ),
+            (
+                (2, 3, 2),
+                (1, 3, 3),
+            ),
+        ],
+    )
+    def test_forward_error(self, from_shape, to_shape):
+        test_input = Variable(np.random.rand(*from_shape))
+        with pytest.raises(FunctionVariableError) as exc_info:
+            f = SumTo()
+            f.forward(test_input, shape=to_shape)
+
+        print("error message: ", exc_info.value)
+
+    @pytest.mark.parametrize(
+        "test_input, shape",
+        [
+            # no shape
+            ([Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]]))], None),
+            # shape is not tuple
+            ([Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]]))], 3),
+            # multiple variables
+            (
+                [
+                    Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])),
+                    Variable(np.array([[2.0, 3.0], [3.0, 4.0], [4.0, 5.0]])),
+                ],
+                (3, 2),
+            ),
+        ],
+    )
+    def test_validate_variables(self, test_input, shape):
+        with pytest.raises(FunctionVariableError) as exc_info:
+            f = SumTo()
+            if shape:
+                f(*test_input, shape=shape)
+            else:
+                f(*test_input)
+
+        print("error message: ", exc_info.value)
+
 
 def test_define_by_run():
     test_input = Variable(np.array([0.1, 0.2]))

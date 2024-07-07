@@ -378,7 +378,7 @@ def _find_axis_to_for_sum_to(from_shape: tuple, to_shape: tuple) -> (tuple, tupl
     to_shape_len = len(to_shape)
     diff_len = from_shape_len - to_shape_len
     if diff_len < 0:
-        raise ValueError(
+        raise FunctionVariableError(
             f"The length of {from_shape} should be smaller than or equal to {to_shape}."
         )
 
@@ -389,7 +389,9 @@ def _find_axis_to_for_sum_to(from_shape: tuple, to_shape: tuple) -> (tuple, tupl
     axis_with_keepdims = []
     for i, (x1, x2) in enumerate(zip(from_shape[diff_len:], to_shape)):
         if x1 != x2 and x2 != 1:
-            raise ValueError(f"The shape {from_shape} can not be summed to {to_shape}.")
+            raise FunctionVariableError(
+                f"The shape {from_shape} can not be summed to {to_shape}."
+            )
 
         if x2 == 1:
             axis_with_keepdims.append(i)
