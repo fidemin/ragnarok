@@ -25,6 +25,14 @@ class TestVariable:
             (3, np.array(3), (), 0, "int64", 0),
             (3.0, np.array(3.0), (), 0, "float64", 0),
             (np.array([1.0]), np.array([1.0]), (1,), 1, "float64", 1),
+            (
+                [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]]),
+                (3, 2),
+                2,
+                "float64",
+                3,
+            ),
         ],
     )
     def test_initialization(self, test_input, data, shape, ndim, dtype, length):

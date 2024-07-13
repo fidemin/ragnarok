@@ -9,7 +9,7 @@ from src.main.ragnarok.core.config import using_config
 class Variable:
     __array_priority__ = 200
 
-    def __init__(self, data: int | float | np.ndarray | np.generic, name=None):
+    def __init__(self, data: int | float | list | np.ndarray | np.generic, name=None):
         """
         Args:
             data: numpy array or int or float
@@ -18,10 +18,13 @@ class Variable:
             creator: Function instance which generate this variable
         """
 
-        if not (isinstance(data, (int, float, np.ndarray, np.generic))):
+        if not (isinstance(data, (int, float, list, np.ndarray, np.generic))):
             raise VariableError("data should be numpy array or int or float")
 
         if isinstance(data, (int, float)):
+            data = np.array(data)
+
+        if isinstance(data, list):
             data = np.array(data)
 
         self._name = name
