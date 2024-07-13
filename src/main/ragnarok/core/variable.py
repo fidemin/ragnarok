@@ -130,6 +130,10 @@ class Variable:
         return self._data.shape
 
     @property
+    def size(self):
+        return self._data.size
+
+    @property
     def ndim(self):
         return self._data.ndim
 
@@ -162,6 +166,11 @@ class Variable:
             transpose = transpose[0]
 
         return Transpose()(self, transpose=transpose)
+
+    def sum(self, axis=None, keepdims=False):
+        from src.main.ragnarok.core.function import Sum
+
+        return Sum()(self, axis=axis, keepdims=keepdims)
 
     @property
     def T(self):
