@@ -21,6 +21,7 @@ from src.main.ragnarok.core.function import (
     Transpose,
     SumTo,
     BroadcastTo,
+    MatMul,
 )
 from src.main.ragnarok.core.util import numerical_diff, allclose
 from src.main.ragnarok.core.variable import Variable
@@ -1667,6 +1668,70 @@ class TestSumTo:
                 f(*test_input)
 
         print("error message: ", exc_info.value)
+
+
+class TestMatMul:
+    @pytest.mark.parametrize(
+        "test_arr1, test_arr2, expected_arr",
+        [
+            (
+                [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                [[1.0, 2.0], [2.0, 1.0]],
+                [[5.0, 4.0], [8.0, 7.0], [11.0, 10.0]],
+            ),
+        ],
+    )
+    def test_forward(self, test_arr1, test_arr2, expected_arr):
+        test_input1 = Variable(test_arr1)
+        test_input2 = Variable(test_arr2)
+        expected = Variable(expected_arr)
+
+        f = MatMul()
+        actual = f.forward(test_input1, test_input2)
+
+        assert allclose(actual, expected)
+
+    @pytest.mark.parametrize(
+        "test_arr1, test_arr2, expected_dx0_arr, expected_dx1_arr",
+        [
+            (
+                [[1.0, 2.0, 3.0], [2.0, 3.0, 4.0]],
+                [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+                [[5.0, 8.0, 11.0], [8.0, 13.0, 18.0]],
+                [[5.0, 8.0], [8.0, 13.0], [11.0, 18.0]],
+            ),
+        ],
+    )
+    def test_backward(self, test_arr1, test_arr2, expected_dx0_arr, expected_dx1_arr):
+        x0 = Variable(test_arr1)
+        x1 = Variable(test_arr2)
+
+        dout = Variable([[1.0, 2.0], [2.0, 3.0]])
+
+        f = MatMul()
+        temp = f(x0, x1)
+        actual_dx0, actual_dx1 = f.backward(dout)
+
+        assert x0.shape == actual_dx0.shape
+        assert x1.shape == actual_dx1.shape
+
+        assert allclose(actual_dx0, Variable(expected_dx0_arr))
+        assert allclose(actual_dx1, Variable(expected_dx1_arr))
+
+    def test_gradient_check(self):
+        x0 = Variable(np.random.rand(2, 3))
+        x1 = Variable(np.random.rand(3, 2))
+        dout = Variable([[1.0, 1.0], [1.0, 1.0]])
+
+        f = MatMul()
+        f(x0, x1)
+
+        actual_dx0, actual_dx1 = f.backward(dout)
+
+        expected_dx0, expected_dx1 = numerical_diff(f, x0, x1)
+
+        assert allclose(actual_dx0, expected_dx0)
+        assert allclose(actual_dx1, expected_dx1)
 
 
 def test_define_by_run():

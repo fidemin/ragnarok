@@ -477,5 +477,30 @@ def sum_to(x: Variable, shape: tuple) -> Variable:
     return SumTo()(x, shape=shape)
 
 
+class MatMul(Function):
+    def forward(self, *variables: Variable):
+        x0, x1 = variables
+        y = np.dot(x0.data, x1.data)
+        return Variable(y)
+
+    def backward(self, *douts: Variable):
+        x0, x1 = self.inputs
+        dout = douts[0]
+        dx0 = matmul(dout, x1.T)
+        dx1 = matmul(x0.T, dout)
+        return dx0, dx1
+
+    def _validate_variables(self, *variables: Variable, **kwargs):
+        var_length = len(variables)
+        if var_length != 2:
+            raise FunctionVariableError(
+                "There should be two input variable for MatMul function."
+            )
+
+
+def matmul(x0: Variable, x1: Variable) -> Variable:
+    return MatMul()(x0, x1)
+
+
 class FunctionVariableError(RuntimeError):
     pass
