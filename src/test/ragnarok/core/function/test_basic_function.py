@@ -20,6 +20,7 @@ from src.main.ragnarok.core.function.basic_function import (
     SumTo,
     BroadcastTo,
     MatMul,
+    Sum,
 )
 from src.main.ragnarok.core.function.common import Function
 from src.main.ragnarok.core.util import numerical_diff, allclose
@@ -1637,6 +1638,65 @@ class TestSumTo:
                 f(*test_input)
 
         print("error message: ", exc_info.value)
+
+
+class TestSum:
+    @pytest.mark.parametrize(
+        "test_input, axis, keepdims, expected",
+        [
+            ([1.0, 2.0, 3.0], None, False, 6.0),
+            ([[1.0, 2.0, 3.0], [2.0, 3.0, 4.0]], None, False, 15.0),
+            ([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]], 0, False, [6.0, 9.0]),
+            ([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]], 0, True, [[6.0, 9.0]]),
+        ],
+    )
+    def test_forward(self, test_input, axis, keepdims, expected):
+        f = Sum()
+        actual = f.forward(Variable(test_input), axis=axis, keepdims=keepdims)
+        expected_var = Variable(expected)
+        assert actual.shape == expected_var.shape
+        assert allclose(actual, expected_var)
+
+    @pytest.mark.parametrize(
+        "test_input_shape, axis, keepdims, dout, expected",
+        [
+            ((3,), None, False, 1.0, [1.0, 1.0, 1.0]),
+            ((2, 3), None, False, 1.0, [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]),
+            ((3, 2), 0, False, [1.0, 1.0], [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]]),
+            ((3, 2), 0, True, [[1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]]),
+        ],
+    )
+    def test_backward(self, test_input_shape, axis, keepdims, dout, expected):
+        test_input = Variable(np.random.rand(*test_input_shape))
+        f = Sum()
+        f(test_input, axis=axis, keepdims=keepdims)
+        actual = f.backward(Variable(dout))
+        expected_var = Variable(expected)
+        assert actual.shape == expected_var.shape
+        assert allclose(actual, expected_var)
+
+    @pytest.mark.parametrize(
+        "test_input_shape, axis, keepdims, dout, expected",
+        [
+            ((3,), None, False, 1.0, [1.0, 1.0, 1.0]),
+            ((2, 3), None, False, 1.0, [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]),
+            ((3, 2), 0, False, [1.0, 1.0], [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]]),
+            ((3, 2), 0, True, [[1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]]),
+        ],
+    )
+    def test_gradient_check(self, test_input_shape, axis, keepdims, dout, expected):
+        test_input = Variable(np.random.rand(*test_input_shape))
+        f = Sum()
+        f(test_input, axis=axis, keepdims=keepdims)
+        actual = f.backward(Variable(dout))
+
+        expected = numerical_diff(f, test_input, axis=axis, keepdims=keepdims)
+        assert actual.shape == expected.shape
+        assert allclose(actual, expected)
+
+
+def sum(x, axis=None, keepdims=False):
+    return Sum()(x, axis=axis, keepdims=keepdims)
 
 
 class TestMatMul:

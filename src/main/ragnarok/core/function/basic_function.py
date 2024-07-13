@@ -428,6 +428,31 @@ def sum_to(x: Variable, shape: tuple) -> Variable:
     return SumTo()(x, shape=shape)
 
 
+class Sum(Function):
+    def forward(self, *variables: Variable, **kwargs):
+        axis = kwargs.get("axis", None)
+        keepdims = kwargs.get("keepdims", False)
+        x = variables[0]
+        y = np.sum(x.data, axis=axis, keepdims=keepdims)
+        return Variable(y)
+
+    def backward(self, *douts: Variable):
+        dout = douts[0]
+
+        input_ = self.inputs[0]
+        shape = input_.shape
+
+        dx = BroadcastTo()(dout, shape=shape)
+        return dx
+
+    def _validate_variables(self, *variables: Variable, **kwargs):
+        var_length = len(variables)
+        if var_length != 1:
+            raise FunctionVariableError(
+                "There should be one input variable for Sum function."
+            )
+
+
 class MatMul(Function):
     def forward(self, *variables: Variable):
         x0, x1 = variables
