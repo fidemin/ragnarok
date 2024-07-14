@@ -147,6 +147,9 @@ class Variable:
     def clear_grad(self):
         self._grad = None
 
+    def release(self):
+        self._data = None
+
     def reshape(self, *shape):
         from src.main.ragnarok.core.function import Reshape
 

@@ -491,6 +491,12 @@ class TestVariable:
         assert allclose(inputs[0].grad, expected1)
         assert allclose(inputs[1].grad, expected2)
 
+    def test_release(self):
+        test_input = Variable(np.array([0.1, 0.2]))
+        test_input.release()
+
+        assert test_input.data is None
+
     def test_second_order_differentiation(self):
         x = Variable(np.array([2.0]))
         y: Variable = x**4 - x**2 - x
