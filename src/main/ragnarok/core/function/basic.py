@@ -243,6 +243,7 @@ class Split(Function):
         return [Variable(y_data) for y_data in ys_data]
 
     def backward(self, *douts: Variable):
+        # TODO: Should be implemented with Function not numpy operation
         douts_data = [dout.data for dout in douts]
         dx = np.concatenate(douts_data, axis=self.kwargs["axis"])
         return Variable(dx)

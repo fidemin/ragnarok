@@ -1,6 +1,6 @@
 import pytest
 
-from src.main.ragnarok.core.function.error_function import MeanSquaredError
+from src.main.ragnarok.core.function.loss import MeanSquaredError
 from src.main.ragnarok.core.util import allclose, numerical_diff
 from src.main.ragnarok.core.variable import Variable
 

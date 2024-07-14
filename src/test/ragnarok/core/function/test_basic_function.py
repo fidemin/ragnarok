@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.main.ragnarok.core.function.basic_function import (
+from src.main.ragnarok.core.function.basic import (
     Square,
     FunctionVariableError,
     Exp,
