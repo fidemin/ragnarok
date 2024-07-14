@@ -19,7 +19,9 @@ class Variable:
         """
 
         if not (isinstance(data, (int, float, list, np.ndarray, np.generic))):
-            raise VariableError("data should be numpy array or int or float")
+            raise VariableError(
+                f"data should be numpy array or int or float. given: {type(data)}"
+            )
 
         if isinstance(data, (int, float)):
             data = np.array(data)

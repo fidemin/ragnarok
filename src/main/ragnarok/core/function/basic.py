@@ -43,7 +43,7 @@ class Exp(Function):
 
     def backward(self, *douts: Variable):
         dout = douts[0]
-        out = self.outputs[0]()
+        out = self._outputs()[0]
         grad = out * dout
         return grad
 
@@ -53,6 +53,10 @@ class Exp(Function):
             raise FunctionVariableError(
                 "There should be one input variable for Exp function."
             )
+
+
+def exp(x: Variable) -> Variable:
+    return Exp()(x)
 
 
 class Add(Function):
@@ -225,7 +229,7 @@ class Tanh(Function):
 
     def backward(self, *douts: Variable):
         dout = douts[0]
-        y = self.outputs[0]()  # weak reference
+        y = self._outputs()[0]
         return (1 - y**2) * dout
 
     def _validate_variables(self, *variables: Variable):

@@ -1738,7 +1738,7 @@ class TestMatMul:
         dout = Variable([[1.0, 2.0], [2.0, 3.0]])
 
         f = MatMul()
-        temp = f(x0, x1)
+        f(x0, x1)
         actual_dx0, actual_dx1 = f.backward(dout)
 
         assert x0.shape == actual_dx0.shape

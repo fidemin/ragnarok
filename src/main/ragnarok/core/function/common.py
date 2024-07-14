@@ -40,6 +40,9 @@ class Function:
 
         return outputs if len(outputs) > 1 else outputs[0]
 
+    def _outputs(self):
+        return [output() for output in self.outputs]  # outputs are list of weakref
+
     def backward(self, *douts: Variable):
         # NOTE: backward should be implemented based on variable operation or other forward function
         #   to support high order differentiation
