@@ -242,3 +242,7 @@ def to_variable(x: int | float | np.ndarray | np.generic | Variable) -> Variable
     if isinstance(x, Variable):
         return x
     return Variable(x)
+
+
+def ones_like(x: Variable) -> Variable:
+    return Variable(np.ones_like(x.data))

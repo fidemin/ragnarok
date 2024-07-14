@@ -2,7 +2,7 @@ import numpy as np
 
 from src.main.ragnarok.core.config import using_backprop
 from src.main.ragnarok.core.variable import Variable
-from src.test.ragnarok.core.function.test_basic_function import FunctionForTest
+from src.test.ragnarok.core.function.test_basic import FunctionForTest
 
 
 class TestFunction:
