@@ -1,8 +1,8 @@
 import pytest
 
-from src.main.ragnarok.core.function.loss import MeanSquaredError
 from src.main.ragnarok.core.util import allclose, numerical_diff
 from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.nn.function.loss import MeanSquaredError
 
 
 class TestMeanSquaredFunction:

@@ -1,6 +1,6 @@
-from src.main.ragnarok.core.function.activation import Sigmoid
 from src.main.ragnarok.core.util import allclose, numerical_diff
 from src.main.ragnarok.core.variable import Variable, ones_like
+from src.main.ragnarok.nn.function.activation import Sigmoid
 
 
 class TestSigmoid:
