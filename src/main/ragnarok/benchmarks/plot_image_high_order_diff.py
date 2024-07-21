@@ -1,9 +1,9 @@
 import numpy as np
 
-from src.main.ragnarok.core.function import Tanh
 from src.main.ragnarok.core.variable import Variable
 from src.main.ragnarok.graph.graph import DotGraph
 from src.main.ragnarok.graph.plot import plot_graph
+from src.main.ragnarok.nn.function.activation import Tanh
 
 if __name__ == "__main__":
     x = Variable(np.array([1.0, 2.0]), name="x")

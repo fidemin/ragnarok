@@ -14,7 +14,6 @@ from src.main.ragnarok.core.function.basic import (
     Pow,
     Sin,
     Cos,
-    Tanh,
     Reshape,
     Transpose,
     SumTo,
@@ -531,47 +530,6 @@ class TestCos:
         test_input = Variable(np.array([[0.1, 0.2]]))
 
         f(test_input)
-
-        actual = f.backward(Variable(np.array(1.0)))
-
-        expected = numerical_diff(f, test_input)
-
-        assert allclose(actual, expected)
-
-
-class TestTanh:
-    @pytest.mark.parametrize(
-        "test_input,expected",
-        [
-            (
-                Variable(np.array([0.1, 0.2])),
-                Variable(np.array([np.tanh(0.1), np.tanh(0.2)])),
-            ),
-        ],
-    )
-    def test_forward(self, test_input, expected):
-        f = Tanh()
-        actual = f.forward(test_input)
-
-        assert allclose(actual, expected)
-
-    def test_backward(self):
-        test_input = Variable(np.array([0.1, 0.2]))
-
-        f = Tanh()
-        y_for_weak_ref = f(test_input)
-        dout = Variable(np.array([1.0, 1.0]))
-
-        expected = Variable(np.array([1 - np.tanh(0.1) ** 2, 1 - np.tanh(0.2) ** 2]))
-        actual = f.backward(dout)
-
-        assert allclose(actual, expected)
-
-    def test_gradient_check(self):
-        f = Tanh()
-        test_input = Variable(np.array([[0.1, 0.2]]))
-
-        y_for_weak_ref = f(test_input)
 
         actual = f.backward(Variable(np.array(1.0)))
 

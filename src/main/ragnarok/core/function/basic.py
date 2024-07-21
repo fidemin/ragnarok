@@ -222,24 +222,6 @@ def cos(x: Variable) -> Variable:
     return Cos()(x)
 
 
-class Tanh(Function):
-    def forward(self, *variables: Variable):
-        x = variables[0]
-        return Variable(np.tanh(x.data))
-
-    def backward(self, *douts: Variable):
-        dout = douts[0]
-        y = self._outputs()[0]
-        return (1 - y**2) * dout
-
-    def _validate_variables(self, *variables: Variable):
-        var_length = len(variables)
-        if var_length != 1:
-            raise FunctionVariableError(
-                "There should be one input variable for Tanh function."
-            )
-
-
 class Split(Function):
     def forward(self, *variables: Variable, num_of_splits=2, axis=0):
         x = variables[0]

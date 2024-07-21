@@ -1,6 +1,9 @@
+import numpy as np
+import pytest
+
 from src.main.ragnarok.core.util import allclose, numerical_diff
 from src.main.ragnarok.core.variable import Variable, ones_like
-from src.main.ragnarok.nn.function.activation import Sigmoid
+from src.main.ragnarok.nn.function.activation import Sigmoid, Tanh
 
 
 class TestSigmoid:
@@ -32,5 +35,46 @@ class TestSigmoid:
         actual = f.backward(ones_like(x))
 
         expected = numerical_diff(f, x)
+
+        assert allclose(actual, expected)
+
+
+class TestTanh:
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        [
+            (
+                Variable(np.array([0.1, 0.2])),
+                Variable(np.array([np.tanh(0.1), np.tanh(0.2)])),
+            ),
+        ],
+    )
+    def test_forward(self, test_input, expected):
+        f = Tanh()
+        actual = f.forward(test_input)
+
+        assert allclose(actual, expected)
+
+    def test_backward(self):
+        test_input = Variable(np.array([0.1, 0.2]))
+
+        f = Tanh()
+        y_for_weak_ref = f(test_input)
+        dout = Variable(np.array([1.0, 1.0]))
+
+        expected = Variable(np.array([1 - np.tanh(0.1) ** 2, 1 - np.tanh(0.2) ** 2]))
+        actual = f.backward(dout)
+
+        assert allclose(actual, expected)
+
+    def test_gradient_check(self):
+        f = Tanh()
+        test_input = Variable(np.array([[0.1, 0.2]]))
+
+        y_for_weak_ref = f(test_input)
+
+        actual = f.backward(Variable(np.array(1.0)))
+
+        expected = numerical_diff(f, test_input)
 
         assert allclose(actual, expected)
