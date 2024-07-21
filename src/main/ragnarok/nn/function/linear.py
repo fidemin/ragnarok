@@ -25,3 +25,7 @@ class Linear(Function):
     def _validate_variables(self, *variables: Variable, **kwargs):
         if len(variables) != 3:
             raise ValueError("Linear requires 3 variables")
+
+
+def linear(x: Variable, W: Variable, b: Variable) -> Variable:
+    return Linear()(x, W, b)

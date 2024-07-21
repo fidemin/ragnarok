@@ -247,4 +247,8 @@ def to_variable(x: int | float | np.ndarray | np.generic | Variable) -> Variable
 
 
 def ones_like(x: Variable) -> Variable:
-    return Variable(np.ones_like(x.data))
+    return Variable(np.ones_like(x.data, dtype=x.dtype))
+
+
+def zeros(shape, dtype=np.float32):
+    return Variable(np.zeros(shape, dtype=dtype))
