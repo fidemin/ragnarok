@@ -1,8 +1,8 @@
 import pytest
 
-from src.main.ragnarok.core.function.layer import Linear
 from src.main.ragnarok.core.util import allclose, numerical_diff
 from src.main.ragnarok.core.variable import Variable, ones_like
+from src.main.ragnarok.nn.function.linear import Linear
 
 
 class TestLayer:
