@@ -2,11 +2,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from src.main.core.layer import Affine, Sigmoid, SoftmaxWithLoss
-from src.main.core import NeuralNet
-from src.main.core import SGD
+from src.main.core.net import NeuralNet
+from src.main.core.optimizer import SGD
 from src.main.examples.common import mnist_load_data
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     (origin_train_X, origin_train_y), (test_X, test_y) = mnist_load_data()
 
     train_size = origin_train_X.shape[0]
@@ -36,8 +36,8 @@ if __name__ == '__main__':
         train_y = origin_train_y[indexes]
 
         for i in range(iter_num):
-            mini_batch_X = train_X[mini_batch_size * i: mini_batch_size * (i + 1)]
-            mini_batch_y = train_y[mini_batch_size * i: mini_batch_size * (i + 1)]
+            mini_batch_X = train_X[mini_batch_size * i : mini_batch_size * (i + 1)]
+            mini_batch_y = train_y[mini_batch_size * i : mini_batch_size * (i + 1)]
 
             loss = two_layer_net.forward(mini_batch_X, mini_batch_y)
             two_layer_net.backward()
@@ -52,13 +52,13 @@ if __name__ == '__main__':
     plt.subplot(2, 1, 1)
     loss_x = list(range(1, len(loss_list) + 1))
     plt.plot(loss_x, loss_list)
-    plt.xlabel('iteration')
-    plt.ylabel('loss')
+    plt.xlabel("iteration")
+    plt.ylabel("loss")
 
     plt.subplot(2, 1, 2)
     accuracy_x = list(range(1, len(accuracy_list) + 1))
     plt.plot(accuracy_x, accuracy_list)
-    plt.xlabel('epoch')
-    plt.ylabel('accuracy by epoch')
+    plt.xlabel("epoch")
+    plt.ylabel("accuracy by epoch")
 
     plt.show()
