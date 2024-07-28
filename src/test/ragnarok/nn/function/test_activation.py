@@ -3,7 +3,7 @@ import pytest
 
 from src.main.ragnarok.core.util import allclose, numerical_diff
 from src.main.ragnarok.core.variable import Variable, ones_like
-from src.main.ragnarok.nn.function.activation import Sigmoid, Tanh
+from src.main.ragnarok.nn.function.activation import Sigmoid, Tanh, ReLU
 
 
 class TestSigmoid:
@@ -78,3 +78,26 @@ class TestTanh:
         expected = numerical_diff(f, test_input)
 
         assert allclose(actual, expected)
+
+
+class TestReLU:
+    def test_forward(self):
+        x = Variable([1.0, -1.0])
+        expected = Variable([1.0, 0.0])
+
+        f = ReLU()
+        actual = f.forward(x)
+
+        assert actual.shape == expected.shape
+        assert allclose(actual, expected)
+
+    def test_backward(self):
+        # x = Variable([2.0, -1.0])
+        #
+        # f = ReLU()
+        # for_weak_ref = f(x)
+        # actual = f.backward(ones_like(x))
+        #
+        # expected = Variable([1.0, 0.0])
+        # assert allclose(actual, expected)
+        pass
