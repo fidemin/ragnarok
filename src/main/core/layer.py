@@ -7,7 +7,9 @@ import numpy as np
 from src.main.core import loss, activation
 from src.main.core.optimizer import Optimizer
 from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.nn.core.parameter import Parameter
 from src.main.ragnarok.nn.layer.activation import Sigmoid as SigmoidProxy
+from src.main.ragnarok.nn.layer.linear import Linear as LinearProxy
 
 
 class Layer(metaclass=ABCMeta):
@@ -50,35 +52,39 @@ class Relu(Layer):
 
 
 class Sigmoid(Layer):
-    in_var: Optional[Variable]
-    out_var: Optional[Variable]
+    _in_var: Optional[Variable]
+    _out_var: Optional[Variable]
 
     def __init__(self):
         self.params = []
         self.grads = []
         self._proxy_layer = SigmoidProxy()
         self.x = None
-        self.in_var = None
-        self.out_var = None
+        self._in_var = None
+        self._out_var = None
         self.out = None
 
     def forward(self, x: np.ndarray, **kwargs):
         x_var = Variable(x)
         y_var = self._proxy_layer.forward(x_var)
         self.out = y_var.data
-        self.in_var = x_var
-        self.out_var = y_var
+        self._in_var = x_var
+        self._out_var = y_var
         return y_var.data
 
     def backward(self, dout):
-        self.out_var.backward(retain_grad=True)
-        return dout * self.in_var.grad.data
+        self._out_var.grad = Variable(dout)
+        self._out_var.backward(retain_grad=True)
+        return self._in_var.grad.data
 
     def update_params(self, lr=0.01):
         pass
 
 
 class Affine(Layer):
+    _in_var: Optional[Variable]
+    _out_var: Optional[Variable]
+
     def __init__(
         self, W: np.ndarray, b: np.ndarray, updater: Optimizer = None, useBias=True
     ):
@@ -97,6 +103,15 @@ class Affine(Layer):
         # default updater
         self._updater = updater
 
+        self._proxy_layer = LinearProxy(
+            in_size=W.shape[0], out_size=W.shape[1], use_bias=useBias
+        )
+        self._proxy_layer.params["W"] = Parameter(W)
+        if useBias:
+            self._proxy_layer.params["b"] = Parameter(b)
+        self._in_var = None
+        self._out_var = None
+
     @classmethod
     def from_sizes(
         cls,
@@ -114,21 +129,26 @@ class Affine(Layer):
         self._original_shape = x.shape
         # To handle tensor
         x = x.reshape(x.shape[0], -1)
+        var_x = Variable(x)
         self.x = x
-        if self._useBias:
-            return np.dot(self.x, self.params[0]) + self.params[1]
-        else:
-            return np.dot(self.x, self.params[0])
+        y_var = self._proxy_layer.forward(var_x)
+
+        self._in_var = var_x
+        self._out_var = y_var
+
+        return y_var.data
 
     def backward(self, dout: np.ndarray):
-        # dW calculation
-        self.grads[0][...] = np.dot(self.x.T, dout)
+        self._out_var.grad = Variable(dout)
 
+        self._out_var.backward(retain_grad=True)
+
+        self.grads[0][...] = self._proxy_layer.params["W"].grad.data
         if self._useBias:
-            # db calculation
-            self.grads[1][...] = np.sum(dout, axis=0)
+            self.grads[1][...] = self._proxy_layer.params["b"].grad.data
 
-        dx = np.dot(dout, self.params[0].T)
+        dx = self._in_var.grad.data
+
         # to handle tensor
         dx = dx.reshape(self._original_shape)
         return dx
