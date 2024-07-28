@@ -20,6 +20,8 @@ from src.main.ragnarok.core.function.basic import (
     BroadcastTo,
     MatMul,
     Sum,
+    Comparison,
+    NotSupportedOperationException,
 )
 from src.main.ragnarok.core.function.common import Function
 from src.main.ragnarok.core.util import numerical_diff, allclose
@@ -454,6 +456,68 @@ class TestPow:
         expected = numerical_diff(f, test_input, power=2)
 
         assert allclose(actual, expected)
+
+
+class TestComparison:
+    @pytest.mark.parametrize(
+        "operator, expected",
+        [
+            ("eq", [0.0, 0.0, 1.0]),
+            ("ne", [1.0, 1.0, 0.0]),
+            ("gt", [0.0, 1.0, 0.0]),
+            ("ge", [0.0, 1.0, 1.0]),
+            ("lt", [1.0, 0.0, 0.0]),
+            ("le", [1.0, 0.0, 1.0]),
+        ],
+    )
+    def test_forward(self, operator, expected):
+        test_input1 = Variable([0.1, 0.2, 0.3])
+        test_input2 = Variable([0.2, 0.1, 0.3])
+
+        f = Comparison()
+
+        actual = f.forward(test_input1, test_input2, operator=operator)
+        expected_var = Variable(expected)
+
+        assert allclose(actual, expected_var)
+
+    def test_backward(self):
+        test_input1 = Variable([0.1, 0.2, 0.3])
+        test_input2 = Variable([0.2, 0.1, 0.3])
+        dout = Variable([1.0, 1.0, 1.0])
+
+        f = Comparison()
+        f(test_input1, test_input2, operator="eq")
+
+        expected = Variable([0.0, 0.0, 1.0])
+
+        with pytest.raises(NotSupportedOperationException) as exc_info:
+            f.backward(dout)
+
+        print("error message: ", str(exc_info.value))
+
+    @pytest.mark.parametrize(
+        "operator, shapes",
+        [
+            # wrong operator
+            ("db", [(2,), (2,)]),
+            # the number of input variables is not 2
+            ("le", [(2,), (2,), (2,)]),
+            ("le", [(2,)]),
+            # the shapes of input variables are not same
+            ("le", [(2,), (3,)]),
+        ],
+    )
+    def test_validation_error(self, operator, shapes):
+        input_vars = []
+        for shape in shapes:
+            input_vars.append(Variable(np.random.rand(*shape)))
+
+        f = Comparison()
+        with pytest.raises(FunctionVariableError) as exc_info:
+            f(*input_vars, operator=operator)
+
+        print("error message: ", str(exc_info.value))
 
 
 class TestSin:

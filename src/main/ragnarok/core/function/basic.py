@@ -180,6 +180,50 @@ class Negative(Function):
             )
 
 
+class Comparison(Function):
+    def forward(self, *variables: Variable, **kwargs):
+        x0, x1 = variables
+        operator = kwargs["operator"]
+        if operator == "eq":
+            y_data = x0.data == x1.data
+        elif operator == "ne":
+            y_data = x0.data != x1.data
+        elif operator == "lt":
+            y_data = x0.data < x1.data
+        elif operator == "le":
+            y_data = x0.data <= x1.data
+        elif operator == "gt":
+            y_data = x0.data > x1.data
+        elif operator == "ge":
+            y_data = x0.data >= x1.data
+        else:
+            raise FunctionVariableError(f"Unknown operator: {operator}")
+        y_data = y_data.astype(x0.data.dtype)
+        return Variable(y_data)
+
+    def backward(self, *douts: Variable):
+        raise NotSupportedOperationException("Comparison does not support backward.")
+
+    def _validate_variables(self, *variables: Variable, **kwargs):
+        if "operator" not in kwargs:
+            raise FunctionVariableError("operator is required for Comparison function.")
+        operator = kwargs["operator"]
+        if operator not in ["eq", "ne", "lt", "le", "gt", "ge"]:
+            raise FunctionVariableError(
+                "operator should be one of 'eq', 'ne', 'lt', 'le', 'gt', 'ge' for Comparison function."
+            )
+        var_length = len(variables)
+        if var_length != 2:
+            raise FunctionVariableError(
+                "There should be two input variable for Comparison function."
+            )
+
+        if variables[0].shape != variables[1].shape:
+            raise FunctionVariableError(
+                "The shape of two input variables should be the same for Comparison function."
+            )
+
+
 class Sin(Function):
     def forward(self, *variables: Variable):
         x = variables[0]
@@ -465,5 +509,9 @@ def matmul(x0: Variable, x1: Variable) -> Variable:
     return MatMul()(x0, x1)
 
 
-class FunctionVariableError(RuntimeError):
+class FunctionVariableError(Exception):
+    pass
+
+
+class NotSupportedOperationException(Exception):
     pass
