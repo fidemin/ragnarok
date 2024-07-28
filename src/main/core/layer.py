@@ -1,14 +1,17 @@
 import copy
 from abc import ABCMeta, abstractmethod
+from typing import Optional
 
 import numpy as np
 
 from src.main.core import loss, activation
 from src.main.core.optimizer import Optimizer
+from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.nn.layer.activation import Sigmoid as SigmoidProxy
 
 
 class Layer(metaclass=ABCMeta):
-    train_flag_key = 'train_flag'
+    train_flag_key = "train_flag"
 
     params: list[np.ndarray]
     grads: list[np.ndarray]
@@ -47,25 +50,38 @@ class Relu(Layer):
 
 
 class Sigmoid(Layer):
+    in_var: Optional[Variable]
+    out_var: Optional[Variable]
+
     def __init__(self):
         self.params = []
         self.grads = []
+        self._proxy_layer = SigmoidProxy()
         self.x = None
+        self.in_var = None
+        self.out_var = None
         self.out = None
 
     def forward(self, x: np.ndarray, **kwargs):
-        self.out = activation.sigmoid(x)
-        return self.out
+        x_var = Variable(x)
+        y_var = self._proxy_layer.forward(x_var)
+        self.out = y_var.data
+        self.in_var = x_var
+        self.out_var = y_var
+        return y_var.data
 
     def backward(self, dout):
-        return dout * self.out * (1 - self.out)
+        self.out_var.backward(retain_grad=True)
+        return dout * self.in_var.grad.data
 
     def update_params(self, lr=0.01):
         pass
 
 
 class Affine(Layer):
-    def __init__(self, W: np.ndarray, b: np.ndarray, updater: Optimizer = None, useBias=True):
+    def __init__(
+        self, W: np.ndarray, b: np.ndarray, updater: Optimizer = None, useBias=True
+    ):
         if useBias:
             self.params = [W, b]
             self.grads = [np.zeros_like(W), np.zeros_like(b)]
@@ -82,7 +98,14 @@ class Affine(Layer):
         self._updater = updater
 
     @classmethod
-    def from_sizes(cls, input_size: int, output_size: int, updater: Optimizer = None, init_weight=0.01, useBias=True):
+    def from_sizes(
+        cls,
+        input_size: int,
+        output_size: int,
+        updater: Optimizer = None,
+        init_weight=0.01,
+        useBias=True,
+    ):
         W = init_weight * np.random.randn(input_size, output_size)
         b = np.zeros(output_size)
         return cls(W, b, updater, useBias=useBias)
@@ -199,12 +222,12 @@ class Dropout(Layer):
 
     def forward(self, x: np.ndarray, **kwargs) -> np.ndarray:
         train_flag = True
-        if self.train_flag_key in kwargs and kwargs['train_flag'] is False:
+        if self.train_flag_key in kwargs and kwargs["train_flag"] is False:
             train_flag = False
 
         if train_flag:
             self._mask = (np.random.rand(*x.shape) > self._dropout_ratio).astype(int)
-            keep_ratio = 1. - self._dropout_ratio
+            keep_ratio = 1.0 - self._dropout_ratio
             # inverted dropout: divided by keep_ratio to preserve expectation of x
             return x * self._mask / keep_ratio
         else:
@@ -223,13 +246,13 @@ class Softmax(Layer):
 
     def forward(self, x: np.ndarray, **kwargs):
         out = activation.softmax(x)
-        self._cache['out'] = out
+        self._cache["out"] = out
         return out
 
     def backward(self, dout: np.ndarray):
         # derivative equation: dx_k = dout_k * out_k - out_k * sum_over_element(dout * out)
         # reference: https://www.mldawn.com/back-propagation-with-cross-entropy-and-softmax
-        out = self._cache['out']
+        out = self._cache["out"]
 
         last_axis = len(out.shape) - 1
 
@@ -259,7 +282,7 @@ class SoftmaxWithLoss:
 
 
 class SigmoidWithLoss(Layer):
-    t_key = 't'
+    t_key = "t"
 
     def __init__(self):
         self._t = None
@@ -268,7 +291,7 @@ class SigmoidWithLoss(Layer):
 
     def forward(self, x: np.ndarray, **kwargs):
         if self.t_key not in kwargs:
-            raise LayerException('kwargs has the value with key t')
+            raise LayerException("kwargs has the value with key t")
 
         t = kwargs[self.t_key]
 
