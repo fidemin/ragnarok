@@ -52,10 +52,9 @@ class ReLU(Function):
         return Variable(np.maximum(0, x.data))
 
     def backward(self, *douts: Variable):
-        # dout = douts[0]
-        # y = self._outputs()[0]
-        # return (y > 0) * dout
-        raise NotImplementedError("ReLU backward is not implemented yet.")
+        dout = douts[0]
+        y = self._outputs()[0]
+        return (y > 0) * dout
 
     def _validate_variables(self, *variables: Variable):
         var_length = len(variables)

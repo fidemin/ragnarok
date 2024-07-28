@@ -504,8 +504,6 @@ class TestComparison:
             # the number of input variables is not 2
             ("le", [(2,), (2,), (2,)]),
             ("le", [(2,)]),
-            # the shapes of input variables are not same
-            ("le", [(2,), (3,)]),
         ],
     )
     def test_validation_error(self, operator, shapes):

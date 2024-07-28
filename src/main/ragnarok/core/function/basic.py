@@ -217,11 +217,6 @@ class Comparison(Function):
                 "There should be two input variable for Comparison function."
             )
 
-        if variables[0].shape != variables[1].shape:
-            raise FunctionVariableError(
-                "The shape of two input variables should be the same for Comparison function."
-            )
-
 
 class Sin(Function):
     def forward(self, *variables: Variable):

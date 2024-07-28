@@ -92,12 +92,22 @@ class TestReLU:
         assert allclose(actual, expected)
 
     def test_backward(self):
-        # x = Variable([2.0, -1.0])
-        #
-        # f = ReLU()
-        # for_weak_ref = f(x)
-        # actual = f.backward(ones_like(x))
-        #
-        # expected = Variable([1.0, 0.0])
-        # assert allclose(actual, expected)
-        pass
+        x = Variable([2.0, -1.0])
+
+        f = ReLU()
+        for_weak_ref = f(x)
+        actual = f.backward(ones_like(x))
+
+        expected = Variable([1.0, 0.0])
+        assert allclose(actual, expected)
+
+    def test_gradient_check(self):
+        x = Variable([2.0, -1.0])
+
+        f = ReLU()
+        for_weak_ref = f(x)
+        actual = f.backward(ones_like(x))
+
+        expected = numerical_diff(f, x)
+
+        assert allclose(actual, expected)
