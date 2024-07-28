@@ -16,8 +16,9 @@ class Linear(Layer):
         *,
         use_bias: bool = True,
         dtype=float32,
+        name=None,
     ):
-        super().__init__()
+        super().__init__(name=name)
 
         self.out_size = out_size
         self.in_size = in_size
@@ -40,7 +41,7 @@ class Linear(Layer):
             param_b = Parameter(data_b, name="b")
             self.params["b"] = param_b
 
-    def forward(self, *variables: Variable, **kwargs) -> Variable:
+    def _forward(self, *variables: Variable, **kwargs) -> Variable:
         x = variables[0]
         if self.in_size is None:
             self.in_size = x.shape[-1]  # last dimension of x

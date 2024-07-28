@@ -66,7 +66,7 @@ class Sigmoid(Layer):
 
     def forward(self, x: np.ndarray, **kwargs):
         x_var = Variable(x)
-        y_var = self._proxy_layer.forward(x_var)
+        y_var = self._proxy_layer.forward(x_var)[0]
         self.out = y_var.data
         self._in_var = x_var
         self._out_var = y_var
@@ -131,7 +131,7 @@ class Affine(Layer):
         x = x.reshape(x.shape[0], -1)
         var_x = Variable(x)
         self.x = x
-        y_var = self._proxy_layer.forward(var_x)
+        y_var = self._proxy_layer.forward(var_x)[0]
 
         self._in_var = var_x
         self._out_var = y_var

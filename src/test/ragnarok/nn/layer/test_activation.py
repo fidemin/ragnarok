@@ -11,7 +11,7 @@ class TestSigmoid:
         x = Variable([1.0, 2.0, 3.0])
 
         # When
-        y = layer.forward(x)
+        y = layer.forward(x)[0]
 
         # Then
         assert allclose(y, sigmoid(x))
@@ -24,7 +24,7 @@ class TestTanh:
         x = Variable([1.0, 2.0, 3.0])
 
         # When
-        y = layer.forward(x)
+        y = layer.forward(x)[0]
 
         # Then
         assert allclose(y, tanh(x))
@@ -37,7 +37,7 @@ class TestReLU:
         x = Variable([-1.0, 0.0, 1.0])
 
         # When
-        y = layer.forward(x)
+        y = layer.forward(x)[0]
 
         # Then
         assert allclose(y, relu(x))

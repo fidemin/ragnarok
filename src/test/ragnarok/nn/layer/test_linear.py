@@ -71,7 +71,7 @@ class TestLinear:
         x = Variable(x)
 
         # When
-        y = affine.forward(x)
+        y = affine.forward(x)[0]
         assert y.shape == (3, 2)
         assert allclose(y, Variable(expected))
 
@@ -88,7 +88,7 @@ class TestLinear:
         x = Variable(x)
 
         # When
-        y = affine.forward(x)
+        y = affine.forward(x)[0]
 
         # Then
         assert y.shape == expected_shape
