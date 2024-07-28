@@ -1,5 +1,3 @@
-from abc import ABCMeta, abstractmethod
-
 import numpy as np
 
 from src.main.ragnarok.core.variable import Variable
@@ -7,17 +5,7 @@ from src.main.ragnarok.core.variable.dtype import float32
 from src.main.ragnarok.core.variable.variable import zeros
 from src.main.ragnarok.nn.core.parameter import Parameter
 from src.main.ragnarok.nn.function.linear import linear
-
-
-class Layer(metaclass=ABCMeta):
-    params: dict[str, Parameter]
-
-    def __init__(self):
-        self.params = {}
-
-    @abstractmethod
-    def forward(self, *variables: Variable, **kwargs):
-        pass
+from src.main.ragnarok.nn.layer.layer import Layer
 
 
 class Linear(Layer):

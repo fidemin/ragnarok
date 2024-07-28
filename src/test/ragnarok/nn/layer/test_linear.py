@@ -3,8 +3,8 @@ import pytest
 from src.main.ragnarok.core.util import allclose
 from src.main.ragnarok.core.variable import Variable
 from src.main.ragnarok.core.variable.dtype import float32
-from src.main.ragnarok.nn.core.layer import Linear
 from src.main.ragnarok.nn.core.parameter import Parameter
+from src.main.ragnarok.nn.layer.linear import Linear
 
 
 class TestLinear:
