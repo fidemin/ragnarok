@@ -91,6 +91,36 @@ class Variable:
 
         return Pow()(self, power=power)
 
+    def __eq__(self, other) -> "Variable":
+        from src.main.ragnarok.core.function import Comparison
+
+        return Comparison()(self, other, operator="eq")
+
+    def __ne__(self, other) -> "Variable":
+        from src.main.ragnarok.core.function import Comparison
+
+        return Comparison()(self, other, operator="ne")
+
+    def __lt__(self, other) -> "Variable":
+        from src.main.ragnarok.core.function import Comparison
+
+        return Comparison()(self, other, operator="lt")
+
+    def __le__(self, other) -> "Variable":
+        from src.main.ragnarok.core.function import Comparison
+
+        return Comparison()(self, other, operator="le")
+
+    def __gt__(self, other) -> "Variable":
+        from src.main.ragnarok.core.function import Comparison
+
+        return Comparison()(self, other, operator="gt")
+
+    def __ge__(self, other) -> "Variable":
+        from src.main.ragnarok.core.function import Comparison
+
+        return Comparison()(self, other, operator="ge")
+
     def set_creator(self, creator):
         self._creator = creator
         self._gen = creator.gen + 1

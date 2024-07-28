@@ -491,6 +491,39 @@ class TestVariable:
         assert allclose(inputs[0].grad, expected1)
         assert allclose(inputs[1].grad, expected2)
 
+    @pytest.mark.parametrize(
+        "operator, expected_list",
+        [
+            ("eq", [False, False, True]),
+            ("ne", [True, True, False]),
+            ("gt", [False, True, False]),
+            ("ge", [False, True, True]),
+            ("lt", [True, False, False]),
+            ("le", [True, False, True]),
+        ],
+    )
+    def test_built_in_comparison_operations(self, operator, expected_list):
+        test_input1 = Variable([0.1, 0.2, 0.3])
+        test_input2 = Variable([0.2, 0.1, 0.3])
+        expected = Variable(expected_list)
+
+        if operator == "eq":
+            actual = test_input1 == test_input2
+        elif operator == "ne":
+            actual = test_input1 != test_input2
+        elif operator == "gt":
+            actual = test_input1 > test_input2
+        elif operator == "ge":
+            actual = test_input1 >= test_input2
+        elif operator == "lt":
+            actual = test_input1 < test_input2
+        elif operator == "le":
+            actual = test_input1 <= test_input2
+        else:
+            raise ValueError("Invalid operator")
+
+        assert allclose(actual, expected)
+
     def test_release(self):
         test_input = Variable(np.array([0.1, 0.2]))
         test_input.release()

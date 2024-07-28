@@ -18,8 +18,8 @@ class Function:
         self, *inputs: int | float | np.ndarray | np.generic | Variable, **kwargs
     ):
         inputs = [to_variable(input_) for input_ in inputs]
-        # _validate_variable
 
+        # _validate_variable
         self._validate_variables(*inputs, **kwargs)
         outputs = self.forward(*inputs, **kwargs)
 

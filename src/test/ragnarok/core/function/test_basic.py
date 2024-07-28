@@ -462,12 +462,12 @@ class TestComparison:
     @pytest.mark.parametrize(
         "operator, expected",
         [
-            ("eq", [0.0, 0.0, 1.0]),
-            ("ne", [1.0, 1.0, 0.0]),
-            ("gt", [0.0, 1.0, 0.0]),
-            ("ge", [0.0, 1.0, 1.0]),
-            ("lt", [1.0, 0.0, 0.0]),
-            ("le", [1.0, 0.0, 1.0]),
+            ("eq", [False, False, True]),
+            ("ne", [True, True, False]),
+            ("gt", [False, True, False]),
+            ("ge", [False, True, True]),
+            ("lt", [True, False, False]),
+            ("le", [True, False, True]),
         ],
     )
     def test_forward(self, operator, expected):
@@ -489,7 +489,7 @@ class TestComparison:
         f = Comparison()
         f(test_input1, test_input2, operator="eq")
 
-        expected = Variable([0.0, 0.0, 1.0])
+        Variable([0.0, 0.0, 1.0])
 
         with pytest.raises(NotSupportedOperationException) as exc_info:
             f.backward(dout)

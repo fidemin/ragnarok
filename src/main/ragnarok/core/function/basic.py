@@ -198,7 +198,6 @@ class Comparison(Function):
             y_data = x0.data >= x1.data
         else:
             raise FunctionVariableError(f"Unknown operator: {operator}")
-        y_data = y_data.astype(x0.data.dtype)
         return Variable(y_data)
 
     def backward(self, *douts: Variable):
