@@ -20,7 +20,7 @@ class Layer(metaclass=ABCMeta):
         pass
 
 
-class Affine(Layer):
+class Linear(Layer):
     def __init__(
         self,
         out_size: int,
