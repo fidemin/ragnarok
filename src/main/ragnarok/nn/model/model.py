@@ -13,7 +13,7 @@ class Model(metaclass=ABCMeta):
         self.params = {}
 
     @abstractmethod
-    def forward(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
+    def predict(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
         pass
 
 
@@ -33,7 +33,7 @@ class Sequential(Model):
             for key, param in layer.params.items():
                 self.params[f"{layer.name}__{key}"] = param
 
-    def forward(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
+    def predict(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
         for layer in self.layers:
             if not type(variables) in (tuple, list):
                 variables = [variables]

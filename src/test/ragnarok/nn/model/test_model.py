@@ -27,7 +27,7 @@ class TestSequential:
             "Last__3__W": layer3.params["W"],
         }
 
-    def test_forward(self):
+    def test_predict(self):
         layer1 = Linear(5, 4)
         layer2 = ReLU()
         layer3 = Linear(2, 5, use_bias=False)
@@ -37,7 +37,7 @@ class TestSequential:
         x = Variable(
             [[1.0, 2.0, -1.0, 3.0], [0.0, -1.0, 2.0, 1.0], [2.0, 0.0, 1.0, 2.0]]
         )
-        y = model.forward(x)
+        y = model.predict(x)
 
         expected = MatMul()(
             relu(MatMul()(x, layer1.params["W"]) + layer1.params["b"]),
