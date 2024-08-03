@@ -3,7 +3,7 @@ import pytest
 
 from src.main.ragnarok.core.util import allclose, numerical_diff
 from src.main.ragnarok.core.variable import Variable, ones_like
-from src.main.ragnarok.nn.function.activation import Sigmoid, Tanh, ReLU
+from src.main.ragnarok.nn.function.activation import Sigmoid, Tanh, ReLU, Softmax
 
 
 class TestSigmoid:
@@ -105,6 +105,54 @@ class TestReLU:
         x = Variable([2.0, -1.0])
 
         f = ReLU()
+        for_weak_ref = f(x)
+        actual = f.backward(ones_like(x))
+
+        expected = numerical_diff(f, x)
+
+        assert allclose(actual, expected)
+
+
+class TestSoftmax:
+    @pytest.mark.parametrize(
+        "input_arr, expected_arr",
+        [
+            (
+                [[0.1, -0.5, 0.2], [-0.2, -0.5, -0.8]],
+                [
+                    [0.37679223, 0.20678796, 0.41641981],
+                    [0.43675182, 0.3235537, 0.23969448],
+                ],
+            ),
+            # 1d array test
+            (
+                [0.1, -0.5, 0.2],
+                [0.37679223, 0.20678796, 0.41641981],
+            ),
+        ],
+    )
+    def test_forward(self, input_arr, expected_arr):
+        x = Variable(input_arr)
+        expected = Variable(expected_arr)
+
+        f = Softmax()
+        actual = f.forward(x)
+
+        assert actual.shape == expected.shape
+        assert allclose(actual, expected)
+
+    @pytest.mark.parametrize(
+        "input_arr",
+        [
+            [[0.4, 0.5, 0.2], [-0.2, -0.5, -0.8]],
+            # 1d array test
+            [0.1, -0.5, 0.2],
+        ],
+    )
+    def test_gradient_check(self, input_arr):
+        x = Variable(input_arr)
+
+        f = Softmax()
         for_weak_ref = f(x)
         actual = f.backward(ones_like(x))
 
