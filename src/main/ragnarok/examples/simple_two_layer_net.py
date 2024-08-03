@@ -16,7 +16,7 @@ if __name__ == "__main__":
     model = Sequential([layer1, layer2, layer3])
 
     loss_func = MeanSquaredError()
-    optimizer = Adam(lr=0.01)
+    optimizer = Adam(lr=0.001)
 
     x = Variable(np.random.randn(10, 8))
     t = Variable(np.random.randn(10, 4))

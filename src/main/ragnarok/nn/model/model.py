@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABCMeta
-from typing import List
+from typing import List, Iterable
 
 from src.main.ragnarok.core.variable import Variable
 from src.main.ragnarok.nn.core.parameter import Parameter
@@ -7,16 +7,24 @@ from src.main.ragnarok.nn.layer.layer import Layer
 
 
 class Model(metaclass=ABCMeta):
-    params_dict: dict[str, Parameter]
-    params = List[Parameter]
+    layers_dict: dict[str, Layer]
 
     def __init__(self):
-        self.params_dict = {}
-        self.params = []
+        self.layers_dict = {}
 
-    def _append_param(self, name: str, param: Parameter):
-        self.params_dict[name] = param
-        self.params.append(param)
+    def __setattr__(self, key, value):
+        if isinstance(value, Layer):
+            layer_name = f"{key}"
+            # dictionary keeps its insertion order since python 3.7
+            self.layers_dict[layer_name] = value
+
+        super().__setattr__(key, value)
+
+    @property
+    def params(self) -> Iterable[Parameter]:
+        for layer in self.layers_dict.values():
+            for param in layer.params.values():
+                yield param
 
     @abstractmethod
     def predict(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
@@ -29,15 +37,13 @@ class Sequential(Model):
         self.layers = []
 
         for i, layer in enumerate(layers, start=1):
-            self.layers.append(layer)
-
             if layer.name is None:
-                layer.name = f"Layer__{i}"
+                layer_name = f"Layer_{i}"
             else:
-                layer.name = f"{layer.name}__{i}"
+                layer_name = f"{layer.name}_{i}"
 
-            for key, param in layer.params.items():
-                self._append_param(f"{layer.name}__{key}", param)
+            setattr(self, layer_name, layer)
+            self.layers.append(layer)
 
     def predict(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
         for layer in self.layers:
