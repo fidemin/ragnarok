@@ -280,6 +280,10 @@ def to_variable(x: int | float | np.ndarray | np.generic | Variable) -> Variable
     return Variable(x)
 
 
+def zeros_like(x: Variable) -> Variable:
+    return Variable(np.zeros_like(x.data, dtype=x.dtype))
+
+
 def ones_like(x: Variable) -> Variable:
     return Variable(np.ones_like(x.data, dtype=x.dtype))
 
