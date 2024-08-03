@@ -7,10 +7,16 @@ from src.main.ragnarok.nn.layer.layer import Layer
 
 
 class Model(metaclass=ABCMeta):
-    params: dict[str, Parameter]
+    params_dict: dict[str, Parameter]
+    params = List[Parameter]
 
     def __init__(self):
-        self.params = {}
+        self.params_dict = {}
+        self.params = []
+
+    def _append_param(self, name: str, param: Parameter):
+        self.params_dict[name] = param
+        self.params.append(param)
 
     @abstractmethod
     def predict(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
@@ -31,7 +37,7 @@ class Sequential(Model):
                 layer.name = f"{layer.name}__{i}"
 
             for key, param in layer.params.items():
-                self.params[f"{layer.name}__{key}"] = param
+                self._append_param(f"{layer.name}__{key}", param)
 
     def predict(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
         for layer in self.layers:

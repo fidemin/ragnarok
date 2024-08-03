@@ -21,7 +21,7 @@ class TestSequential:
             "ReLU__2",
             "Last__3",
         ]
-        assert model.params == {
+        assert model.params_dict == {
             "Linear__1__W": layer1.params["W"],
             "Linear__1__b": layer1.params["b"],
             "Last__3__W": layer3.params["W"],
