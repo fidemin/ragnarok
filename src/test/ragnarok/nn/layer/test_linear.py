@@ -71,7 +71,7 @@ class TestLinear:
         x = Variable(x)
 
         # When
-        y = affine.forward(x)[0]
+        y = affine.forward(x)
         assert y.shape == (3, 2)
         assert allclose(y, Variable(expected))
 
@@ -84,11 +84,11 @@ class TestLinear:
     )
     def test_forward_lazy_init(self, x, expected_shape):
         # Given
-        affine = Linear(out_size=3)
+        layer = Linear(out_size=3)
         x = Variable(x)
 
         # When
-        y = affine.forward(x)[0]
+        y = layer.forward(x)
 
         # Then
         assert y.shape == expected_shape

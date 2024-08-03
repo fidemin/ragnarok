@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 
 from src.main.ragnarok.core.variable import Variable
@@ -41,7 +43,7 @@ class Linear(Layer):
             param_b = Parameter(data_b, name="b")
             self.params["b"] = param_b
 
-    def _forward(self, *variables: Variable, **kwargs) -> Variable:
+    def _forward(self, *variables: Variable, **kwargs) -> List[Variable]:
         x = variables[0]
         if self.in_size is None:
             self.in_size = x.shape[-1]  # last dimension of x
@@ -54,4 +56,5 @@ class Linear(Layer):
         else:
             b = zeros(self.out_size, dtype=self.dtype)
 
-        return linear(x, W, b)
+        out_var = linear(x, W, b)
+        return [out_var]

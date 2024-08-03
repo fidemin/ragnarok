@@ -37,7 +37,7 @@ class TestSequential:
         x = Variable(
             [[1.0, 2.0, -1.0, 3.0], [0.0, -1.0, 2.0, 1.0], [2.0, 0.0, 1.0, 2.0]]
         )
-        y = model.forward(x)[0]
+        y = model.forward(x)
 
         expected = MatMul()(
             relu(MatMul()(x, layer1.params["W"]) + layer1.params["b"]),

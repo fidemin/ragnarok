@@ -16,15 +16,10 @@ class Layer(metaclass=ABCMeta):
         else:
             self.name = name
 
-    def forward(self, *variables: Variable, **kwargs) -> List[Variable]:
-        out = self._forward(*variables, **kwargs)
-        return self._to_variable_list(out)
+    def forward(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
+        out_vars = self._forward(*variables, **kwargs)
+        return out_vars[0] if len(out_vars) == 1 else out_vars
 
     @abstractmethod
-    def _forward(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
+    def _forward(self, *variables: Variable, **kwargs) -> List[Variable]:
         pass
-
-    def _to_variable_list(self, x: Variable | List[Variable]):
-        if not isinstance(x, list):
-            x = [x]
-        return x
