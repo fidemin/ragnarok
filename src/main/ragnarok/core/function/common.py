@@ -1,4 +1,5 @@
 import weakref
+from typing import List
 
 import numpy as np
 
@@ -16,7 +17,7 @@ class Function:
 
     def __call__(
         self, *inputs: int | float | np.ndarray | np.generic | Variable, **kwargs
-    ):
+    ) -> Variable | List[Variable]:
         inputs = [to_variable(input_) for input_ in inputs]
 
         # _validate_variable

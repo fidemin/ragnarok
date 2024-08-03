@@ -3,7 +3,7 @@ from src.main.ragnarok.core.variable import Variable
 
 
 class MeanSquaredError(Function):
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Variable, **kwargs) -> Variable:
         x0, x1 = variables
         diff = x0 - x1
         length = len(diff) if diff.ndim > 0 else 1  # handle scalar

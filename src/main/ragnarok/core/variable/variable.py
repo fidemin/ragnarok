@@ -32,7 +32,7 @@ class Variable:
         self._name = name
         self._data = data
         self._creator = None
-        self._grad = None
+        self._grad: Optional[Variable] = None
         self._gen = 0
 
     def __len__(self):
@@ -128,6 +128,10 @@ class Variable:
     @property
     def data(self) -> int | float | np.ndarray | np.generic:
         return self._data
+
+    @data.setter
+    def data(self, value):
+        self._data = value
 
     @property
     def creator(self):
