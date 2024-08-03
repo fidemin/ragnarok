@@ -27,7 +27,7 @@ if __name__ == "__main__":
         for param in model.params.values():
             param.clear_grad()
 
-        y = model.forward(x)[0]
+        y = model.forward(x)
         loss = loss_func(y, t)
 
         loss.backward()
