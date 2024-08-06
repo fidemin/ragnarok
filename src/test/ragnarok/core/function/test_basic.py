@@ -22,6 +22,7 @@ from src.main.ragnarok.core.function.basic import (
     Sum,
     Comparison,
     NotSupportedOperationException,
+    Log,
 )
 from src.main.ragnarok.core.function.common import Function
 from src.main.ragnarok.core.util import numerical_diff, allclose
@@ -589,6 +590,42 @@ class TestCos:
 
     def test_gradient_check(self):
         f = Cos()
+        test_input = Variable(np.array([[0.1, 0.2]]))
+
+        f(test_input)
+
+        actual = f.backward(Variable(np.array(1.0)))
+
+        expected = numerical_diff(f, test_input)
+
+        assert allclose(actual, expected)
+
+
+class TestLog:
+    def test_forward(self):
+        test_input = Variable([0.1, 0.2])
+
+        f = Log()
+        actual = f.forward(test_input)
+
+        expected = Variable([np.log(0.1), np.log(0.2)])
+
+        assert allclose(actual, expected)
+
+    def test_backward(self):
+        test_input = Variable(np.array([0.1, 0.2]))
+
+        f = Log()
+        f(test_input)
+        dout = Variable([1.0, 1.0])
+
+        expected = Variable([1 / 0.1, 1 / 0.2])
+        actual = f.backward(dout)
+
+        assert allclose(actual, expected)
+
+    def test_gradient_check(self):
+        f = Log()
         test_input = Variable(np.array([[0.1, 0.2]]))
 
         f(test_input)

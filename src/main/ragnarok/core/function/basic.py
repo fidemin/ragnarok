@@ -260,6 +260,27 @@ def cos(x: Variable) -> Variable:
     return Cos()(x)
 
 
+class Log(Function):
+    def forward(self, *variables: Variable):
+        x = variables[0]
+        return Variable(np.log(x.data))
+
+    def backward(self, dout: Variable):
+        x = self.inputs[0]
+        return dout / x
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length != 1:
+            raise FunctionVariableError(
+                "There should be one input variable for Log function."
+            )
+
+
+def log(x: Variable) -> Variable:
+    return Log()(x)
+
+
 class Split(Function):
     def forward(self, *variables: Variable, num_of_splits=2, axis=0):
         x = variables[0]
