@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.main.ragnarok.core.util import allclose
+from src.main.ragnarok.core.util import allclose, numerical_diff
 from src.main.ragnarok.core.variable import Variable, ones_like
 from src.main.ragnarok.nn.function.dropout import Dropout
 
@@ -41,3 +41,17 @@ class TestDropout:
 
         y_avg = total / num_of_iter / x.data.size
         assert np.allclose(y_avg, dout_avg, atol=0.1)
+
+    def test_gradient_check(self):
+        dropout_ratio = 0.6
+        x = Variable(np.random.rand(100, 100))
+        dout = ones_like(x)
+
+        dropout = Dropout(freeze_mask=True)
+
+        for_weak_ref = dropout(x, dropout_ratio=dropout_ratio)
+
+        dx = dropout.backward(dout)
+        dx_numerical = numerical_diff(dropout, x, dropout_ratio=dropout_ratio)
+
+        assert allclose(dx, dx_numerical)

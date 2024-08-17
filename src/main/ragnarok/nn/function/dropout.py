@@ -8,13 +8,18 @@ from src.main.ragnarok.core.variable import Variable
 class Dropout(Function):
     _dropout_ratio_key = "dropout_ratio"
 
+    def __init__(self, freeze_mask=False):
+        super().__init__()
+        self._freeze_mask = freeze_mask
+
     def forward(self, *variables: Variable, **kwargs):
         dropout_ratio = kwargs[self._dropout_ratio_key]
         x = variables[0]
 
-        self._cache["mask"] = Variable(
-            (np.random.rand(*x.shape) > dropout_ratio).astype(int)
-        )
+        if not (self._freeze_mask and "mask" in self._cache):
+            self._cache["mask"] = Variable(
+                (np.random.rand(*x.shape) > dropout_ratio).astype(int)
+            )
 
         if Config.train:
             keep_ratio = 1 - dropout_ratio
