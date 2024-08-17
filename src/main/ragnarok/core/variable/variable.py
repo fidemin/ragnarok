@@ -177,6 +177,9 @@ class Variable:
     def dtype(self):
         return self._data.dtype.name
 
+    def astype(self, dtype) -> "Variable":
+        return Variable(self._data.astype(dtype))
+
     def copy(self):
         return Variable(self._data.copy())
 
@@ -206,7 +209,7 @@ class Variable:
 
         return Transpose()(self, transpose=transpose)
 
-    def sum(self, axis=None, keepdims=False):
+    def sum(self, axis=None, keepdims=False) -> "Variable":
         from src.main.ragnarok.core.function import Sum
 
         return Sum()(self, axis=axis, keepdims=keepdims)

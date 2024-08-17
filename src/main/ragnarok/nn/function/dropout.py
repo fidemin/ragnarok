@@ -3,6 +3,7 @@ import numpy as np
 from src.main.ragnarok.core.config import Config
 from src.main.ragnarok.core.function import Function, FunctionVariableError
 from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.variable.dtype import int8
 
 
 class Dropout(Function):
@@ -17,9 +18,9 @@ class Dropout(Function):
         x = variables[0]
 
         if not (self._freeze_mask and "mask" in self._cache):
-            self._cache["mask"] = Variable(
-                (np.random.rand(*x.shape) > dropout_ratio).astype(int)
-            )
+            self._cache["mask"] = (
+                Variable(np.random.rand(*x.shape)) > dropout_ratio
+            ).astype(int8)
 
         if Config.train:
             keep_ratio = 1 - dropout_ratio

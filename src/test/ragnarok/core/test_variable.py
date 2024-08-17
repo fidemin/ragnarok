@@ -7,6 +7,7 @@ import pytest
 from src.main.ragnarok.core.function import Square, Exp, Split, Add
 from src.main.ragnarok.core.util import allclose, numerical_diff
 from src.main.ragnarok.core.variable import Variable, VariableError, to_variable
+from src.main.ragnarok.core.variable.dtype import int8
 
 
 class TestVariable:
@@ -66,6 +67,13 @@ class TestVariable:
     def test_raise_error_for_wrong_data_type(self, test_input):
         with pytest.raises(VariableError):
             Variable(test_input)
+
+    def test_astype(self):
+        variable = Variable([True, False, True])
+        actual = variable.astype(int8)
+        expected = Variable(np.array([1, 0, 1], dtype=int8))
+        assert allclose(actual, expected)
+        assert actual.dtype == expected.dtype
 
     def test_backward(self):
         test_input = Variable(np.array([0.1, 0.2]))
