@@ -3,6 +3,7 @@ import contextlib
 
 class Config:
     enable_backprop = True
+    train = True
 
 
 @contextlib.contextmanager
@@ -16,4 +17,8 @@ def using_config(name: str, value: bool):
 
 
 def using_backprop(value: bool):
-    return using_config('enable_backprop', value)
+    return using_config("enable_backprop", value)
+
+
+def eval_mode():
+    return using_config("train", False)
