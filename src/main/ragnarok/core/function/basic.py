@@ -1,6 +1,10 @@
 import numpy as np
 
-from src.main.ragnarok.core.function.common import Function
+from src.main.ragnarok.core.function.common import (
+    Function,
+    FunctionVariableError,
+    NotSupportedOperationException,
+)
 from src.main.ragnarok.core.variable import Variable
 
 
@@ -522,11 +526,3 @@ class MatMul(Function):
 
 def matmul(x0: Variable, x1: Variable) -> Variable:
     return MatMul()(x0, x1)
-
-
-class FunctionVariableError(Exception):
-    pass
-
-
-class NotSupportedOperationException(Exception):
-    pass

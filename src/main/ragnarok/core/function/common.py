@@ -55,3 +55,11 @@ class Function:
 
     def _validate_variables(self, *variables: Variable, **kwargs):
         raise NotImplementedError("Function._validate_input is not implemented")
+
+
+class FunctionVariableError(Exception):
+    pass
+
+
+class NotSupportedOperationException(Exception):
+    pass

@@ -1,9 +1,12 @@
 import numpy as np
 import pytest
 
+from src.main.ragnarok.core.function import (
+    FunctionVariableError,
+    NotSupportedOperationException,
+)
 from src.main.ragnarok.core.function.basic import (
     Square,
-    FunctionVariableError,
     Exp,
     Add,
     Split,
@@ -21,7 +24,6 @@ from src.main.ragnarok.core.function.basic import (
     MatMul,
     Sum,
     Comparison,
-    NotSupportedOperationException,
     Log,
 )
 from src.main.ragnarok.core.function.common import Function

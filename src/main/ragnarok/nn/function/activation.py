@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.main.ragnarok.core.function import exp, FunctionVariableError
-from src.main.ragnarok.core.function.common import Function
+from src.main.ragnarok.core.function import exp
+from src.main.ragnarok.core.function.common import Function, FunctionVariableError
 from src.main.ragnarok.core.variable import Variable
 
 
