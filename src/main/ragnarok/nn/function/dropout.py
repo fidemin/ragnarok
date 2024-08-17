@@ -41,3 +41,7 @@ class Dropout(Function):
 
         if not 0.0 <= kwargs[self._dropout_ratio_key] <= 1.0:
             raise FunctionVariableError("Dropout ratio should be between 0 and 1")
+
+
+def dropout(x: Variable, *, dropout_ratio: float) -> Variable:
+    return Dropout()(x, dropout_ratio=dropout_ratio)
