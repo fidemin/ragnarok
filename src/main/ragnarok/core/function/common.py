@@ -8,6 +8,12 @@ from src.main.ragnarok.core.variable import Variable, to_variable
 
 
 class Function:
+    inputs: List[Variable] | None
+    outputs: List[Variable] | None
+    gen: int | None
+    _cache: dict
+    kwargs: dict
+
     def __init__(self):
         self.inputs = None
         self.outputs = None

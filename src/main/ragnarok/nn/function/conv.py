@@ -33,11 +33,63 @@ def img2col(
     return Variable(col_data)
 
 
+def col2img(
+    dcol_x: Variable,
+    *,
+    N: int,
+    C: int,
+    H: int,
+    W: int,
+    FH: int,
+    FW: int,
+    padding: int,
+    stride: int
+) -> Variable:
+    # dcol_x.shape: (N * OH * OW, C * FH * FW)
+
+    OH = (H + 2 * padding - FH) // stride + 1
+    OW = (W + 2 * padding - FW) // stride + 1
+
+    # col_var.shape: (N, OH, OW, C, FH, FW)
+    col_var = dcol_x.reshape((N, OH, OW, C, FH, FW))
+
+    # col_var.shape: (N, C, OH, OW, FH, FW)
+    col_var = col_var.transpose(0, 3, 1, 2, 4, 5)
+
+    # img_data.shape: (N, C, H + 2 * padding, W + 2 * padding)
+    img_data_w_padding = np.pad(
+        np.zeros((N, C, H, W)),
+        ((0, 0), (0, 0), (padding, padding), (padding, padding)),
+    )
+
+    for out_y in range(OH):
+        y = out_y * stride
+        y_max = y + FH
+
+        for out_x in range(OW):
+            x = out_x * stride
+            x_max = x + FW
+            img_data_w_padding[:, :, y:y_max, x:x_max] += col_var.data[
+                :, :, out_y, out_x, :, :
+            ]
+
+    # img_data.shape: (N, C, H, W)
+    img_data = img_data_w_padding[:, :, padding : H + padding, padding : W + padding]
+    return Variable(img_data)
+
+
 def fil2col(w_var: Variable) -> Variable:
     FN = w_var.shape[0]
 
     # returns (FN, FC * FH * FW)
     return w_var.reshape(FN, -1)
+
+
+def col2fil(dcol_W: Variable, *, FC: int, FH: int, FW: int) -> Variable:
+    # dcol_W.shape: (FN, FC * FH * FW)
+
+    # returns: (FN, FC, FH, FW)
+    return dcol_W.reshape((dcol_W.shape[0], FC, FH, FW))
 
 
 class Conv2D(Function):
@@ -49,6 +101,10 @@ class Conv2D(Function):
         b_var = variables[2]
 
         N, C, H, W = x_var.shape
+        self._cache["C"] = C
+        self._cache["H"] = H
+        self._cache["W"] = W
+
         FN, FC, FH, FW = w_var.shape
 
         padding = kwargs["padding"]
@@ -59,9 +115,11 @@ class Conv2D(Function):
 
         # col_x.shape: (N * OH * OW, C * FH * FW)
         col_x = img2col(x_var, FH=FH, FW=FW, stride=stride, padding=padding)
+        self._cache["col_x"] = col_x
 
         # col_W.shape: (FN, FC * FH * FW)
         col_W = fil2col(w_var)
+        self._cache["col_W"] = col_W
 
         # out.shape: (N * OH * OW, FN)
         out = matmul(col_x, col_W.T)
@@ -75,7 +133,46 @@ class Conv2D(Function):
         return out
 
     def backward(self, *douts: Variable):
-        pass
+        dout = douts[0]
+        N, FN, OH, OW = dout.shape
+
+        # filter shape
+        _, FC, FH, FW = self.inputs[1].shape
+
+        # dout_flat.shape: (N, OH, OW, FN) -> (N * OH * OW, FN)
+        dout_flat = dout.transpose(0, 2, 3, 1).reshape((N * OH * OW, FN))
+
+        # col_W.shape: (FN, FC * FH * FW)
+        col_W = self._cache["col_W"]
+
+        # dcol_x.shape: (N * OH * OW, C * FH * FW)
+        dcol_x = matmul(dout_flat, col_W)
+
+        # dx.shape = (N, C, H, W)
+        dx = col2img(
+            dcol_x,
+            N=N,
+            C=self._cache["C"],  # C = FC
+            H=self._cache["H"],
+            W=self._cache["W"],
+            FH=FH,
+            FW=FW,
+            padding=self.kwargs["padding"],
+            stride=self.kwargs["stride"],
+        )
+
+        # col_x.shape = (N * OH * OW, FC * FH * FW)
+        col_x = self._cache["col_x"]
+
+        # dcol_W.shape: (FN, FC * FH * FW)
+        dcol_W = matmul(dout_flat.T, col_x)
+
+        dW = col2fil(dcol_W, FC=FC, FH=FH, FW=FW)
+
+        # db.shape: (FN, )
+        db = dout_flat.sum(axis=0).reshape((FN, 1, 1))
+
+        return dx, dW, db
 
     def _validate_variables(self, *variables: Variable, **kwargs):
         if len(variables) != 3:
