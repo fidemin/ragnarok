@@ -24,8 +24,8 @@ class Trainer:
     def train(self, x, t):
         for i in range(self.epochs):
             epoch = i + 1
-            for param in self.model.params:
-                param.clear_grad()
+
+            self.model.zero_grad()
 
             y = self.model.predict(x)  # Changed from forward to predict
             loss = self.loss_func(y, t)

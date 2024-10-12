@@ -3,7 +3,11 @@ import pytest
 
 from src.main.ragnarok.core.util import allclose, numerical_diff
 from src.main.ragnarok.core.variable import Variable
-from src.main.ragnarok.nn.function.loss import MeanSquaredError, CrossEntropyError
+from src.main.ragnarok.nn.function.loss import (
+    MeanSquaredError,
+    CrossEntropyError,
+    SoftMaxLoss,
+)
 
 
 class TestMeanSquaredFunction:
@@ -141,6 +145,54 @@ class TestCrossEntropyError:
         f = CrossEntropyError()
         y = Variable(test_y)
         t = Variable(test_t)
+        for_weak_ref = f(y, t)
+        actual_dy, actual_dt = f.backward(Variable(1.0))
+        expected_dy, expected_dt = numerical_diff(f, y, t)
+        assert allclose(actual_dy, expected_dy)
+        assert allclose(actual_dt, expected_dt)
+
+
+class TestSoftMaxLoss:
+    @pytest.mark.parametrize(
+        "y, t, expected",
+        [
+            (
+                [2.0, 1.0],
+                [0.4, 0.6],
+                -0.4 * np.log(0.731059) + -0.6 * np.log(0.268941),
+            ),
+            (
+                [[2.0, 1.0], [1.0, 2.0]],
+                [[0.4, 0.6], [0.0, 1.0]],
+                (-0.4 * np.log(0.731059) + -0.6 * np.log(0.268941) + -np.log(0.731059))
+                / 2,
+            ),
+        ],
+    )
+    def test_forward(self, y, t, expected):
+        y = Variable(y)
+        t = Variable(t)
+        f = SoftMaxLoss()
+        actual = f(y, t)
+        assert allclose(actual, Variable(expected))
+
+    @pytest.mark.parametrize(
+        "y, t",
+        [
+            (
+                [2.0, 1.0],
+                [0.4, 0.6],
+            ),
+            (
+                [[2.0, 1.0], [1.0, 2.0]],
+                [[0.4, 0.6], [0.0, 1.0]],
+            ),
+        ],
+    )
+    def test_gradient_check(self, y, t):
+        f = SoftMaxLoss()
+        y = Variable(y)
+        t = Variable(t)
         for_weak_ref = f(y, t)
         actual_dy, actual_dt = f.backward(Variable(1.0))
         expected_dy, expected_dt = numerical_diff(f, y, t)

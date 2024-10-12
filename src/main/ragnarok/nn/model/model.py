@@ -26,6 +26,10 @@ class Model(metaclass=ABCMeta):
             for param in layer.params.values():
                 yield param
 
+    def zero_grad(self):
+        for param in self.params:
+            param.clear_grad()
+
     @abstractmethod
     def predict(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
         pass

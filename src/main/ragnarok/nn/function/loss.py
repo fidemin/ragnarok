@@ -3,6 +3,7 @@ import numpy as np
 from src.main.ragnarok.core.function.common import Function
 from src.main.ragnarok.core.function.math import log
 from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.nn.function.activation import softmax
 
 
 class MeanSquaredError(Function):
@@ -67,3 +68,33 @@ class CrossEntropyError(Function):
 
         if variables[0].shape != variables[1].shape:
             raise ValueError("CrossEntropyError requires the same shape variables")
+
+
+def cross_entropy_error(y: Variable, t: Variable) -> Variable:
+    return CrossEntropyError()(y, t)
+
+
+class SoftMaxLoss(Function):
+    def forward(self, *variables: Variable, **kwargs):
+        y = softmax(variables[0])
+        self._cache["y"] = y
+        t = variables[1]
+        return cross_entropy_error(y, t)
+
+    def backward(self, *douts: Variable):
+        dout = douts[0]
+        y = self._cache["y"]
+        t = self.inputs[1]
+
+        if y.ndim == 1:
+            batch_size = 1
+        else:
+            batch_size = y.shape[0]
+
+        dy = dout * (y - t) / batch_size
+        dt = -dout * log(y) / batch_size
+        return dy, dt
+
+    def _validate_variables(self, *variables: Variable, **kwargs):
+        if len(variables) != 2:
+            raise ValueError("SoftMaxLoss requires 2 variables")

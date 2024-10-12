@@ -113,3 +113,7 @@ class Softmax(Function):
             raise FunctionVariableError(
                 "There should be one input variable for Softmax function."
             )
+
+
+def softmax(x: Variable) -> Variable:
+    return Softmax()(x)
