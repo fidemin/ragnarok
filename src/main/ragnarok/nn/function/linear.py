@@ -1,4 +1,5 @@
-from src.main.ragnarok.core.function import Function, matmul, sum_to
+from src.main.ragnarok.core.function import Function, sum_to
+from src.main.ragnarok.core.function.math import matmul
 from src.main.ragnarok.core.variable import Variable
 
 

@@ -6,27 +6,29 @@ from src.main.ragnarok.core.function import (
     NotSupportedOperationException,
 )
 from src.main.ragnarok.core.function.basic import (
-    Square,
-    Exp,
-    Add,
     Split,
-    Multiply,
-    Negative,
-    Subtract,
-    Divide,
-    Pow,
-    Sin,
-    Cos,
     Reshape,
     Transpose,
     SumTo,
     BroadcastTo,
-    MatMul,
     Sum,
     Comparison,
-    Log,
 )
 from src.main.ragnarok.core.function.common import Function
+from src.main.ragnarok.core.function.math import (
+    Square,
+    Exp,
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Pow,
+    Negative,
+    Sin,
+    Cos,
+    Log,
+    MatMul,
+)
 from src.main.ragnarok.core.util import numerical_diff, allclose
 from src.main.ragnarok.core.variable import Variable
 

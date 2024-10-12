@@ -42,52 +42,52 @@ class Variable:
         return f"Variable({str(self._data)})"
 
     def __mul__(self, other):
-        from src.main.ragnarok.core.function import Multiply
+        from src.main.ragnarok.core.function.math import Multiply
 
         return Multiply()(self, other)
 
     def __rmul__(self, other):
-        from src.main.ragnarok.core.function import Multiply
+        from src.main.ragnarok.core.function.math import Multiply
 
         return Multiply()(other, self)
 
     def __add__(self, other):
-        from src.main.ragnarok.core.function import Add
+        from src.main.ragnarok.core.function.math import Add
 
         return Add()(self, other)
 
     def __radd__(self, other):
-        from src.main.ragnarok.core.function import Add
+        from src.main.ragnarok.core.function.math import Add
 
         return Add()(other, self)
 
     def __sub__(self, other):
-        from src.main.ragnarok.core.function import Subtract
+        from src.main.ragnarok.core.function.math import Subtract
 
         return Subtract()(self, other)
 
     def __rsub__(self, other):
-        from src.main.ragnarok.core.function import Subtract
+        from src.main.ragnarok.core.function.math import Subtract
 
         return Subtract()(other, self)
 
     def __truediv__(self, other):
-        from src.main.ragnarok.core.function import Divide
+        from src.main.ragnarok.core.function.math import Divide
 
         return Divide()(self, other)
 
     def __rtruediv__(self, other):
-        from src.main.ragnarok.core.function import Divide
+        from src.main.ragnarok.core.function.math import Divide
 
         return Divide()(other, self)
 
     def __neg__(self):
-        from src.main.ragnarok.core.function import Negative
+        from src.main.ragnarok.core.function.math import Negative
 
         return Negative()(self)
 
     def __pow__(self, power, modulo=None):
-        from src.main.ragnarok.core.function import Pow
+        from src.main.ragnarok.core.function.math import Pow
 
         return Pow()(self, power=power)
 

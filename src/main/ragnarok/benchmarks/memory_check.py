@@ -1,7 +1,7 @@
 import numpy as np
 from memory_profiler import profile
 
-from src.main.ragnarok.core.function import Square
+from src.main.ragnarok.core.function.math import Square
 from src.main.ragnarok.core.variable import Variable
 
 
@@ -12,5 +12,5 @@ def function_graph_with_large_data():
         y = Square()(Square()(x))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     function_graph_with_large_data()

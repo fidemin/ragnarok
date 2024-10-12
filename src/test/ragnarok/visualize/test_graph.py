@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.main.ragnarok.core.function import Add, Square
+from src.main.ragnarok.core.function.math import Square, Add
 from src.main.ragnarok.core.variable import Variable
 from src.main.ragnarok.graph.graph import DotGraph
 

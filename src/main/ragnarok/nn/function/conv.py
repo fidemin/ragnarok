@@ -1,6 +1,7 @@
 import numpy as np
 
-from src.main.ragnarok.core.function import Function, FunctionVariableError, matmul
+from src.main.ragnarok.core.function import Function, FunctionVariableError
+from src.main.ragnarok.core.function.math import matmul
 from src.main.ragnarok.core.variable import Variable
 
 

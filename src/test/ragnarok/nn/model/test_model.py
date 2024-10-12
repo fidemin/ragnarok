@@ -1,6 +1,6 @@
 from typing import List
 
-from src.main.ragnarok.core.function import MatMul
+from src.main.ragnarok.core.function.math import MatMul
 from src.main.ragnarok.core.util import allclose
 from src.main.ragnarok.core.variable import Variable
 from src.main.ragnarok.nn.function.activation import relu

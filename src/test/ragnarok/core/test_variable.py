@@ -4,7 +4,8 @@ import math
 import numpy as np
 import pytest
 
-from src.main.ragnarok.core.function import Square, Exp, Split, Add
+from src.main.ragnarok.core.function import Split
+from src.main.ragnarok.core.function.math import Square, Exp, Add
 from src.main.ragnarok.core.util import allclose, numerical_diff
 from src.main.ragnarok.core.variable import Variable, VariableError, to_variable
 from src.main.ragnarok.core.variable.dtype import int8
