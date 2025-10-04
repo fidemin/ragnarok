@@ -3,7 +3,7 @@ from typing import Optional
 
 import numpy as np
 
-from src.main.ragnarok.core.config import using_config
+from src.main.ragnarok.core.config import using_backprop
 
 
 class Variable:
@@ -15,7 +15,9 @@ class Variable:
             data: numpy array or int or float
         Attributes:
             data: original data
-            creator: Function instance which generate this variable
+            creator: Function instance which generates this variable
+            grad: gradient of this variable
+            gen: generation of this variable. used for backpropagation
         """
 
         if not (isinstance(data, (int, float, list, np.ndarray, np.generic))):
@@ -243,7 +245,7 @@ class Variable:
             doutputs = [output().grad for output in function.outputs]
 
             # For first-order differentiation, backpropagation of grad variable is not needed
-            with using_config("enable_backprop", enable_double_backprop):
+            with using_backprop(enable_double_backprop):
                 dinputs = function.backward(*doutputs)
                 if not isinstance(dinputs, tuple):
                     dinputs = (dinputs,)
@@ -268,7 +270,7 @@ class Variable:
                         visited.add(next_creator)
                         idx += 1
             if not retain_grad:
-                # In general case, current output grad is not needed anymore
+                # In general case, current output grad is not needed anymore after once used.
                 for output in function.outputs:
                     output().grad = None
 
