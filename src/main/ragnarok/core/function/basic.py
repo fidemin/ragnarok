@@ -29,7 +29,9 @@ class Comparison(Function):
         return Variable(y_data)
 
     def backward(self, *douts: Variable):
-        raise NotSupportedOperationException("Comparison does not support backward.")
+        raise NotSupportedOperationException(
+            "Comparison does not support backward propagation."
+        )
 
     def _validate_variables(self, *variables: Variable, **kwargs):
         if "operator" not in kwargs:
@@ -53,7 +55,8 @@ class Split(Function):
         return [Variable(y_data) for y_data in ys_data]
 
     def backward(self, *douts: Variable):
-        # TODO: Should be implemented with Function not numpy operation
+        # TODO: Should be implemented with Function, not numpy operation
+        #  to support high order differentiation
         douts_data = [dout.data for dout in douts]
         dx = np.concatenate(douts_data, axis=self.kwargs["axis"])
         return Variable(dx)
@@ -74,7 +77,8 @@ class Reshape(Function):
         return Variable(y)
 
     def backward(self, *douts: Variable):
-        # TODO: Should be implemented with Function not numpy operation
+        # TODO: Should be implemented with Function, not numpy operation
+        #  to support high order differentiation
         dx = douts[0].data.reshape(self.inputs[0].shape)
         return Variable(dx)
 
@@ -262,5 +266,3 @@ class Sum(Function):
             raise FunctionVariableError(
                 "There should be one input variable for Sum function."
             )
-
-

@@ -104,6 +104,21 @@ class TestVariable:
         assert np.allclose(out1.grad.data, out1_derivative)
         assert np.allclose(out2.grad.data, out2_derivative)
 
+    def test_backward__with_same_input(self):
+        x = Variable(np.array([0.1, 0.2]))
+
+        f = Add()
+        y = f(x, x)
+
+        y.backward(retain_grad=True)
+
+        expected = Variable(np.array([2.0, 2.0]))
+        expected_y_grad = Variable(np.array([1.0, 1.0]))
+        assert allclose(x.grad, expected)
+
+        # y.grad is should not be affected by x.grad
+        assert allclose(y.grad, expected_y_grad)
+
     def test_backward__with_no_retain_grad(self):
         test_input = Variable(np.array([0.1, 0.2]))
 

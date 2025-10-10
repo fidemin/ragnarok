@@ -81,6 +81,29 @@ class Add(Function):
             )
 
 
+class InplaceAdd(Function):
+    def forward(self, *variables: Variable):
+        x0, x1 = variables
+        x0.data += x1.data  # numpy inplace add
+        return x0
+
+    def backward(self, *dout: Variable):
+        # TODO: check if inplace operation affects backward
+        dout = dout[0]
+
+        # To handle broadcast, sum to the shape of input variable
+        dx0 = sum_to(dout, self.inputs[0].shape)
+        dx1 = sum_to(dout, self.inputs[1].shape)
+        return dx0, dx1
+
+    def _validate_variables(self, *variables: Variable):
+        var_length = len(variables)
+        if var_length != 2:
+            raise FunctionVariableError(
+                "There should be two input variable for InplaceAdd function."
+            )
+
+
 class Subtract(Function):
     def forward(self, *variables: Variable):
         x0, x1 = variables

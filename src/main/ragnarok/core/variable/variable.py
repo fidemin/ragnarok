@@ -58,6 +58,11 @@ class Variable:
 
         return Add()(self, other)
 
+    def __iadd__(self, other):
+        from src.main.ragnarok.core.function.math import InplaceAdd
+
+        return InplaceAdd()(self, other)
+
     def __radd__(self, other):
         from src.main.ragnarok.core.function.math import Add
 
@@ -221,18 +226,29 @@ class Variable:
         return self.transpose()
 
     def backward(self, retain_grad=False, enable_double_backprop=False):
+        """
+        Backward propagation to calculate gradients of all variables which are used to create this variable.
+
+        Args:
+            retain_grad: Whether to retain the gradient of intermediate variables during backpropagation.
+            enable_double_backprop: Whether to enable double backpropagation for higher order differentiation.
+
+        Returns:
+            None
+        """
         if self._creator is None:
             raise VariableError(
-                "The creator of this variable is None. backward propagation is not possible."
+                "The creator of this variable is None. backward propagation is not supported."
             )
 
         if self._grad is None:
-            # initialize with first grad as 1
+            # initialize with first grad as 1 (i.e. dL/dL)
             self._grad = Variable(np.ones_like(self.data))
 
         # higher generation popped first
         function_queue = []
-        # idx used to prevent crash in heapq operation: if gen is same, comparing between function will crash.
+        # idx used to prevent crash in heapq operation: if gen is same, use idx to compare (without idx, it raises error)
+        # gen (generation) is always non-negative, so -gen is used to pop higher gen first
         idx = 0
         heapq.heappush(function_queue, ((-self.creator.gen, idx), self.creator))
         visited = {self.creator}
@@ -256,6 +272,7 @@ class Variable:
                     if input_.grad is not None:
                         # For the function has more than one input and same inputs are used for the function
                         # e.g. Add()(x, x)
+                        # NOTE: do not use input_.grad += dinput, because it is inplace operation and may cause error in some cases
                         input_.grad = input_.grad + dinput
                     else:
                         input_.grad = dinput
