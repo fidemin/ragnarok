@@ -386,11 +386,11 @@ class TestAutoBroadcast:
         [
             (
                 Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(1.0),
+                1.0,
                 Variable(np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]])),
             ),
             (
-                Variable(1.0),
+                1.0,
                 Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
                 Variable(np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]])),
             ),
@@ -416,11 +416,11 @@ class TestAutoBroadcast:
         [
             (
                 Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(1.0),
+                1.0,
                 Variable(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]])),
             ),
             (
-                Variable(1.0),
+                1.0,
                 Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
                 Variable(np.array([[0.0, -1.0, -2.0], [-3.0, -4.0, -5.0]])),
             ),
@@ -446,11 +446,11 @@ class TestAutoBroadcast:
         [
             (
                 Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(2.0),
+                2.0,
                 Variable(np.array([[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]])),
             ),
             (
-                Variable(2.0),
+                2.0,
                 Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
                 Variable(np.array([[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]])),
             ),
@@ -476,11 +476,11 @@ class TestAutoBroadcast:
         [
             (
                 Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(2.0),
+                2.0,
                 Variable(np.array([[0.5, 1.0, 1.5], [2.0, 2.5, 3.0]])),
             ),
             (
-                Variable(2.0),
+                2.0,
                 Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
                 Variable(np.array([[2.0, 1.0, 0.66666667], [0.5, 0.4, 0.33333333]])),
             ),
