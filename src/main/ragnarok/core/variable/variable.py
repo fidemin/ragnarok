@@ -260,7 +260,11 @@ class Variable:
 
             doutputs = [output().grad for output in function.outputs]
 
-            # For first-order differentiation, backpropagation of grad variable is not needed
+            # (1) For first-order differentiation, backpropagation of grad variable is not needed
+            # -> enable_double_backprop=False is recommended
+            # (2) For higher-order differentiation, backpropagation of grad variable is needed
+            # -> enable_double_backprop=True is needed.
+            # This config is used in Function.__call__ to reserve computational graph for grad variables
             with using_backprop(enable_double_backprop):
                 dinputs = function.backward(*doutputs)
                 if not isinstance(dinputs, tuple):
@@ -287,7 +291,7 @@ class Variable:
                         visited.add(next_creator)
                         idx += 1
             if not retain_grad:
-                # In general case, current output grad is not needed anymore after once used.
+                # In general case, output grad is intermittent variable and it can be released to save memory
                 for output in function.outputs:
                     output().grad = None
 

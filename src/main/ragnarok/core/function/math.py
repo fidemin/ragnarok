@@ -1,6 +1,11 @@
 import numpy as np
 
-from src.main.ragnarok.core.function import Function, FunctionVariableError, sum_to
+from src.main.ragnarok.core.function import (
+    Function,
+    FunctionVariableError,
+    sum_to,
+    NotSupportedOperationException,
+)
 from src.main.ragnarok.core.variable import Variable
 
 
@@ -88,13 +93,11 @@ class InplaceAdd(Function):
         return x0
 
     def backward(self, *dout: Variable):
-        # TODO: check if inplace operation affects backward
-        dout = dout[0]
-
-        # To handle broadcast, sum to the shape of input variable
-        dx0 = sum_to(dout, self.inputs[0].shape)
-        dx1 = sum_to(dout, self.inputs[1].shape)
-        return dx0, dx1
+        # TODO: implement inplace add backward.
+        #   It can be issue only when x0 is used in grad calculation in other variable's backward propagation.
+        raise NotSupportedOperationException(
+            "InplaceAdd does not support backward propagation."
+        )
 
     def _validate_variables(self, *variables: Variable):
         var_length = len(variables)

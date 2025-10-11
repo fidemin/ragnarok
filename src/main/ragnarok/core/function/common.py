@@ -34,14 +34,18 @@ class Function:
             outputs = (outputs,)
 
         if Config.enable_backprop:
-            # these are only used for backpropagation
+            # attributes in this part are only used for backpropagation
             this_gen = max([input_.gen for input_ in inputs])
             self.gen = this_gen
 
             for output in outputs:
+                # set strong reference to output variable
+                # self -> output: strong reference
                 output.set_creator(self)
 
             self.inputs = inputs
+            # To prevent circular reference, use weakref
+            # output -> self: weak reference
             self.outputs = [weakref.ref(output) for output in outputs]
             self.kwargs = kwargs
 
