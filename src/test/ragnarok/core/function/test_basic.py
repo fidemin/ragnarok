@@ -380,6 +380,128 @@ class TestDivide:
             assert allclose(dx, expected[i])
 
 
+class TestAutoBroadcast:
+    @pytest.mark.parametrize(
+        "x0, x1, expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(1.0),
+                Variable(np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]])),
+            ),
+            (
+                Variable(1.0),
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]])),
+            ),
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([10.0, 20.0, 30.0])),
+                Variable(np.array([[11.0, 22.0, 33.0], [14.0, 25.0, 36.0]])),
+            ),
+            (
+                Variable(np.array([10.0, 20.0, 30.0])),
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([[11.0, 22.0, 33.0], [14.0, 25.0, 36.0]])),
+            ),
+        ],
+    )
+    def test_add_forward(self, x0, x1, expected):
+        f = Add()
+        y = f(x0, x1)
+        assert allclose(y, expected)
+
+    @pytest.mark.parametrize(
+        "x0, x1, expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(1.0),
+                Variable(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]])),
+            ),
+            (
+                Variable(1.0),
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([[0.0, -1.0, -2.0], [-3.0, -4.0, -5.0]])),
+            ),
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([10.0, 20.0, 30.0])),
+                Variable(np.array([[-9.0, -18.0, -27.0], [-6.0, -15.0, -24.0]])),
+            ),
+            (
+                Variable(np.array([10.0, 20.0, 30.0])),
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([[9.0, 18.0, 27.0], [6.0, 15.0, 24.0]])),
+            ),
+        ],
+    )
+    def test_subtract_forward(self, x0, x1, expected):
+        f = Subtract()
+        y = f(x0, x1)
+        assert allclose(y, expected)
+
+    @pytest.mark.parametrize(
+        "x0, x1, expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(2.0),
+                Variable(np.array([[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]])),
+            ),
+            (
+                Variable(2.0),
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]])),
+            ),
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([10.0, 20.0, 30.0])),
+                Variable(np.array([[10.0, 40.0, 90.0], [40.0, 100.0, 180.0]])),
+            ),
+            (
+                Variable(np.array([10.0, 20.0, 30.0])),
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([[10.0, 40.0, 90.0], [40.0, 100.0, 180.0]])),
+            ),
+        ],
+    )
+    def test_multiply_forward(self, x0, x1, expected):
+        f = Multiply()
+        y = f(x0, x1)
+        assert allclose(y, expected)
+
+    @pytest.mark.parametrize(
+        "x0, x1, expected",
+        [
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(2.0),
+                Variable(np.array([[0.5, 1.0, 1.5], [2.0, 2.5, 3.0]])),
+            ),
+            (
+                Variable(2.0),
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([[2.0, 1.0, 0.66666667], [0.5, 0.4, 0.33333333]])),
+            ),
+            (
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([10.0, 20.0, 30.0])),
+                Variable(np.array([[0.1, 0.1, 0.1], [0.4, 0.25, 0.2]])),
+            ),
+            (
+                Variable(np.array([10.0, 20.0, 30.0])),
+                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Variable(np.array([[10.0, 10.0, 10.0], [2.5, 4.0, 5.0]])),
+            ),
+        ],
+    )
+    def test_divide_forward(self, x0, x1, expected):
+        f = Divide()
+        y = f(x0, x1)
+        assert allclose(y, expected)
+
+
 class TestNegative:
     @pytest.mark.parametrize(
         "test_input,expected",
