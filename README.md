@@ -4,6 +4,7 @@ A simple and understandable deep learning framework built from scratch.
 
 Ragnarok is a lightweight educational deep learning framework designed to help you understand the inner workings of neural networks — from variable(tensor) operations and automatic differentiation to layers, optimisers, and training loops.
 
+> Original concept and design are based on [Dezero](https://github.com/oreilly-japan/deep-learning-from-scratch-3).
 
 ## Motivation
 Most modern frameworks (like PyTorch or TensorFlow) abstract away the fundamentals. **Ragnarok** is built to **demystify** how deep learning actually works under the hood — providing readable, minimal code without black-box magic.
