@@ -2,7 +2,7 @@ from ragnarok.core.tensor import Tensor
 from ragnarok.core.util import allclose
 from ragnarok.nn.core.parameter import Parameter
 from ragnarok.nn.optimizer.optimizer import SGD, Momentum, Adam
-from src.main.core.optimizer import Adam as AdamOld
+from _old_src.main.core.optimizer import Adam as AdamOld
 
 
 class TestSGD:
