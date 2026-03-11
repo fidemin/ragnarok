@@ -1,8 +1,8 @@
 from typing import List
 
 from src.main.ragnarok.core.tensor import Tensor
+from src.main.ragnarok.nn.core.layer import Layer
 from src.main.ragnarok.nn.function.activation import sigmoid, relu, tanh
-from src.main.ragnarok.nn.layer.layer import Layer
 
 
 class Sigmoid(Layer):

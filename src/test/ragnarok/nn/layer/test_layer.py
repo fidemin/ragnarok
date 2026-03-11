@@ -2,7 +2,7 @@ import pytest
 
 from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.core.util import allclose
-from src.main.ragnarok.nn.layer.layer import Layer
+from src.main.ragnarok.nn.core.layer import Layer
 
 
 class MockLayer(Layer):

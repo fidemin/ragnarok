@@ -5,9 +5,9 @@ import numpy as np
 from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.core.tensor.dtype import float32
 from src.main.ragnarok.core.tensor.tensor import zeros
+from src.main.ragnarok.nn.core.layer import Layer
 from src.main.ragnarok.nn.core.parameter import Parameter
 from src.main.ragnarok.nn.function.linear import linear
-from src.main.ragnarok.nn.layer.layer import Layer
 
 
 class Linear(Layer):

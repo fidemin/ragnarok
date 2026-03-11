@@ -1,8 +1,8 @@
 from typing import List
 
 from src.main.ragnarok.core.tensor import Tensor
+from src.main.ragnarok.nn.core.layer import Layer
 from src.main.ragnarok.nn.function.dropout import dropout
-from src.main.ragnarok.nn.layer.layer import Layer
 
 
 class Dropout(Layer):
