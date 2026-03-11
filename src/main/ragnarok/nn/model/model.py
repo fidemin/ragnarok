@@ -31,7 +31,7 @@ class Model(metaclass=ABCMeta):
             param.clear_grad()
 
     @abstractmethod
-    def predict(self, *variables: Tensor, **kwargs) -> Tensor | List[Tensor]:
+    def predict(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
         pass
 
 
@@ -49,9 +49,9 @@ class Sequential(Model):
             setattr(self, layer_name, layer)
             self.layers.append(layer)
 
-    def predict(self, *variables: Tensor, **kwargs) -> Tensor | List[Tensor]:
+    def predict(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
         for layer in self.layers:
-            if not type(variables) in (tuple, list):
-                variables = [variables]
-            variables = layer.forward(*variables, **kwargs)
-        return variables
+            if not type(tensors) in (tuple, list):
+                tensors = [tensors]
+            tensors = layer.forward(*tensors, **kwargs)
+        return tensors

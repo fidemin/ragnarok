@@ -1,4 +1,4 @@
-from src.main.ragnarok.graph.plot import plot_graph
+from src.main.ragnarok.graph.plot import plot_tensor_graph
 
 
 def test_plot_graph(mocker):
@@ -19,6 +19,6 @@ def test_plot_graph(mocker):
     dot_str = "digraph G {\n" + "\n".join(result_list) + "\n}"
     mock_graph.return_value.draw.return_value = dot_str
     output_file = "temp/graph.png"
-    plot_graph(mock_graph.return_value, output_file=output_file, temp_dir="temp")
+    plot_tensor_graph(mock_graph.return_value, output_file=output_file, temp_dir="temp")
     # test is failed in github action
     # assert os.path.isfile(output_file)

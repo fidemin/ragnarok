@@ -1,10 +1,11 @@
 import os
 import subprocess
 
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.graph.graph import DotGraph
 
 
-def plot_graph(
+def _plot_graph(
     graph: DotGraph, verbose: bool = True, output_file="graph.png", temp_dir=None
 ):
     graph_str = graph.draw(verbose=verbose)
@@ -25,3 +26,10 @@ def plot_graph(
     extension = output_file.split(".")[-1]
     cmd = f"dot {graph_file_path} -T {extension} -o {output_file}"
     subprocess.run(cmd, shell=True)
+
+
+def plot_tensor_graph(
+    tensor: Tensor, verbose: bool = True, output_file="graph.png", temp_dir=None
+):
+    graph = DotGraph(tensor)
+    _plot_graph(graph, verbose=verbose, output_file=output_file, temp_dir=temp_dir)

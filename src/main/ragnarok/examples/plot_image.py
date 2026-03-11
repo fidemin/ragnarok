@@ -1,8 +1,7 @@
 import numpy as np
 
 from src.main.ragnarok.core.tensor import Tensor
-from src.main.ragnarok.graph.graph import DotGraph
-from src.main.ragnarok.graph.plot import plot_graph
+from src.main.ragnarok.graph.plot import plot_tensor_graph
 
 
 def goldstein_price(x, y):
@@ -20,8 +19,6 @@ y = Tensor(np.array(1.0))
 z = goldstein_price(x, y)
 
 if __name__ == "__main__":
-    z.backward()
-    graph = DotGraph(z)
-    plot_graph(
-        graph, verbose=True, output_file="temp/goldstein_price.png", temp_dir="temp"
+    plot_tensor_graph(
+        z, verbose=True, output_file="temp/goldstein_price.png", temp_dir="temp"
     )

@@ -1,8 +1,8 @@
 from typing import List
 
 from src.main.ragnarok.core.function.math import MatMul
-from src.main.ragnarok.core.util import allclose
 from src.main.ragnarok.core.tensor import Tensor
+from src.main.ragnarok.core.util import allclose
 from src.main.ragnarok.nn.function.activation import relu
 from src.main.ragnarok.nn.layer.activation import ReLU
 from src.main.ragnarok.nn.layer.linear import Linear
@@ -16,8 +16,8 @@ class MockModel(Model):
         self.layer_relu = ReLU()
         self.layer_linear_2 = Linear(4, 8, use_bias=False)
 
-    def predict(self, *variables: Tensor, **kwargs) -> Tensor | List[Tensor]:
-        x = variables[0]
+    def predict(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
+        x = tensors[0]
         h = self.layer_linear_1.forward(x)
         h = self.layer_relu.forward(h)
         y = self.layer_linear_2.forward(h)
