@@ -4,12 +4,12 @@ from typing import Optional
 
 import numpy as np
 
+from ragnarok import Tensor
+from ragnarok.nn.core.parameter import Parameter
+from ragnarok.nn.layer.activation import Sigmoid as SigmoidProxy
+from ragnarok.nn.layer.linear import Linear as LinearProxy
 from src.main.core import loss, activation
 from src.main.core.optimizer import Optimizer
-from src.main.ragnarok.core.tensor import Tensor
-from src.main.ragnarok.nn.core.parameter import Parameter
-from src.main.ragnarok.nn.layer.activation import Sigmoid as SigmoidProxy
-from src.main.ragnarok.nn.layer.linear import Linear as LinearProxy
 
 
 class Layer(metaclass=ABCMeta):
