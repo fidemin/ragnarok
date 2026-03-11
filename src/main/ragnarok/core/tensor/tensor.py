@@ -6,7 +6,7 @@ import numpy as np
 from src.main.ragnarok.core.config import using_backprop
 
 
-class Variable:
+class Tensor:
     __array_priority__ = 200
 
     def __init__(self, data: int | float | list | np.ndarray | np.generic, name=None):
@@ -15,9 +15,9 @@ class Variable:
             data: numpy array or int or float
         Attributes:
             data: original data
-            creator: Function instance which generates this variable
-            grad: gradient of this variable
-            gen: generation of this variable. used for backpropagation
+            creator: Function instance which generates this tensor
+            grad: gradient of this tensor
+            gen: generation of this tensor. used for backpropagation
         """
 
         if not (isinstance(data, (int, float, list, np.ndarray, np.generic))):
@@ -34,14 +34,14 @@ class Variable:
         self._name = name
         self._data = data
         self._creator = None
-        self._grad: Optional[Variable] = None
+        self._grad: Optional[Tensor] = None
         self._gen = 0
 
     def __len__(self):
         return self._data.shape[0] if self._data.shape else 0
 
     def __repr__(self):
-        return f"Variable({str(self._data)})"
+        return f"Tensor({str(self._data)})"
 
     def __mul__(self, other):
         from src.main.ragnarok.core.function.math import Multiply
@@ -98,32 +98,32 @@ class Variable:
 
         return Pow()(self, power=power)
 
-    def __eq__(self, other) -> "Variable":
+    def __eq__(self, other) -> "Tensor":
         from src.main.ragnarok.core.function import Comparison
 
         return Comparison()(self, other, operator="eq")
 
-    def __ne__(self, other) -> "Variable":
+    def __ne__(self, other) -> "Tensor":
         from src.main.ragnarok.core.function import Comparison
 
         return Comparison()(self, other, operator="ne")
 
-    def __lt__(self, other) -> "Variable":
+    def __lt__(self, other) -> "Tensor":
         from src.main.ragnarok.core.function import Comparison
 
         return Comparison()(self, other, operator="lt")
 
-    def __le__(self, other) -> "Variable":
+    def __le__(self, other) -> "Tensor":
         from src.main.ragnarok.core.function import Comparison
 
         return Comparison()(self, other, operator="le")
 
-    def __gt__(self, other) -> "Variable":
+    def __gt__(self, other) -> "Tensor":
         from src.main.ragnarok.core.function import Comparison
 
         return Comparison()(self, other, operator="gt")
 
-    def __ge__(self, other) -> "Variable":
+    def __ge__(self, other) -> "Tensor":
         from src.main.ragnarok.core.function import Comparison
 
         return Comparison()(self, other, operator="ge")
@@ -184,11 +184,11 @@ class Variable:
     def dtype(self):
         return self._data.dtype.name
 
-    def astype(self, dtype) -> "Variable":
-        return Variable(self._data.astype(dtype))
+    def astype(self, dtype) -> "Tensor":
+        return Tensor(self._data.astype(dtype))
 
     def copy(self):
-        return Variable(self._data.copy())
+        return Tensor(self._data.copy())
 
     def clear_grad(self):
         self._grad = None
@@ -216,7 +216,7 @@ class Variable:
 
         return Transpose()(self, transpose=transpose)
 
-    def sum(self, axis=None, keepdims=False) -> "Variable":
+    def sum(self, axis=None, keepdims=False) -> "Tensor":
         from src.main.ragnarok.core.function import Sum
 
         return Sum()(self, axis=axis, keepdims=keepdims)
@@ -227,10 +227,10 @@ class Variable:
 
     def backward(self, retain_grad=False, enable_double_backprop=False):
         """
-        Backward propagation to calculate gradients of all variables which are used to create this variable.
+        Backward propagation to calculate gradients of all tensors which are used to create this tensor.
 
         Args:
-            retain_grad: Whether to retain the gradient of intermediate variables during backpropagation.
+            retain_grad: Whether to retain the gradient of intermediate tensors during backpropagation.
             enable_double_backprop: Whether to enable double backpropagation for higher order differentiation.
 
         Returns:
@@ -238,12 +238,12 @@ class Variable:
         """
         if self._creator is None:
             raise VariableError(
-                "The creator of this variable is None. backward propagation is not supported."
+                "The creator of this tensor is None. backward propagation is not supported."
             )
 
         if self._grad is None:
             # initialize with first grad as 1 (i.e. dL/dL)
-            self._grad = Variable(np.ones_like(self.data))
+            self._grad = Tensor(np.ones_like(self.data))
 
         # higher generation popped first
         function_queue = []
@@ -254,17 +254,17 @@ class Variable:
         visited = {self.creator}
         idx += 1
 
-        # DFS to iterate all related variables: use pop and append
+        # DFS to iterate all related tensors: use pop and append
         while function_queue:
             _, function = heapq.heappop(function_queue)
 
             doutputs = [output().grad for output in function.outputs]
 
-            # (1) For first-order differentiation, backpropagation of grad variable is not needed
+            # (1) For first-order differentiation, backpropagation of grad tensor is not needed
             # -> enable_double_backprop=False is recommended
-            # (2) For higher-order differentiation, backpropagation of grad variable is needed
+            # (2) For higher-order differentiation, backpropagation of grad tensor is needed
             # -> enable_double_backprop=True is needed.
-            # This config is used in Function.__call__ to reserve computational graph for grad variables
+            # This config is used in Function.__call__ to reserve computational graph for grad tensors
             with using_backprop(enable_double_backprop):
                 dinputs = function.backward(*doutputs)
                 if not isinstance(dinputs, tuple):
@@ -291,7 +291,7 @@ class Variable:
                         visited.add(next_creator)
                         idx += 1
             if not retain_grad:
-                # In general case, output grad is intermittent variable and it can be released to save memory
+                # In general case, output grad is intermittent tensor and it can be released to save memory
                 for output in function.outputs:
                     output().grad = None
 
@@ -300,19 +300,19 @@ class VariableError(RuntimeError):
     pass
 
 
-def to_variable(x: int | float | np.ndarray | np.generic | Variable) -> Variable:
-    if isinstance(x, Variable):
+def to_variable(x: int | float | np.ndarray | np.generic | Tensor) -> Tensor:
+    if isinstance(x, Tensor):
         return x
-    return Variable(x)
+    return Tensor(x)
 
 
-def zeros_like(x: Variable) -> Variable:
-    return Variable(np.zeros_like(x.data, dtype=x.dtype))
+def zeros_like(x: Tensor) -> Tensor:
+    return Tensor(np.zeros_like(x.data, dtype=x.dtype))
 
 
-def ones_like(x: Variable) -> Variable:
-    return Variable(np.ones_like(x.data, dtype=x.dtype))
+def ones_like(x: Tensor) -> Tensor:
+    return Tensor(np.ones_like(x.data, dtype=x.dtype))
 
 
 def zeros(shape, dtype=np.float32):
-    return Variable(np.zeros(shape, dtype=dtype))
+    return Tensor(np.zeros(shape, dtype=dtype))

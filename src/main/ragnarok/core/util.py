@@ -1,11 +1,11 @@
 import numpy as np
 
 from src.main.ragnarok.core.function import Function
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 
 
-def numerical_diff(f: Function, *xs: Variable, eps=1e-4, **extra):
-    dxs = [Variable(np.zeros_like(x.data)) for x in xs]
+def numerical_diff(f: Function, *xs: Tensor, eps=1e-4, **extra):
+    dxs = [Tensor(np.zeros_like(x.data)) for x in xs]
 
     for i, x in enumerate(xs):
         data = x.data
@@ -16,7 +16,7 @@ def numerical_diff(f: Function, *xs: Variable, eps=1e-4, **extra):
                 idx = next(index_iter)
                 original_value = data[idx]
 
-                # deepcopy variable to handle case like broadcast. (data overwrite for ys_h_plus affects ys_h_minus.)
+                # deepcopy tensor to handle case like broadcast. (data overwrite for ys_h_plus affects ys_h_minus.)
                 data[idx] = original_value - eps
                 ys_h_minus = f(*xs, **extra).copy()
 
@@ -35,5 +35,5 @@ def numerical_diff(f: Function, *xs: Variable, eps=1e-4, **extra):
     return dxs if len(dxs) > 1 else dxs[0]
 
 
-def allclose(var1: Variable, var2: Variable, atol=1.0e-8):
+def allclose(var1: Tensor, var2: Tensor, atol=1.0e-8):
     return np.allclose(var1.data, var2.data, atol=atol)

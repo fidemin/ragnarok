@@ -10,7 +10,7 @@ class Layer:
 
         :param input_size: size of input for the layer
         :param output_size: size of output for the layer
-        :param weight_init: initialization variable
+        :param weight_init: initialization tensor
         """
 
         self.W = weight_init * np.random.randn(input_size, output_size)

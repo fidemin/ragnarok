@@ -3,7 +3,7 @@ from typing import List
 import numpy as np
 from keras.api.datasets import mnist
 
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.nn.function.loss import SoftMaxLoss
 from src.main.ragnarok.nn.layer.activation import Sigmoid
 from src.main.ragnarok.nn.layer.linear import Linear
@@ -18,7 +18,7 @@ class MNISTModel(Model):
         self.sigmoid = Sigmoid()
         self.fc2 = Linear(10)
 
-    def predict(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
+    def predict(self, *variables: Tensor, **kwargs) -> Tensor | List[Tensor]:
         x = variables[0]
         h = self.fc1.forward(x)
         h = self.sigmoid.forward(h)
@@ -44,8 +44,8 @@ if __name__ == "__main__":
 
     for epoch in range(epochs):
         for i in range(iter_num):
-            x_batch = Variable(x_train[batch_size * i : batch_size * (i + 1)])
-            t_batch = Variable(y_train[batch_size * i : batch_size * (i + 1)])
+            x_batch = Tensor(x_train[batch_size * i : batch_size * (i + 1)])
+            t_batch = Tensor(y_train[batch_size * i : batch_size * (i + 1)])
 
             model.zero_grad()
             model.predict(x_batch)

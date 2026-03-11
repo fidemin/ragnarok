@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABCMeta
 from typing import List, Iterable
 
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.nn.core.parameter import Parameter
 from src.main.ragnarok.nn.layer.layer import Layer
 
@@ -31,7 +31,7 @@ class Model(metaclass=ABCMeta):
             param.clear_grad()
 
     @abstractmethod
-    def predict(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
+    def predict(self, *variables: Tensor, **kwargs) -> Tensor | List[Tensor]:
         pass
 
 
@@ -49,7 +49,7 @@ class Sequential(Model):
             setattr(self, layer_name, layer)
             self.layers.append(layer)
 
-    def predict(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
+    def predict(self, *variables: Tensor, **kwargs) -> Tensor | List[Tensor]:
         for layer in self.layers:
             if not type(variables) in (tuple, list):
                 variables = [variables]

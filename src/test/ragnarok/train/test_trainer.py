@@ -1,7 +1,7 @@
 import numpy as np
 
 from src.main.ragnarok.core.function import Function
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.nn.core.parameter import Parameter
 from src.main.ragnarok.nn.function.loss import MeanSquaredError
 from src.main.ragnarok.nn.layer.activation import ReLU
@@ -18,15 +18,15 @@ class TestTrainer:
         num_of_params = 10
         mock_model.params = [mocker.Mock(spec=Parameter) for _ in range(num_of_params)]
 
-        mock_model.predict.return_value = mocker.Mock(spec=Variable)
+        mock_model.predict.return_value = mocker.Mock(spec=Tensor)
 
         mock_loss_func = mocker.Mock(spec=Function)
-        mock_loss_func.return_value = mocker.Mock(spec=Variable)
+        mock_loss_func.return_value = mocker.Mock(spec=Tensor)
 
         mock_optimizer = mocker.Mock(spec=Optimizer)
 
-        x = mocker.Mock(spec=Variable)
-        t = mocker.Mock(spec=Variable)
+        x = mocker.Mock(spec=Tensor)
+        t = mocker.Mock(spec=Tensor)
 
         epochs = 100
 
@@ -58,8 +58,8 @@ class TestTrainer:
         loss_func = MeanSquaredError()
         optimizer = Adam(lr=0.01)
 
-        x = Variable(np.random.randn(10, 8))
-        t = Variable(np.random.randn(10, 4))
+        x = Tensor(np.random.randn(10, 8))
+        t = Tensor(np.random.randn(10, 4))
 
         trainer = Trainer(
             model=model, optimizer=optimizer, loss_func=loss_func, epochs=1000

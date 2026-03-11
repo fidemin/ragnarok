@@ -49,8 +49,11 @@ class CBOWInput(Layer):
             dx.append(result)
 
         # sum all sub layer's gradients
-        self.grads[0][...] = reduce(lambda grad, sub_layer: grad + sub_layer.grads[0], self._sub_layers[1:],
-                                    self._sub_layers[0].grads[0])
+        self.grads[0][...] = reduce(
+            lambda grad, sub_layer: grad + sub_layer.grads[0],
+            self._sub_layers[1:],
+            self._sub_layers[0].grads[0],
+        )
 
         return dx
 
@@ -89,7 +92,7 @@ class Embedding(Layer):
 
 
 class EmbeddingDot(Layer):
-    indexes_key = 'indexes'
+    indexes_key = "indexes"
 
     def __init__(self, W: np.ndarray, updater: Optimizer):
         self.params = [W]
@@ -105,7 +108,9 @@ class EmbeddingDot(Layer):
         self._x = x
 
         if self.indexes_key not in kwargs:
-            raise LayerException('{} key is required as argument'.format(self.indexes_key))
+            raise LayerException(
+                "{} key is required as argument".format(self.indexes_key)
+            )
         indexes = kwargs[self.indexes_key]
         self._indexes = indexes
 
@@ -175,8 +180,11 @@ class CBOWInputEmbedding(Layer):
             layer.backward(dout)
 
         # sum all sub layer's gradients
-        dW[...] = reduce(lambda grad, sub_layer: grad + sub_layer.grads[0], self._sub_layers[1:],
-                         self._sub_layers[0].grads[0])
+        dW[...] = reduce(
+            lambda grad, sub_layer: grad + sub_layer.grads[0],
+            self._sub_layers[1:],
+            self._sub_layers[0].grads[0],
+        )
 
         # CBOW input has no dx because it has no meaning and not used.
         return None
@@ -186,12 +194,14 @@ class CBOWInputEmbedding(Layer):
 
 
 class NegativeSampling(Layer):
-    positive_indexes_key = 'positive_indexes'
+    positive_indexes_key = "positive_indexes"
 
     _embedding_dot_layers: list[EmbeddingDot]
     _loss_layers: list[SigmoidWithLoss]
 
-    def __init__(self, W, negative_size: int, sampler: UnigramSampler, updater: Optimizer):
+    def __init__(
+        self, W, negative_size: int, sampler: UnigramSampler, updater: Optimizer
+    ):
         self.params = [W]
         self.grads = [np.zeros_like(W)]
         self._sampler = sampler
@@ -200,15 +210,23 @@ class NegativeSampling(Layer):
 
         # positive layer 1 + negative layers
         # fist layer is for positive
-        self._embedding_dot_layers = [EmbeddingDot(W, None) for _ in range(negative_size + 1)]
+        self._embedding_dot_layers = [
+            EmbeddingDot(W, None) for _ in range(negative_size + 1)
+        ]
         self._loss_layers = [SigmoidWithLoss() for _ in range(negative_size + 1)]
 
         self._x = None
 
     @classmethod
-    def from_size(cls, input_size: int, words_size: int, negative_size: int, sampler: UnigramSampler,
-                  updater: Optimizer,
-                  init_weight=0.01):
+    def from_size(
+        cls,
+        input_size: int,
+        words_size: int,
+        negative_size: int,
+        sampler: UnigramSampler,
+        updater: Optimizer,
+        init_weight=0.01,
+    ):
 
         W = np.random.randn(input_size, words_size) * init_weight
         return cls(W, negative_size, sampler, updater)
@@ -218,7 +236,9 @@ class NegativeSampling(Layer):
         batch_size = x.shape[0]
         positive_indexes = kwargs[self.positive_indexes_key]
 
-        negative_indexes = self._sampler.sample(batch_size, self._negative_size, exception_ids=positive_indexes)
+        negative_indexes = self._sampler.sample(
+            batch_size, self._negative_size, exception_ids=positive_indexes
+        )
 
         positive_kwargs = {EmbeddingDot.indexes_key: positive_indexes}
         out_positive = self._embedding_dot_layers[0].forward(x, **positive_kwargs)
@@ -241,9 +261,11 @@ class NegativeSampling(Layer):
             dloss = self._loss_layers[i].backward(dout)
             dx += self._embedding_dot_layers[i].backward(dloss)
 
-        self.grads[0][...] = reduce(lambda grad, embedding_dot_layer: grad + embedding_dot_layer.grads[0],
-                                    self._embedding_dot_layers[1:],
-                                    self._embedding_dot_layers[0].grads[0])
+        self.grads[0][...] = reduce(
+            lambda grad, embedding_dot_layer: grad + embedding_dot_layer.grads[0],
+            self._embedding_dot_layers[1:],
+            self._embedding_dot_layers[0].grads[0],
+        )
 
         return dx
 
@@ -259,9 +281,9 @@ class LSTM:
         self._cache = {}
 
     def forward(self, x: np.ndarray, h_prev: np.ndarray, c_prev: np.ndarray):
-        self._cache['x'] = x
-        self._cache['h_prev'] = h_prev
-        self._cache['c_prev'] = c_prev
+        self._cache["x"] = x
+        self._cache["h_prev"] = h_prev
+        self._cache["c_prev"] = c_prev
 
         N, H = h_prev.shape
 
@@ -271,37 +293,37 @@ class LSTM:
         Z = np.matmul(x, Wx) + np.matmul(h_prev, Wh) + b
 
         forget_gate = Z[:, :H]
-        remember_cell = Z[:, H: 2 * H]
-        input_gate = Z[:, 2 * H: 3 * H]
-        output_gate = Z[:, 3 * H:]
+        remember_cell = Z[:, H : 2 * H]
+        input_gate = Z[:, 2 * H : 3 * H]
+        output_gate = Z[:, 3 * H :]
 
         forget_gate = sigmoid(forget_gate)
         remember_cell = tanh(remember_cell)
         input_gate = sigmoid(input_gate)
         output_gate = sigmoid(output_gate)
 
-        self._cache['forget_gate'] = forget_gate
-        self._cache['remember_cell'] = remember_cell
-        self._cache['input_gate'] = input_gate
-        self._cache['output_gate'] = output_gate
+        self._cache["forget_gate"] = forget_gate
+        self._cache["remember_cell"] = remember_cell
+        self._cache["input_gate"] = input_gate
+        self._cache["output_gate"] = output_gate
 
         c_next = c_prev * forget_gate + remember_cell * input_gate
         tanh_c_next = tanh(c_next)
         h_next = tanh_c_next * output_gate
 
-        self._cache['tanh_c_next'] = tanh_c_next
+        self._cache["tanh_c_next"] = tanh_c_next
 
         return h_next, c_next
 
     def backward(self, dh: np.ndarray, dc: np.ndarray):
-        x = self._cache['x']
-        h_prev = self._cache['h_prev']
-        c_prev = self._cache['c_prev']
-        tanh_c_next = self._cache['tanh_c_next']
-        forget_gate = self._cache['forget_gate']
-        remember_cell = self._cache['remember_cell']
-        input_gate = self._cache['input_gate']
-        output_gate = self._cache['output_gate']
+        x = self._cache["x"]
+        h_prev = self._cache["h_prev"]
+        c_prev = self._cache["c_prev"]
+        tanh_c_next = self._cache["tanh_c_next"]
+        forget_gate = self._cache["forget_gate"]
+        remember_cell = self._cache["remember_cell"]
+        input_gate = self._cache["input_gate"]
+        output_gate = self._cache["output_gate"]
 
         dtanh_h_next = dh * output_gate * (1 - np.square(tanh_c_next))
         ds = dc + dtanh_h_next
@@ -354,7 +376,9 @@ class GroupedLSTM(Layer):
     def _validate_params(self):
         Wx, Wh, b = self.params
         assert Wx.shape[1] == Wh.shape[1], "Wx.shape[1] == Wh.shape[1] is required"
-        assert 4 * Wh.shape[0] == Wh.shape[1], "4 * Wh.shape[0] == Wh.shape[1] is required"
+        assert (
+            4 * Wh.shape[0] == Wh.shape[1]
+        ), "4 * Wh.shape[0] == Wh.shape[1] is required"
         assert 1 == b.shape[0], "b.shape[0] should be 1"
         assert Wh.shape[1] == b.shape[1], "Wh.shape[1] == b.shape[1] is required"
 
@@ -379,7 +403,7 @@ class GroupedLSTM(Layer):
         for t in range(T):
             layer = LSTM(Wx, Wh, b)
 
-            # save h, c as instance variable for forward propagation of next subsequences (truncated group)
+            # save h, c as instance tensor for forward propagation of next subsequences (truncated group)
             self._h, self._c = layer.forward(xs[:, t, :], self._h, self._c)
             hs[:, t, :] = self._h
 
@@ -428,7 +452,7 @@ class GroupedAffine(Layer):
 
     def forward(self, xs: np.ndarray, **kwargs):
         N, T, D = xs.shape
-        self._cache['original_shape'] = xs.shape
+        self._cache["original_shape"] = xs.shape
         W = self.params[0]
         b = self.params[1]
 
@@ -436,7 +460,7 @@ class GroupedAffine(Layer):
 
         xs = xs.reshape(N * T, D)
 
-        self._cache['xs'] = xs
+        self._cache["xs"] = xs
 
         Z = np.dot(xs, W) + b
 
@@ -445,8 +469,8 @@ class GroupedAffine(Layer):
     def backward(self, dout: np.ndarray):
         N, T, H = dout.shape
 
-        xs = self._cache['xs']
-        original_shape = self._cache['original_shape']
+        xs = self._cache["xs"]
+        original_shape = self._cache["original_shape"]
 
         W = self.params[0]
         dW = self.grads[0]
@@ -473,20 +497,20 @@ class GroupedSoftmaxWithLoss:
 
     def forward(self, xs: np.ndarray, ts: np.ndarray):
         N, T, D = xs.shape
-        self._cache['original_size'] = xs.shape
+        self._cache["original_size"] = xs.shape
         xs = xs.reshape(N * T, D)
         ts = ts.reshape(N * T, D)
 
         ys = activation.softmax(xs)
 
-        self._cache['ys'] = ys
-        self._cache['ts'] = ts
+        self._cache["ys"] = ys
+        self._cache["ts"] = ts
         return loss.cross_entropy(ys, ts)
 
     def backward(self, dout=1):
-        ys = self._cache['ys']
-        ts = self._cache['ts']
-        original_size = self._cache['original_size']
+        ys = self._cache["ys"]
+        ts = self._cache["ts"]
+        original_size = self._cache["original_size"]
 
         batch_size = ys.shape[0]
         dxs = dout * (ys - ts) / batch_size
@@ -509,16 +533,16 @@ class WeightSum(Layer):
         out = hs * weight
         out = out.sum(axis=1)
 
-        self._cache['shape'] = hs.shape
-        self._cache['hs'] = hs
-        self._cache['weight'] = weight
+        self._cache["shape"] = hs.shape
+        self._cache["hs"] = hs
+        self._cache["weight"] = weight
         return out
 
     def backward(self, dout: np.ndarray):
         # dout: N X H
-        N, T, H = self._cache['shape']
-        hs = self._cache['hs']
-        weight = self._cache['weight']
+        N, T, H = self._cache["shape"]
+        hs = self._cache["hs"]
+        weight = self._cache["weight"]
 
         dout = dout.reshape((N, 1, H)).repeat(T, axis=1)
 
@@ -551,19 +575,19 @@ class WeightForAttention(Layer):
         softmax = Softmax()
         out = softmax.forward(out)
 
-        self._cache['softmax'] = softmax
-        self._cache['shape'] = hs_from_encoding.shape
-        self._cache['hs_from_encoding'] = hs_from_encoding
-        self._cache['h_from_decoding'] = h_from_decoding
+        self._cache["softmax"] = softmax
+        self._cache["shape"] = hs_from_encoding.shape
+        self._cache["hs_from_encoding"] = hs_from_encoding
+        self._cache["h_from_decoding"] = h_from_decoding
         return out
 
     def backward(self, dout: np.ndarray):
         # dout: N X T
 
-        softmax = self._cache['softmax']
-        N, T, H = self._cache['shape']
-        hs_from_encoding = self._cache['hs_from_encoding']
-        h_from_decoding = self._cache['h_from_decoding']
+        softmax = self._cache["softmax"]
+        N, T, H = self._cache["shape"]
+        hs_from_encoding = self._cache["hs_from_encoding"]
+        h_from_decoding = self._cache["h_from_decoding"]
 
         dout = softmax.backward(dout)
 

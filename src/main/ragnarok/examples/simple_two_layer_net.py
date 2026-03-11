@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.nn.function.loss import MeanSquaredError
 from src.main.ragnarok.nn.layer.activation import ReLU
 from src.main.ragnarok.nn.layer.linear import Linear
@@ -18,8 +18,8 @@ if __name__ == "__main__":
     loss_func = MeanSquaredError()
     optimizer = Adam(lr=0.001)
 
-    x = Variable(np.random.randn(10, 8))
-    t = Variable(np.random.randn(10, 4))
+    x = Tensor(np.random.randn(10, 8))
+    t = Tensor(np.random.randn(10, 4))
 
     trainer = Trainer(
         model=model, optimizer=optimizer, loss_func=loss_func, epochs=10000

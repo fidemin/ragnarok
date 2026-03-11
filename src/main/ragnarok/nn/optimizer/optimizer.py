@@ -3,7 +3,7 @@ from typing import Iterable, Optional, List
 
 import numpy as np
 
-from src.main.ragnarok.core.variable.variable import zeros_like, Variable
+from src.main.ragnarok.core.tensor.tensor import zeros_like, Tensor
 from src.main.ragnarok.nn.core.parameter import Parameter
 
 
@@ -33,7 +33,7 @@ class SGD(Optimizer):
 
 
 class Momentum(Optimizer):
-    _v: Optional[List[Variable]]
+    _v: Optional[List[Tensor]]
 
     def __init__(self, lr=0.01, momentum=0.9):
         self._lr = lr

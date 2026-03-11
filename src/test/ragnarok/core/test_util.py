@@ -3,14 +3,14 @@ import pytest
 
 from src.main.ragnarok.core.function.math import Square, Add
 from src.main.ragnarok.core.util import numerical_diff, allclose
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 
 
 @pytest.mark.parametrize(
     "test_input,expected",
     [
-        (Variable(np.array([3.0, 4.0])), Variable(np.array([6.0, 8.0]))),
-        (Variable(np.array([0.0, 2.0])), Variable(np.array([0.0, 4.0]))),
+        (Tensor(np.array([3.0, 4.0])), Tensor(np.array([6.0, 8.0]))),
+        (Tensor(np.array([0.0, 2.0])), Tensor(np.array([0.0, 4.0]))),
     ],
 )
 def test_numerical_diff__one_input_one_output(test_input, expected):
@@ -22,8 +22,8 @@ def test_numerical_diff__one_input_one_output(test_input, expected):
 @pytest.mark.parametrize(
     "test_input,expected",
     [
-        (Variable(np.array([[3.0, 4.0]])), Variable(np.array([[6.0, 8.0]]))),
-        (Variable(np.array([[0.0, 2.0]])), Variable(np.array([[0.0, 4.0]]))),
+        (Tensor(np.array([[3.0, 4.0]])), Tensor(np.array([[6.0, 8.0]]))),
+        (Tensor(np.array([[0.0, 2.0]])), Tensor(np.array([[0.0, 4.0]]))),
     ],
 )
 def test_numerical_diff__one_input_one_output(test_input, expected):
@@ -34,8 +34,8 @@ def test_numerical_diff__one_input_one_output(test_input, expected):
 
 def test_numerical_diff__two_inputs_one_output():
     f = Add()
-    test_inputs = [Variable(np.array([[3.0, 4.0]])), Variable(np.array([[6.0, 8.0]]))]
-    expected = Variable(np.array([[1.0, 1.0]])), Variable(np.array([[1.0, 1.0]]))
+    test_inputs = [Tensor(np.array([[3.0, 4.0]])), Tensor(np.array([[6.0, 8.0]]))]
+    expected = Tensor(np.array([[1.0, 1.0]])), Tensor(np.array([[1.0, 1.0]]))
     actual = numerical_diff(f, *test_inputs)
 
     for i, dx in enumerate(actual):

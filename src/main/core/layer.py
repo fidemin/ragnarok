@@ -6,7 +6,7 @@ import numpy as np
 
 from src.main.core import loss, activation
 from src.main.core.optimizer import Optimizer
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.nn.core.parameter import Parameter
 from src.main.ragnarok.nn.layer.activation import Sigmoid as SigmoidProxy
 from src.main.ragnarok.nn.layer.linear import Linear as LinearProxy
@@ -52,8 +52,8 @@ class Relu(Layer):
 
 
 class Sigmoid(Layer):
-    _in_var: Optional[Variable]
-    _out_var: Optional[Variable]
+    _in_var: Optional[Tensor]
+    _out_var: Optional[Tensor]
 
     def __init__(self):
         self.params = []
@@ -65,7 +65,7 @@ class Sigmoid(Layer):
         self.out = None
 
     def forward(self, x: np.ndarray, **kwargs):
-        x_var = Variable(x)
+        x_var = Tensor(x)
         y_var = self._proxy_layer.forward(x_var)
         self.out = y_var.data
         self._in_var = x_var
@@ -73,7 +73,7 @@ class Sigmoid(Layer):
         return y_var.data
 
     def backward(self, dout):
-        self._out_var.grad = Variable(dout)
+        self._out_var.grad = Tensor(dout)
         self._out_var.backward(retain_grad=True)
         return self._in_var.grad.data
 
@@ -82,8 +82,8 @@ class Sigmoid(Layer):
 
 
 class Affine(Layer):
-    _in_var: Optional[Variable]
-    _out_var: Optional[Variable]
+    _in_var: Optional[Tensor]
+    _out_var: Optional[Tensor]
 
     def __init__(
         self, W: np.ndarray, b: np.ndarray, updater: Optimizer = None, useBias=True
@@ -129,7 +129,7 @@ class Affine(Layer):
         self._original_shape = x.shape
         # To handle tensor
         x = x.reshape(x.shape[0], -1)
-        var_x = Variable(x)
+        var_x = Tensor(x)
         self.x = x
         y_var = self._proxy_layer.forward(var_x)
 
@@ -139,7 +139,7 @@ class Affine(Layer):
         return y_var.data
 
     def backward(self, dout: np.ndarray):
-        self._out_var.grad = Variable(dout)
+        self._out_var.grad = Tensor(dout)
 
         self._out_var.backward(retain_grad=True)
 

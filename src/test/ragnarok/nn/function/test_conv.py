@@ -1,5 +1,5 @@
 from src.main.ragnarok.core.util import allclose, numerical_diff
-from src.main.ragnarok.core.variable import Variable, ones_like
+from src.main.ragnarok.core.tensor import Tensor, ones_like
 from src.main.ragnarok.nn.function.conv import (
     img2col,
     fil2col,
@@ -18,7 +18,7 @@ def test_img2col():
         ],
     ]
 
-    input_var = Variable(arr)
+    input_var = Tensor(arr)
 
     col = img2col(input_var, FH=2, FW=3, padding=2, stride=1)
 
@@ -50,7 +50,7 @@ def test_img2col():
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     ]
 
-    expected_var = Variable(expected_arr)
+    expected_var = Tensor(expected_arr)
     assert allclose(col, expected_var)
 
 
@@ -100,9 +100,9 @@ def test_col2img():
             [[0.7 * 6, 0.8 * 6, 0.9 * 6], [1.0 * 6, 1.1 * 6, 1.2 * 6]],
         ],
     ]
-    expected_var = Variable(expected_arr)
+    expected_var = Tensor(expected_arr)
 
-    input_var = Variable(input_arr)
+    input_var = Tensor(input_arr)
 
     actual_var = col2img(input_var, N=1, C=2, H=2, W=3, FH=2, FW=3, padding=2, stride=1)
     allclose(actual_var, expected_var)
@@ -115,7 +115,7 @@ def test_fil2col():
         [[[1.1, 1.2, 1.3], [1.4, 1.5, 1.6]], [[1.7, 1.8, 1.9], [2.0, 2.1, 2.2]]],
     ]
 
-    input_var = Variable(arr)
+    input_var = Tensor(arr)
 
     col = fil2col(input_var)
 
@@ -124,7 +124,7 @@ def test_fil2col():
         [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2],
     ]
 
-    expected_var = Variable(expected_arr)
+    expected_var = Tensor(expected_arr)
     assert allclose(col, expected_var)
 
 
@@ -134,7 +134,7 @@ def test_col2fil():
         [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2],
     ]
 
-    input_var = Variable(input_arr)
+    input_var = Tensor(input_arr)
 
     actual_var = col2fil(input_var, FC=2, FH=2, FW=3)
 
@@ -142,7 +142,7 @@ def test_col2fil():
         [[[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], [[0.7, 0.8, 0.9], [1.0, 1.1, 1.2]]],
         [[[1.1, 1.2, 1.3], [1.4, 1.5, 1.6]], [[1.7, 1.8, 1.9], [2.0, 2.1, 2.2]]],
     ]
-    expected_var = Variable(expected_arr)
+    expected_var = Tensor(expected_arr)
 
     assert allclose(actual_var, expected_var)
 
@@ -163,9 +163,9 @@ class TestConv2D:
         # FN X 1 X 1 = 2 X 1 X 1
         b_arr = [[[0.1]], [[0.2]]]
 
-        x_var = Variable(x_arr)
-        w_var = Variable(w_arr)
-        b_var = Variable(b_arr)
+        x_var = Tensor(x_arr)
+        w_var = Tensor(w_arr)
+        b_var = Tensor(b_arr)
 
         f = Conv2D()
 
@@ -173,7 +173,7 @@ class TestConv2D:
         # N, FN, OH, OW = 1 X 2 X 2 X 3
         # expected_arr =
 
-        # assert allclose(actual, Variable(expected_arr))
+        # assert allclose(actual, Tensor(expected_arr))
         expected_arr = [
             [
                 [
@@ -193,7 +193,7 @@ class TestConv2D:
             ]
         ]
 
-        expected_var = Variable(expected_arr)
+        expected_var = Tensor(expected_arr)
         assert (1, 2, 5, 5) == actual.shape
         assert allclose(actual, expected_var)
 
@@ -211,9 +211,9 @@ class TestConv2D:
         # FN X 1 X 1 = 2 X 1 X 1
         b_arr = [[[0.1]], [[0.2]]]
 
-        x_var = Variable(x_arr)
-        w_var = Variable(w_arr)
-        b_var = Variable(b_arr)
+        x_var = Tensor(x_arr)
+        w_var = Tensor(w_arr)
+        b_var = Tensor(b_arr)
 
         f = Conv2D()
 
@@ -236,7 +236,7 @@ class TestConv2D:
                 ],
             ]
         ]
-        dout_var = Variable(dout_arr)
+        dout_var = Tensor(dout_arr)
 
         dx, dW, db = f.backward(dout_var)
 
@@ -252,9 +252,9 @@ class TestConv2D:
         # FN X 1 X 1 = 2 X 1 X 1
         b_arr = [[[0.1]], [[0.2]]]
 
-        x_var = Variable(x_arr)
-        w_var = Variable(w_arr)
-        b_var = Variable(b_arr)
+        x_var = Tensor(x_arr)
+        w_var = Tensor(w_arr)
+        b_var = Tensor(b_arr)
 
         f1 = Conv2D()
         f2 = Conv2D()

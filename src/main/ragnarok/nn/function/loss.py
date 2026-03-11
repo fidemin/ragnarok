@@ -2,18 +2,18 @@ import numpy as np
 
 from src.main.ragnarok.core.function.common import Function
 from src.main.ragnarok.core.function.math import log
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.nn.function.activation import softmax
 
 
 class MeanSquaredError(Function):
-    def forward(self, *variables: Variable, **kwargs) -> Variable:
+    def forward(self, *variables: Tensor, **kwargs) -> Tensor:
         x0, x1 = variables
         diff = x0 - x1
         length = len(diff) if diff.ndim > 0 else 1  # handle scalar
         return (diff**2).sum() / length
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         dout = douts[0]
 
         x0, x1 = self.inputs
@@ -25,15 +25,15 @@ class MeanSquaredError(Function):
 
         return dx0, dx1
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         if len(variables) != 2:
-            raise ValueError("MeanSquaredError requires 2 variables")
+            raise ValueError("MeanSquaredError requires 2 tensors")
         if variables[0].shape != variables[1].shape:
-            raise ValueError("MeanSquaredError requires the same shape variables")
+            raise ValueError("MeanSquaredError requires the same shape tensors")
 
 
 class CrossEntropyError(Function):
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Tensor, **kwargs):
         y, t = variables
         y_data = y.data
         t_data = t.data
@@ -45,9 +45,9 @@ class CrossEntropyError(Function):
         h = 1e-7
         batch_size = y_data.shape[0]
 
-        return Variable(-np.sum(t_data * np.log(y_data + h)) / batch_size)
+        return Tensor(-np.sum(t_data * np.log(y_data + h)) / batch_size)
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         dout = douts[0]
         y, t = self.inputs
 
@@ -62,26 +62,26 @@ class CrossEntropyError(Function):
 
         return dx, dt
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         if len(variables) != 2:
-            raise ValueError("CrossEntropyError requires 2 variables")
+            raise ValueError("CrossEntropyError requires 2 tensors")
 
         if variables[0].shape != variables[1].shape:
-            raise ValueError("CrossEntropyError requires the same shape variables")
+            raise ValueError("CrossEntropyError requires the same shape tensors")
 
 
-def cross_entropy_error(y: Variable, t: Variable) -> Variable:
+def cross_entropy_error(y: Tensor, t: Tensor) -> Tensor:
     return CrossEntropyError()(y, t)
 
 
 class SoftMaxLoss(Function):
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Tensor, **kwargs):
         y = softmax(variables[0])
         self._cache["y"] = y
         t = variables[1]
         return cross_entropy_error(y, t)
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         dout = douts[0]
         y = self._cache["y"]
         t = self.inputs[1]
@@ -95,6 +95,6 @@ class SoftMaxLoss(Function):
         dt = -dout * log(y) / batch_size
         return dy, dt
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         if len(variables) != 2:
-            raise ValueError("SoftMaxLoss requires 2 variables")
+            raise ValueError("SoftMaxLoss requires 2 tensors")

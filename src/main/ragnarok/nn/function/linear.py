@@ -1,10 +1,10 @@
 from src.main.ragnarok.core.function import Function, sum_to
 from src.main.ragnarok.core.function.math import matmul
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 
 
 class Linear(Function):
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Tensor, **kwargs):
         x, W, b = variables
 
         t = matmul(x, W)
@@ -13,7 +13,7 @@ class Linear(Function):
         t.release()  # data of t is not used anymore
         return y
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         dout = douts[0]
         x, W, b = self.inputs
 
@@ -23,10 +23,10 @@ class Linear(Function):
 
         return dx, dW, db
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         if len(variables) != 3:
-            raise ValueError("Linear requires 3 variables")
+            raise ValueError("Linear requires 3 tensors")
 
 
-def linear(x: Variable, W: Variable, b: Variable) -> Variable:
+def linear(x: Tensor, W: Tensor, b: Tensor) -> Tensor:
     return Linear()(x, W, b)

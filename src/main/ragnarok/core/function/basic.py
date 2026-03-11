@@ -5,12 +5,12 @@ from src.main.ragnarok.core.function.common import (
     FunctionVariableError,
     NotSupportedOperationException,
 )
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 
 
 class Comparison(Function):
-    def forward(self, *variables: Variable, **kwargs):
-        x0, x1 = variables
+    def forward(self, *tensors: Tensor, **kwargs):
+        x0, x1 = tensors
         operator = kwargs["operator"]
         if operator == "eq":
             y_data = x0.data == x1.data
@@ -26,14 +26,14 @@ class Comparison(Function):
             y_data = x0.data >= x1.data
         else:
             raise FunctionVariableError(f"Unknown operator: {operator}")
-        return Variable(y_data)
+        return Tensor(y_data)
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         raise NotSupportedOperationException(
             "Comparison does not support backward propagation."
         )
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         if "operator" not in kwargs:
             raise FunctionVariableError("operator is required for Comparison function.")
         operator = kwargs["operator"]
@@ -44,45 +44,45 @@ class Comparison(Function):
         var_length = len(variables)
         if var_length != 2:
             raise FunctionVariableError(
-                "There should be two input variable for Comparison function."
+                "There should be two input tensor for Comparison function."
             )
 
 
 class Split(Function):
-    def forward(self, *variables: Variable, num_of_splits=2, axis=0):
+    def forward(self, *variables: Tensor, num_of_splits=2, axis=0):
         x = variables[0]
         ys_data = np.split(x.data, indices_or_sections=num_of_splits, axis=axis)
-        return [Variable(y_data) for y_data in ys_data]
+        return [Tensor(y_data) for y_data in ys_data]
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         # TODO: Should be implemented with Function, not numpy operation
         #  to support high order differentiation
         douts_data = [dout.data for dout in douts]
         dx = np.concatenate(douts_data, axis=self.kwargs["axis"])
-        return Variable(dx)
+        return Tensor(dx)
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         var_length = len(variables)
         if var_length != 1:
             raise FunctionVariableError(
-                "There should be one input variable for Split function."
+                "There should be one input tensor for Split function."
             )
 
 
 class Reshape(Function):
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Tensor, **kwargs):
         shape = kwargs["shape"]
         x = variables[0]
         y = x.data.reshape(shape)
-        return Variable(y)
+        return Tensor(y)
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         # TODO: Should be implemented with Function, not numpy operation
         #  to support high order differentiation
         dx = douts[0].data.reshape(self.inputs[0].shape)
-        return Variable(dx)
+        return Tensor(dx)
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         if "shape" not in kwargs:
             raise FunctionVariableError("shape is required for Reshape function.")
         shape = kwargs["shape"]
@@ -91,27 +91,27 @@ class Reshape(Function):
         var_length = len(variables)
         if var_length != 1:
             raise FunctionVariableError(
-                "There should be one input variable for Reshape function."
+                "There should be one input tensor for Reshape function."
             )
 
 
 class Transpose(Function):
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Tensor, **kwargs):
         transpose = kwargs.get("transpose", None)
         x = variables[0]
         if transpose is None:
             y_var = x.data.T
         else:
             y_var = x.data.transpose(transpose)
-        return Variable(y_var)
+        return Tensor(y_var)
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         dout = douts[0]
         transpose = self.kwargs.get("transpose", None)
         dx = Transpose()(dout, transpose=transpose)
         return dx
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         transpose = kwargs.get("transpose", None)
         if transpose is not None and not isinstance(transpose, tuple):
             raise FunctionVariableError(
@@ -121,7 +121,7 @@ class Transpose(Function):
         var_length = len(variables)
         if var_length != 1:
             raise FunctionVariableError(
-                "There should be one input variable for Transpose function."
+                "There should be one input tensor for Transpose function."
             )
 
 
@@ -172,7 +172,7 @@ def _find_axis_to_for_sum_to(from_shape: tuple, to_shape: tuple) -> (tuple, tupl
 
 
 class BroadcastTo(Function):
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Tensor, **kwargs):
         shape = kwargs["shape"]
         x = variables[0]
         try:
@@ -181,14 +181,14 @@ class BroadcastTo(Function):
             raise FunctionVariableError(
                 f"Can not broadcast {x.shape} to {shape}: {str(e)}"
             )
-        return Variable(y_var)
+        return Tensor(y_var)
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         to_shape = self.inputs[0].shape
         dx = sum_to(douts[0], to_shape)
         return dx
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         if "shape" not in kwargs:
             raise FunctionVariableError("shape is required for BroadcastTo function.")
         shape = kwargs["shape"]
@@ -199,12 +199,12 @@ class BroadcastTo(Function):
         var_length = len(variables)
         if var_length != 1:
             raise FunctionVariableError(
-                "There should be one input variable for BroadcastTo function."
+                "There should be one input tensor for BroadcastTo function."
             )
 
 
 class SumTo(Function):
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Tensor, **kwargs):
         shape = kwargs["shape"]
         x = variables[0]
         axis_without_keepdims, axis_with_keepdims = _find_axis_to_for_sum_to(
@@ -219,14 +219,14 @@ class SumTo(Function):
         if axis_with_keepdims:
             y_var = np.sum(y_var, axis=axis_with_keepdims, keepdims=True)
 
-        return Variable(y_var)
+        return Tensor(y_var)
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         to_shape = self.inputs[0].shape
         dx = BroadcastTo()(douts[0], shape=to_shape)
         return dx
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         if "shape" not in kwargs:
             raise FunctionVariableError("shape is required for SumTo function.")
         shape = kwargs["shape"]
@@ -235,23 +235,23 @@ class SumTo(Function):
         var_length = len(variables)
         if var_length != 1:
             raise FunctionVariableError(
-                "There should be one input variable for SumTo function."
+                "There should be one input tensor for SumTo function."
             )
 
 
-def sum_to(x: Variable, shape: tuple) -> Variable:
+def sum_to(x: Tensor, shape: tuple) -> Tensor:
     return SumTo()(x, shape=shape)
 
 
 class Sum(Function):
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Tensor, **kwargs):
         axis = kwargs.get("axis", None)
         keepdims = kwargs.get("keepdims", False)
         x = variables[0]
         y = np.sum(x.data, axis=axis, keepdims=keepdims)
-        return Variable(y)
+        return Tensor(y)
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         dout = douts[0]
 
         input_ = self.inputs[0]
@@ -260,9 +260,9 @@ class Sum(Function):
         dx = BroadcastTo()(dout, shape=shape)
         return dx
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         var_length = len(variables)
         if var_length != 1:
             raise FunctionVariableError(
-                "There should be one input variable for Sum function."
+                "There should be one input tensor for Sum function."
             )

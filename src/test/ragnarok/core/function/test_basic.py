@@ -29,18 +29,18 @@ from src.main.ragnarok.core.function.math import (
     Log,
     MatMul,
 )
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.core.util import numerical_diff, allclose
-from src.main.ragnarok.core.variable import Variable
 
 
 class FunctionForTest(Function):
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         return douts[0]
 
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Tensor, **kwargs):
         return variables[0]
 
-    def _validate_variables(self, *variables: Variable):
+    def _validate_variables(self, *variables: Tensor):
         pass
 
 
@@ -49,28 +49,28 @@ class TestSquare:
         "test_input,expected",
         [
             (
-                Variable(np.array([[1.0, 2.0, 3.0]])),
-                Variable(np.array([[2.0, 4.0, 6.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0]])),
+                Tensor(np.array([[2.0, 4.0, 6.0]])),
             ),
-            (Variable(3), Variable(6)),
-            (Variable(3.0), Variable(6.0)),
+            (Tensor(3), Tensor(6)),
+            (Tensor(3.0), Tensor(6.0)),
         ],
     )
     def test_backward(self, test_input, expected):
         f = Square()
         f(test_input)
-        actual = f.backward(Variable(1.0))
+        actual = f.backward(Tensor(1.0))
         assert allclose(actual, expected)
 
     @pytest.mark.parametrize(
         "test_input,expected",
         [
             (
-                Variable(np.array([[1.0, 2.0, 3.0]])),
-                Variable(np.array([[1.0, 4.0, 9.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0]])),
+                Tensor(np.array([[1.0, 4.0, 9.0]])),
             ),
-            (Variable(3), Variable(9)),
-            (Variable(3.0), Variable(9.0)),
+            (Tensor(3), Tensor(9)),
+            (Tensor(3.0), Tensor(9.0)),
         ],
     )
     def test_call(self, test_input, expected):
@@ -83,8 +83,8 @@ class TestSquare:
         "test_input",
         [
             [
-                Variable(np.array([[1.0, 2.0, 3.0]])),
-                Variable(np.array([[1.0, 4.0, 9.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0]])),
+                Tensor(np.array([[1.0, 4.0, 9.0]])),
             ],
             [],
         ],
@@ -95,12 +95,12 @@ class TestSquare:
             f(*test_input)
 
     def test_gradient_check(self):
-        test_input = Variable(np.array([[1.0, 2.0, 3.0]]))
+        test_input = Tensor(np.array([[1.0, 2.0, 3.0]]))
         f1 = Square()
         f2 = Square()
 
         f1(test_input)
-        actual = f1.backward(Variable(1.0))
+        actual = f1.backward(Tensor(1.0))
         expected = numerical_diff(f2, test_input)
         assert allclose(actual, expected)
 
@@ -110,28 +110,28 @@ class TestExp:
         "test_input,expected",
         [
             (
-                Variable(np.array([[1.0, 2.0, 3.0]])),
-                Variable(np.array([[2.718281828459, 7.389056098931, 20.085536923188]])),
+                Tensor(np.array([[1.0, 2.0, 3.0]])),
+                Tensor(np.array([[2.718281828459, 7.389056098931, 20.085536923188]])),
             ),
-            (Variable(3), Variable(20.085536923188)),
-            (Variable(3.0), Variable(20.085536923188)),
+            (Tensor(3), Tensor(20.085536923188)),
+            (Tensor(3.0), Tensor(20.085536923188)),
         ],
     )
     def test_backward(self, test_input, expected):
         f = Exp()
         for_weak_ref = f(test_input)
-        actual = f.backward(Variable(1.0))
+        actual = f.backward(Tensor(1.0))
         assert allclose(actual, expected)
 
     @pytest.mark.parametrize(
         "test_input,expected",
         [
             (
-                Variable(np.array([[1.0, 2.0, 3.0]])),
-                Variable(np.array([[2.718281828459, 7.389056098931, 20.085536923188]])),
+                Tensor(np.array([[1.0, 2.0, 3.0]])),
+                Tensor(np.array([[2.718281828459, 7.389056098931, 20.085536923188]])),
             ),
-            (Variable(3), Variable(20.085536923188)),
-            (Variable(3.0), Variable(20.085536923188)),
+            (Tensor(3), Tensor(20.085536923188)),
+            (Tensor(3.0), Tensor(20.085536923188)),
         ],
     )
     def test_call(self, test_input, expected):
@@ -144,8 +144,8 @@ class TestExp:
         "test_input",
         [
             [
-                Variable(np.array([[1.0, 2.0, 3.0]])),
-                Variable(np.array([[1.0, 4.0, 9.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0]])),
+                Tensor(np.array([[1.0, 4.0, 9.0]])),
             ],
             [],
         ],
@@ -156,24 +156,24 @@ class TestExp:
             f(*test_input)
 
     def test_gradient_check(self):
-        test_input = Variable(np.array([[1.0, 2.0, 3.0]]))
+        test_input = Tensor(np.array([[1.0, 2.0, 3.0]]))
         f1 = Exp()
         f2 = Exp()
 
         for_weak_ref = f1(test_input)
-        actual = f1.backward(Variable(1.0))
+        actual = f1.backward(Tensor(1.0))
         expected = numerical_diff(f2, test_input)
         assert allclose(actual, expected)
 
 
 class TestAdd:
     def test_forward(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
+        test_input1 = Tensor(np.array([0.1, 0.2]))
+        test_input2 = Tensor(np.array([0.3, 0.4]))
 
         f = Add()
 
-        expected = Variable(np.array([0.4, 0.6]))
+        expected = Tensor(np.array([0.4, 0.6]))
         actual = f.forward(test_input1, test_input2)
 
         assert np.allclose(actual.data, expected.data)
@@ -185,23 +185,23 @@ class TestAdd:
             (
                 (2,),
                 (2,),
-                Variable(np.array([1.0, 2.0])),
-                Variable(np.array([1.0, 2.0])),
-                Variable(np.array([1.0, 2.0])),
+                Tensor(np.array([1.0, 2.0])),
+                Tensor(np.array([1.0, 2.0])),
+                Tensor(np.array([1.0, 2.0])),
             ),
             # broadcast case
             (
                 (2,),
                 (3, 2),
-                Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])),
-                Variable(np.array([6.0, 9.0])),
-                Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])),
+                Tensor(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])),
+                Tensor(np.array([6.0, 9.0])),
+                Tensor(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])),
             ),
         ],
     )
     def test_backward(self, shape1, shape2, dout, expected1, expected2):
-        var1 = Variable(np.random.rand(*shape1))
-        var2 = Variable(np.random.rand(*shape2))
+        var1 = Tensor(np.random.rand(*shape1))
+        var2 = Tensor(np.random.rand(*shape2))
 
         f = Add()
         f(var1, var2)
@@ -218,21 +218,21 @@ class TestAdd:
             (
                 (2,),
                 (2,),
-                Variable(np.array([1.0, 1.0])),
+                Tensor(np.array([1.0, 1.0])),
             ),
             # broadcast case
             (
                 (2,),
                 (3, 2),
-                Variable(np.array([[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]])),
+                Tensor(np.array([[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]])),
             ),
         ],
     )
     def test_gradient_check(self, shape1, shape2, dout):
         f = Add()
         test_inputs = [
-            Variable(np.random.rand(*shape1)),
-            Variable(np.random.rand(*shape2)),
+            Tensor(np.random.rand(*shape1)),
+            Tensor(np.random.rand(*shape2)),
         ]
 
         f(*test_inputs)
@@ -247,26 +247,26 @@ class TestAdd:
 
 class TestSubtract:
     def test_forward(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
+        test_input1 = Tensor(np.array([0.1, 0.2]))
+        test_input2 = Tensor(np.array([0.3, 0.4]))
 
         f = Subtract()
 
-        expected = Variable(np.array([-0.2, -0.2]))
+        expected = Tensor(np.array([-0.2, -0.2]))
         actual = f.forward(test_input1, test_input2)
 
         assert allclose(actual, expected)
 
     def test_backward(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
+        test_input1 = Tensor(np.array([0.1, 0.2]))
+        test_input2 = Tensor(np.array([0.3, 0.4]))
 
         f = Subtract()
         f(test_input1, test_input2)
-        dout = Variable(np.array([1.0, 2.0]))
+        dout = Tensor(np.array([1.0, 2.0]))
 
-        expected1 = Variable(np.array([1.0, 2.0]))
-        expected2 = Variable(np.array([-1.0, -2.0]))
+        expected1 = Tensor(np.array([1.0, 2.0]))
+        expected2 = Tensor(np.array([-1.0, -2.0]))
 
         actual1, actual2 = f.backward(dout)
 
@@ -276,13 +276,13 @@ class TestSubtract:
     def test_gradient_check(self):
         f = Subtract()
         test_inputs = [
-            Variable(np.array([[3.0, 4.0]])),
-            Variable(np.array([[6.0, 8.0]])),
+            Tensor(np.array([[3.0, 4.0]])),
+            Tensor(np.array([[6.0, 8.0]])),
         ]
 
         f(*test_inputs)
 
-        actual = f.backward(Variable(np.array(1.0)))
+        actual = f.backward(Tensor(np.array(1.0)))
 
         expected = numerical_diff(f, *test_inputs)
 
@@ -292,26 +292,26 @@ class TestSubtract:
 
 class TestMultiply:
     def test_forward(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
+        test_input1 = Tensor(np.array([0.1, 0.2]))
+        test_input2 = Tensor(np.array([0.3, 0.4]))
 
         f = Multiply()
 
-        expected = Variable(np.array([0.03, 0.08]))
+        expected = Tensor(np.array([0.03, 0.08]))
         actual = f.forward(test_input1, test_input2)
 
         assert allclose(actual, expected)
 
     def test_backward(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
+        test_input1 = Tensor(np.array([0.1, 0.2]))
+        test_input2 = Tensor(np.array([0.3, 0.4]))
 
         f = Multiply()
         f(test_input1, test_input2)
-        dout = Variable(np.array([1.0, 2.0]))
+        dout = Tensor(np.array([1.0, 2.0]))
 
-        expected0 = Variable(np.array([0.3, 0.8]))
-        expected1 = Variable(np.array([0.1, 0.4]))
+        expected0 = Tensor(np.array([0.3, 0.8]))
+        expected1 = Tensor(np.array([0.1, 0.4]))
 
         dx0, dx1 = f.backward(dout)
 
@@ -321,13 +321,13 @@ class TestMultiply:
     def test_gradient_check(self):
         f = Multiply()
         test_inputs = [
-            Variable(np.array([[3.0, 4.0]])),
-            Variable(np.array([[6.0, 8.0]])),
+            Tensor(np.array([[3.0, 4.0]])),
+            Tensor(np.array([[6.0, 8.0]])),
         ]
 
         f(*test_inputs)
 
-        actual = f.backward(Variable(np.array(1.0)))
+        actual = f.backward(Tensor(np.array(1.0)))
 
         expected = numerical_diff(f, *test_inputs)
 
@@ -337,26 +337,26 @@ class TestMultiply:
 
 class TestDivide:
     def test_forward(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
+        test_input1 = Tensor(np.array([0.1, 0.2]))
+        test_input2 = Tensor(np.array([0.3, 0.4]))
 
         f = Divide()
 
-        expected = Variable(np.array([0.1 / 0.3, 0.2 / 0.4]))
+        expected = Tensor(np.array([0.1 / 0.3, 0.2 / 0.4]))
         actual = f.forward(test_input1, test_input2)
 
         assert allclose(actual, expected)
 
     def test_backward(self):
-        test_input1 = Variable(np.array([0.1, 0.2]))
-        test_input2 = Variable(np.array([0.3, 0.4]))
+        test_input1 = Tensor(np.array([0.1, 0.2]))
+        test_input2 = Tensor(np.array([0.3, 0.4]))
 
         f = Divide()
         f(test_input1, test_input2)
-        dout = Variable(np.array([1.0, 2.0]))
+        dout = Tensor(np.array([1.0, 2.0]))
 
-        expected1 = Variable(np.array([1.0 / 0.3, 2.0 / 0.4]))
-        expected2 = Variable(np.array([-1.0 * 0.1 / 0.3**2, -2.0 * 0.2 / 0.4**2]))
+        expected1 = Tensor(np.array([1.0 / 0.3, 2.0 / 0.4]))
+        expected2 = Tensor(np.array([-1.0 * 0.1 / 0.3**2, -2.0 * 0.2 / 0.4**2]))
 
         actual1, actual2 = f.backward(dout)
 
@@ -366,13 +366,13 @@ class TestDivide:
     def test_gradient_check(self):
         f = Divide()
         test_inputs = [
-            Variable(np.array([[3.0, 4.0]])),
-            Variable(np.array([[6.0, 8.0]])),
+            Tensor(np.array([[3.0, 4.0]])),
+            Tensor(np.array([[6.0, 8.0]])),
         ]
 
         f(*test_inputs)
 
-        actual = f.backward(Variable(np.array(1.0)))
+        actual = f.backward(Tensor(np.array(1.0)))
 
         expected = numerical_diff(f, *test_inputs)
 
@@ -385,24 +385,24 @@ class TestAutoBroadcast:
         "x0, x1, expected",
         [
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
                 1.0,
-                Variable(np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]])),
+                Tensor(np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]])),
             ),
             (
                 1.0,
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]])),
             ),
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([10.0, 20.0, 30.0])),
-                Variable(np.array([[11.0, 22.0, 33.0], [14.0, 25.0, 36.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([10.0, 20.0, 30.0])),
+                Tensor(np.array([[11.0, 22.0, 33.0], [14.0, 25.0, 36.0]])),
             ),
             (
-                Variable(np.array([10.0, 20.0, 30.0])),
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([[11.0, 22.0, 33.0], [14.0, 25.0, 36.0]])),
+                Tensor(np.array([10.0, 20.0, 30.0])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[11.0, 22.0, 33.0], [14.0, 25.0, 36.0]])),
             ),
         ],
     )
@@ -415,24 +415,24 @@ class TestAutoBroadcast:
         "x0, x1, expected",
         [
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
                 1.0,
-                Variable(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]])),
+                Tensor(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]])),
             ),
             (
                 1.0,
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([[0.0, -1.0, -2.0], [-3.0, -4.0, -5.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[0.0, -1.0, -2.0], [-3.0, -4.0, -5.0]])),
             ),
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([10.0, 20.0, 30.0])),
-                Variable(np.array([[-9.0, -18.0, -27.0], [-6.0, -15.0, -24.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([10.0, 20.0, 30.0])),
+                Tensor(np.array([[-9.0, -18.0, -27.0], [-6.0, -15.0, -24.0]])),
             ),
             (
-                Variable(np.array([10.0, 20.0, 30.0])),
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([[9.0, 18.0, 27.0], [6.0, 15.0, 24.0]])),
+                Tensor(np.array([10.0, 20.0, 30.0])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[9.0, 18.0, 27.0], [6.0, 15.0, 24.0]])),
             ),
         ],
     )
@@ -445,24 +445,24 @@ class TestAutoBroadcast:
         "x0, x1, expected",
         [
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
                 2.0,
-                Variable(np.array([[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]])),
+                Tensor(np.array([[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]])),
             ),
             (
                 2.0,
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]])),
             ),
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([10.0, 20.0, 30.0])),
-                Variable(np.array([[10.0, 40.0, 90.0], [40.0, 100.0, 180.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([10.0, 20.0, 30.0])),
+                Tensor(np.array([[10.0, 40.0, 90.0], [40.0, 100.0, 180.0]])),
             ),
             (
-                Variable(np.array([10.0, 20.0, 30.0])),
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([[10.0, 40.0, 90.0], [40.0, 100.0, 180.0]])),
+                Tensor(np.array([10.0, 20.0, 30.0])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[10.0, 40.0, 90.0], [40.0, 100.0, 180.0]])),
             ),
         ],
     )
@@ -475,24 +475,24 @@ class TestAutoBroadcast:
         "x0, x1, expected",
         [
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
                 2.0,
-                Variable(np.array([[0.5, 1.0, 1.5], [2.0, 2.5, 3.0]])),
+                Tensor(np.array([[0.5, 1.0, 1.5], [2.0, 2.5, 3.0]])),
             ),
             (
                 2.0,
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([[2.0, 1.0, 0.66666667], [0.5, 0.4, 0.33333333]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[2.0, 1.0, 0.66666667], [0.5, 0.4, 0.33333333]])),
             ),
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([10.0, 20.0, 30.0])),
-                Variable(np.array([[0.1, 0.1, 0.1], [0.4, 0.25, 0.2]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([10.0, 20.0, 30.0])),
+                Tensor(np.array([[0.1, 0.1, 0.1], [0.4, 0.25, 0.2]])),
             ),
             (
-                Variable(np.array([10.0, 20.0, 30.0])),
-                Variable(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
-                Variable(np.array([[10.0, 10.0, 10.0], [2.5, 4.0, 5.0]])),
+                Tensor(np.array([10.0, 20.0, 30.0])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])),
+                Tensor(np.array([[10.0, 10.0, 10.0], [2.5, 4.0, 5.0]])),
             ),
         ],
     )
@@ -506,7 +506,7 @@ class TestNegative:
     @pytest.mark.parametrize(
         "test_input,expected",
         [
-            (Variable(np.array([0.1, 0.2])), Variable(np.array([-0.1, -0.2]))),
+            (Tensor(np.array([0.1, 0.2])), Tensor(np.array([-0.1, -0.2]))),
         ],
     )
     def test_forward(self, test_input, expected):
@@ -516,24 +516,24 @@ class TestNegative:
         assert allclose(actual, expected)
 
     def test_backward(self):
-        test_input = Variable(np.array([1.1, 1.2]))
+        test_input = Tensor(np.array([1.1, 1.2]))
 
         f = Negative()
         f(test_input)
-        dout = Variable(np.array([1.0, 2.0]))
+        dout = Tensor(np.array([1.0, 2.0]))
 
-        expected = Variable(np.array([-1.0, -2.0]))
+        expected = Tensor(np.array([-1.0, -2.0]))
         actual = f.backward(dout)
 
         assert allclose(actual, expected)
 
     def test_gradient_check(self):
         f = Negative()
-        test_input = Variable(np.array([[1.0, 2.0]]))
+        test_input = Tensor(np.array([[1.0, 2.0]]))
 
         f(test_input)
 
-        actual = f.backward(Variable(np.array(1.0)))
+        actual = f.backward(Tensor(np.array(1.0)))
 
         expected = numerical_diff(f, test_input)
 
@@ -544,7 +544,7 @@ class TestPow:
     @pytest.mark.parametrize(
         "test_input,power,expected",
         [
-            (Variable(np.array([0.1, 0.2])), 2, Variable(np.array([0.01, 0.04]))),
+            (Tensor(np.array([0.1, 0.2])), 2, Tensor(np.array([0.01, 0.04]))),
         ],
     )
     def test_forward(self, test_input, power, expected):
@@ -557,16 +557,16 @@ class TestPow:
         "test_input,power,expected",
         [
             (
-                Variable(np.array([0.1, 0.2])),
+                Tensor(np.array([0.1, 0.2])),
                 2,
-                Variable(np.array([2 * (0.1**1) * 1.0, 2 * (0.2**1) * 2.0])),
+                Tensor(np.array([2 * (0.1**1) * 1.0, 2 * (0.2**1) * 2.0])),
             ),
         ],
     )
     def test_backward(self, test_input, power, expected):
         f = Pow()
         f(test_input, power=power)
-        dout = Variable(np.array([1.0, 2.0]))
+        dout = Tensor(np.array([1.0, 2.0]))
 
         actual = f.backward(dout)
 
@@ -574,11 +574,11 @@ class TestPow:
 
     def test_gradient_check(self):
         f = Pow()
-        test_input = Variable(np.array([[1.0, 2.0]]))
+        test_input = Tensor(np.array([[1.0, 2.0]]))
 
         f(test_input, power=2)
 
-        actual = f.backward(Variable(np.array(1.0)))
+        actual = f.backward(Tensor(np.array(1.0)))
 
         expected = numerical_diff(f, test_input, power=2)
 
@@ -598,25 +598,25 @@ class TestComparison:
         ],
     )
     def test_forward(self, operator, expected):
-        test_input1 = Variable([0.1, 0.2, 0.3])
-        test_input2 = Variable([0.2, 0.1, 0.3])
+        test_input1 = Tensor([0.1, 0.2, 0.3])
+        test_input2 = Tensor([0.2, 0.1, 0.3])
 
         f = Comparison()
 
         actual = f.forward(test_input1, test_input2, operator=operator)
-        expected_var = Variable(expected)
+        expected_var = Tensor(expected)
 
         assert allclose(actual, expected_var)
 
     def test_backward(self):
-        test_input1 = Variable([0.1, 0.2, 0.3])
-        test_input2 = Variable([0.2, 0.1, 0.3])
-        dout = Variable([1.0, 1.0, 1.0])
+        test_input1 = Tensor([0.1, 0.2, 0.3])
+        test_input2 = Tensor([0.2, 0.1, 0.3])
+        dout = Tensor([1.0, 1.0, 1.0])
 
         f = Comparison()
         f(test_input1, test_input2, operator="eq")
 
-        Variable([0.0, 0.0, 1.0])
+        Tensor([0.0, 0.0, 1.0])
 
         with pytest.raises(NotSupportedOperationException) as exc_info:
             f.backward(dout)
@@ -628,7 +628,7 @@ class TestComparison:
         [
             # wrong operator
             ("db", [(2,), (2,)]),
-            # the number of input variables is not 2
+            # the number of input tensors is not 2
             ("le", [(2,), (2,), (2,)]),
             ("le", [(2,)]),
         ],
@@ -636,7 +636,7 @@ class TestComparison:
     def test_validation_error(self, operator, shapes):
         input_vars = []
         for shape in shapes:
-            input_vars.append(Variable(np.random.rand(*shape)))
+            input_vars.append(Tensor(np.random.rand(*shape)))
 
         f = Comparison()
         with pytest.raises(FunctionVariableError) as exc_info:
@@ -650,8 +650,8 @@ class TestSin:
         "test_input,expected",
         [
             (
-                Variable(np.array([0.1, 0.2])),
-                Variable(np.array([np.sin(0.1), np.sin(0.2)])),
+                Tensor(np.array([0.1, 0.2])),
+                Tensor(np.array([np.sin(0.1), np.sin(0.2)])),
             ),
         ],
     )
@@ -662,24 +662,24 @@ class TestSin:
         assert allclose(actual, expected)
 
     def test_backward(self):
-        test_input = Variable(np.array([0.1, 0.2]))
+        test_input = Tensor(np.array([0.1, 0.2]))
 
         f = Sin()
         f(test_input)
-        dout = Variable(np.array([1.0, 1.0]))
+        dout = Tensor(np.array([1.0, 1.0]))
 
-        expected = Variable(np.array([np.cos(0.1), np.cos(0.2)]))
+        expected = Tensor(np.array([np.cos(0.1), np.cos(0.2)]))
         actual = f.backward(dout)
 
         assert allclose(actual, expected)
 
     def test_gradient_check(self):
         f = Sin()
-        test_input = Variable(np.array([[0.1, 0.2]]))
+        test_input = Tensor(np.array([[0.1, 0.2]]))
 
         f(test_input)
 
-        actual = f.backward(Variable(np.array(1.0)))
+        actual = f.backward(Tensor(np.array(1.0)))
 
         expected = numerical_diff(f, test_input)
 
@@ -691,8 +691,8 @@ class TestCos:
         "test_input,expected",
         [
             (
-                Variable(np.array([0.1, 0.2])),
-                Variable(np.array([np.cos(0.1), np.cos(0.2)])),
+                Tensor(np.array([0.1, 0.2])),
+                Tensor(np.array([np.cos(0.1), np.cos(0.2)])),
             ),
         ],
     )
@@ -703,24 +703,24 @@ class TestCos:
         assert allclose(actual, expected)
 
     def test_backward(self):
-        test_input = Variable(np.array([0.1, 0.2]))
+        test_input = Tensor(np.array([0.1, 0.2]))
 
         f = Cos()
         f(test_input)
-        dout = Variable(np.array([1.0, 1.0]))
+        dout = Tensor(np.array([1.0, 1.0]))
 
-        expected = Variable(np.array([-np.sin(0.1), -np.sin(0.2)]))
+        expected = Tensor(np.array([-np.sin(0.1), -np.sin(0.2)]))
         actual = f.backward(dout)
 
         assert allclose(actual, expected)
 
     def test_gradient_check(self):
         f = Cos()
-        test_input = Variable(np.array([[0.1, 0.2]]))
+        test_input = Tensor(np.array([[0.1, 0.2]]))
 
         f(test_input)
 
-        actual = f.backward(Variable(np.array(1.0)))
+        actual = f.backward(Tensor(np.array(1.0)))
 
         expected = numerical_diff(f, test_input)
 
@@ -729,34 +729,34 @@ class TestCos:
 
 class TestLog:
     def test_forward(self):
-        test_input = Variable([0.1, 0.2])
+        test_input = Tensor([0.1, 0.2])
 
         f = Log()
         actual = f.forward(test_input)
 
-        expected = Variable([np.log(0.1), np.log(0.2)])
+        expected = Tensor([np.log(0.1), np.log(0.2)])
 
         assert allclose(actual, expected)
 
     def test_backward(self):
-        test_input = Variable(np.array([0.1, 0.2]))
+        test_input = Tensor(np.array([0.1, 0.2]))
 
         f = Log()
         f(test_input)
-        dout = Variable([1.0, 1.0])
+        dout = Tensor([1.0, 1.0])
 
-        expected = Variable([1 / 0.1, 1 / 0.2])
+        expected = Tensor([1 / 0.1, 1 / 0.2])
         actual = f.backward(dout)
 
         assert allclose(actual, expected)
 
     def test_gradient_check(self):
         f = Log()
-        test_input = Variable(np.array([[0.1, 0.2]]))
+        test_input = Tensor(np.array([[0.1, 0.2]]))
 
         f(test_input)
 
-        actual = f.backward(Variable(np.array(1.0)))
+        actual = f.backward(Tensor(np.array(1.0)))
 
         expected = numerical_diff(f, test_input)
 
@@ -768,19 +768,19 @@ class TestSplit:
         "test_input,axis,expected",
         [
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
                 0,
                 [
-                    Variable(np.array([[1.0, 2.0, 3.0]])),
-                    Variable(np.array([[2.0, 4.0, 8.0]])),
+                    Tensor(np.array([[1.0, 2.0, 3.0]])),
+                    Tensor(np.array([[2.0, 4.0, 8.0]])),
                 ],
             ),
             (
-                Variable(np.array([[1.0, 3.0], [2.0, 4.0]])),
+                Tensor(np.array([[1.0, 3.0], [2.0, 4.0]])),
                 1,
                 [
-                    Variable(np.array([[1.0], [2.0]])),
-                    Variable(np.array([[3.0], [4.0]])),
+                    Tensor(np.array([[1.0], [2.0]])),
+                    Tensor(np.array([[3.0], [4.0]])),
                 ],
             ),
         ],
@@ -798,25 +798,25 @@ class TestSplit:
         [
             (
                 [
-                    Variable(np.array([[1.0, 2.0, 3.0]])),
-                    Variable(np.array([[2.0, 4.0, 8.0]])),
+                    Tensor(np.array([[1.0, 2.0, 3.0]])),
+                    Tensor(np.array([[2.0, 4.0, 8.0]])),
                 ],
                 0,
-                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
             ),
             (
                 [
-                    Variable(np.array([[1.0], [2.0]])),
-                    Variable(np.array([[3.0], [4.0]])),
+                    Tensor(np.array([[1.0], [2.0]])),
+                    Tensor(np.array([[3.0], [4.0]])),
                 ],
                 1,
-                Variable(np.array([[1.0, 3.0], [2.0, 4.0]])),
+                Tensor(np.array([[1.0, 3.0], [2.0, 4.0]])),
             ),
         ],
     )
     def test_backward(self, test_input, axis, expected):
         output_shape = expected.data.shape
-        forward_input = Variable(np.random.rand(*output_shape))
+        forward_input = Tensor(np.random.rand(*output_shape))
 
         split = Split()
         split(forward_input, axis=axis)
@@ -830,14 +830,14 @@ class TestReshape:
         "test_input,shape,expected",
         [
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
                 (3, 2),
-                Variable(np.array([[1.0, 2.0], [3.0, 2.0], [4.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0], [3.0, 2.0], [4.0, 8.0]])),
             ),
             (
-                Variable(np.array([[1.0, 3.0], [2.0, 4.0]])),
+                Tensor(np.array([[1.0, 3.0], [2.0, 4.0]])),
                 (4,),
-                Variable(np.array([1.0, 3.0, 2.0, 4.0])),
+                Tensor(np.array([1.0, 3.0, 2.0, 4.0])),
             ),
         ],
     )
@@ -850,20 +850,20 @@ class TestReshape:
         "test_input,shape,expected",
         [
             (
-                Variable(np.array([[1.0, 2.0], [3.0, 2.0], [4.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0], [3.0, 2.0], [4.0, 8.0]])),
                 (3, 2),
-                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
             ),
             (
-                Variable(np.array([1.0, 3.0, 2.0, 4.0])),
+                Tensor(np.array([1.0, 3.0, 2.0, 4.0])),
                 (2, 2),
-                Variable(np.array([[1.0, 3.0], [2.0, 4.0]])),
+                Tensor(np.array([[1.0, 3.0], [2.0, 4.0]])),
             ),
         ],
     )
     def test_backward(self, test_input, shape, expected):
         output_shape = expected.data.shape
-        forward_input = Variable(np.random.rand(*output_shape))
+        forward_input = Tensor(np.random.rand(*output_shape))
 
         split = Reshape()
         split(forward_input, shape=shape)
@@ -877,22 +877,20 @@ class TestTranspose:
         "test_input,transpose, expected",
         [
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
                 None,
-                Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
             ),
             (
-                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
                 (1, 0),
-                Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
             ),
             # more complex case
             (
-                Variable(
-                    np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
-                ),
+                Tensor(np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])),
                 (1, 0, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[1.0, 2.0], [5.0, 6.0]],
@@ -916,18 +914,18 @@ class TestTranspose:
         "test_input,transpose, expected",
         [
             (
-                Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
                 None,
-                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
             ),
             (
-                Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
                 (1, 0),
-                Variable(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
+                Tensor(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])),
             ),
             # more complex case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[1.0, 2.0], [5.0, 6.0]],
@@ -936,15 +934,13 @@ class TestTranspose:
                     )
                 ),
                 (1, 0, 2),
-                Variable(
-                    np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
-                ),
+                Tensor(np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])),
             ),
         ],
     )
     def test_backward(self, test_input, transpose, expected):
         output_shape = expected.shape
-        forward_input = Variable(np.random.rand(*output_shape))
+        forward_input = Tensor(np.random.rand(*output_shape))
 
         f = Transpose()
         if transpose:
@@ -961,14 +957,14 @@ class TestTranspose:
             # multi inputs
             (
                 [
-                    Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
-                    Variable(1.0),
+                    Tensor(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]])),
+                    Tensor(1.0),
                 ],
                 (1, 0, 2),
             ),
             # transpose is not tuple
             (
-                [Variable(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]]))],
+                [Tensor(np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 8.0]]))],
                 1,
             ),
         ],
@@ -984,13 +980,13 @@ class TestBroadcastTo:
         [
             # (3, 2) -> (3, 2) case: no broadcast required
             (
-                Variable(
+                Tensor(
                     np.array(
                         [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
                     )
                 ),
                 (3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
                     )
@@ -998,9 +994,9 @@ class TestBroadcastTo:
             ),
             # (3, 2) -> (2, 3, 2) case
             (
-                Variable(np.array([[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]])),
+                Tensor(np.array([[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]])),
                 (2, 3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]],
@@ -1011,9 +1007,9 @@ class TestBroadcastTo:
             ),
             # (1, 3, 2) -> (2, 3, 2) case
             (
-                Variable(np.array([[[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]]])),
+                Tensor(np.array([[[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]]])),
                 (2, 3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]],
@@ -1024,7 +1020,7 @@ class TestBroadcastTo:
             ),
             # (2, 1, 2) -> (2, 3, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[6.0, 9.0]],
@@ -1033,7 +1029,7 @@ class TestBroadcastTo:
                     )
                 ),
                 (2, 3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[6.0, 9.0], [6.0, 9.0], [6.0, 9.0]],
@@ -1044,7 +1040,7 @@ class TestBroadcastTo:
             ),
             #  (2, 1, 2, 1) -> (2, 3, 2, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1057,7 +1053,7 @@ class TestBroadcastTo:
                     )
                 ),
                 (2, 3, 2, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1076,7 +1072,7 @@ class TestBroadcastTo:
             ),
             # (1, 2, 2) -> (2, 3, 2, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1086,7 +1082,7 @@ class TestBroadcastTo:
                     )
                 ),
                 (2, 3, 2, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1105,7 +1101,7 @@ class TestBroadcastTo:
             ),
             # (3, 1, 2) -> (2, 3, 2, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[12.0, 16.0]],
@@ -1115,7 +1111,7 @@ class TestBroadcastTo:
                     )
                 ),
                 (2, 3, 2, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1160,7 +1156,7 @@ class TestBroadcastTo:
     def test_forward_error(self, from_shape, to_shape):
         with pytest.raises(FunctionVariableError) as exc_info:
             f = BroadcastTo()
-            f.forward(Variable(np.random.rand(*from_shape)), shape=to_shape)
+            f.forward(Tensor(np.random.rand(*from_shape)), shape=to_shape)
 
         print("error message: ", exc_info.value)
 
@@ -1169,13 +1165,13 @@ class TestBroadcastTo:
         [
             # (3, 2) -> (3, 2) case: no change
             (
-                Variable(
+                Tensor(
                     np.array(
                         [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
                     )
                 ),
                 (3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
                     )
@@ -1183,7 +1179,7 @@ class TestBroadcastTo:
             ),
             # (3, 2) -> (2, 3, 2) broadcast case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
@@ -1192,11 +1188,11 @@ class TestBroadcastTo:
                     )
                 ),
                 (2, 3, 2),
-                Variable(np.array([[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]])),
+                Tensor(np.array([[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]])),
             ),
             # (1, 3, 2) -> (2, 3, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
@@ -1205,11 +1201,11 @@ class TestBroadcastTo:
                     )
                 ),
                 (2, 3, 2),
-                Variable(np.array([[[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]]])),
+                Tensor(np.array([[[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]]])),
             ),
             # (2, 1, 2) -> (2, 3, 2) broadcast case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
@@ -1218,7 +1214,7 @@ class TestBroadcastTo:
                     )
                 ),
                 (2, 3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[6.0, 9.0]],
@@ -1229,7 +1225,7 @@ class TestBroadcastTo:
             ),
             # (2, 3, 1) -> (2, 3, 2) broadcast case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
@@ -1238,7 +1234,7 @@ class TestBroadcastTo:
                     )
                 ),
                 (2, 3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[3.0], [5.0], [7.0]],
@@ -1249,7 +1245,7 @@ class TestBroadcastTo:
             ),
             # (2, 1, 2, 1) -> (2, 3, 2, 2) broadcast case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1266,7 +1262,7 @@ class TestBroadcastTo:
                     )
                 ),
                 (2, 3, 2, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1281,7 +1277,7 @@ class TestBroadcastTo:
             ),
             # (1, 2, 2) -> (2, 3, 2, 2) broadcast case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1298,7 +1294,7 @@ class TestBroadcastTo:
                     )
                 ),
                 (2, 3, 2, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1310,7 +1306,7 @@ class TestBroadcastTo:
             ),
             # (3, 1, 2) -> (2, 3, 2, 2) broadcast case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1327,7 +1323,7 @@ class TestBroadcastTo:
                     )
                 ),
                 (2, 3, 2, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1343,7 +1339,7 @@ class TestBroadcastTo:
     )
     def test_backward(self, test_input, shape, expected):
         output_shape = expected.data.shape
-        forward_input = Variable(np.random.rand(*output_shape))
+        forward_input = Tensor(np.random.rand(*output_shape))
 
         f = BroadcastTo()
         f(forward_input, shape=shape)
@@ -1354,11 +1350,11 @@ class TestBroadcastTo:
     def test_gradient_check(self):
         f = BroadcastTo()
         shape = (3, 2)
-        test_input = Variable(np.random.rand(*shape))
+        test_input = Tensor(np.random.rand(*shape))
 
         f(test_input, shape=(2, 3, 2))
 
-        variable = Variable(
+        variable = Tensor(
             np.array(
                 [
                     [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]],
@@ -1377,14 +1373,14 @@ class TestBroadcastTo:
         "test_input, shape",
         [
             # no shape
-            ([Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]]))], None),
+            ([Tensor(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]]))], None),
             # shape is not tuple
-            ([Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]]))], 3),
-            # multiple variables
+            ([Tensor(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]]))], 3),
+            # multiple tensors
             (
                 [
-                    Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])),
-                    Variable(np.array([[2.0, 3.0], [3.0, 4.0], [4.0, 5.0]])),
+                    Tensor(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])),
+                    Tensor(np.array([[2.0, 3.0], [3.0, 4.0], [4.0, 5.0]])),
                 ],
                 (3, 2),
             ),
@@ -1407,13 +1403,13 @@ class TestSumTo:
         [
             # (3, 2) -> (3, 2) case: no sum required
             (
-                Variable(
+                Tensor(
                     np.array(
                         [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
                     )
                 ),
                 (3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
                     )
@@ -1421,7 +1417,7 @@ class TestSumTo:
             ),
             # (2, 3, 2) -> (3, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
@@ -1430,11 +1426,11 @@ class TestSumTo:
                     )
                 ),
                 (3, 2),
-                Variable(np.array([[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]])),
+                Tensor(np.array([[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]])),
             ),
             # (2, 3, 2) -> (1, 3, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
@@ -1443,11 +1439,11 @@ class TestSumTo:
                     )
                 ),
                 (1, 3, 2),
-                Variable(np.array([[[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]]])),
+                Tensor(np.array([[[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]]])),
             ),
             # (2, 3, 2) -> (2, 1, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
@@ -1456,7 +1452,7 @@ class TestSumTo:
                     )
                 ),
                 (2, 1, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[6.0, 9.0]],
@@ -1467,7 +1463,7 @@ class TestSumTo:
             ),
             # (2, 3, 2) -> (2, 3, 1) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
@@ -1476,7 +1472,7 @@ class TestSumTo:
                     )
                 ),
                 (2, 3, 1),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[3.0], [5.0], [7.0]],
@@ -1487,7 +1483,7 @@ class TestSumTo:
             ),
             # (2, 3, 2, 2) -> (2, 1, 2, 1) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1504,7 +1500,7 @@ class TestSumTo:
                     )
                 ),
                 (2, 1, 2, 1),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1519,7 +1515,7 @@ class TestSumTo:
             ),
             # (2, 3, 2, 2) -> (1, 2, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1536,7 +1532,7 @@ class TestSumTo:
                     )
                 ),
                 (1, 2, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1548,7 +1544,7 @@ class TestSumTo:
             ),
             # (2, 3, 2, 2) -> (3, 1, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1565,7 +1561,7 @@ class TestSumTo:
                     )
                 ),
                 (3, 1, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1604,7 +1600,7 @@ class TestSumTo:
         ],
     )
     def test_forward_error(self, from_shape, to_shape):
-        test_input = Variable(np.random.rand(*from_shape))
+        test_input = Tensor(np.random.rand(*from_shape))
         with pytest.raises(FunctionVariableError) as exc_info:
             f = SumTo()
             f.forward(test_input, shape=to_shape)
@@ -1616,13 +1612,13 @@ class TestSumTo:
         [
             # (3, 2) -> (3, 2) case: no broadcast required
             (
-                Variable(
+                Tensor(
                     np.array(
                         [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
                     )
                 ),
                 (3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
                     )
@@ -1630,9 +1626,9 @@ class TestSumTo:
             ),
             # (3, 2) -> (2, 3, 2) case
             (
-                Variable(np.array([[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]])),
+                Tensor(np.array([[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]])),
                 (2, 3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]],
@@ -1643,9 +1639,9 @@ class TestSumTo:
             ),
             # (1, 3, 2) -> (2, 3, 2) case
             (
-                Variable(np.array([[[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]]])),
+                Tensor(np.array([[[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]]])),
                 (2, 3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[5.0, 7.0], [7.0, 9.0], [9.0, 11.0]],
@@ -1656,7 +1652,7 @@ class TestSumTo:
             ),
             # (2, 1, 2) -> (2, 3, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[6.0, 9.0]],
@@ -1665,7 +1661,7 @@ class TestSumTo:
                     )
                 ),
                 (2, 3, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[6.0, 9.0], [6.0, 9.0], [6.0, 9.0]],
@@ -1676,7 +1672,7 @@ class TestSumTo:
             ),
             #  (2, 1, 2, 1) -> (2, 3, 2, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1689,7 +1685,7 @@ class TestSumTo:
                     )
                 ),
                 (2, 3, 2, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1708,7 +1704,7 @@ class TestSumTo:
             ),
             # (1, 2, 2) -> (2, 3, 2, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1718,7 +1714,7 @@ class TestSumTo:
                     )
                 ),
                 (2, 3, 2, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1737,7 +1733,7 @@ class TestSumTo:
             ),
             # (3, 1, 2) -> (2, 3, 2, 2) case
             (
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [[12.0, 16.0]],
@@ -1747,7 +1743,7 @@ class TestSumTo:
                     )
                 ),
                 (2, 3, 2, 2),
-                Variable(
+                Tensor(
                     np.array(
                         [
                             [
@@ -1768,7 +1764,7 @@ class TestSumTo:
     )
     def test_backward(self, test_input, shape, expected):
         output_shape = expected.data.shape
-        forward_input = Variable(np.random.rand(*output_shape))
+        forward_input = Tensor(np.random.rand(*output_shape))
 
         f = SumTo()
         f(forward_input, shape=shape)
@@ -1779,11 +1775,11 @@ class TestSumTo:
     def test_gradient_check(self):
         f = SumTo()
         shape = (2, 3, 2)
-        test_input = Variable(np.random.rand(*shape))
+        test_input = Tensor(np.random.rand(*shape))
 
         f(test_input, shape=(3, 2))
 
-        variable = Variable(
+        variable = Tensor(
             np.array(
                 [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]],
             )
@@ -1799,14 +1795,14 @@ class TestSumTo:
         "test_input, shape",
         [
             # no shape
-            ([Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]]))], None),
+            ([Tensor(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]]))], None),
             # shape is not tuple
-            ([Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]]))], 3),
-            # multiple variables
+            ([Tensor(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]]))], 3),
+            # multiple tensors
             (
                 [
-                    Variable(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])),
-                    Variable(np.array([[2.0, 3.0], [3.0, 4.0], [4.0, 5.0]])),
+                    Tensor(np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])),
+                    Tensor(np.array([[2.0, 3.0], [3.0, 4.0], [4.0, 5.0]])),
                 ],
                 (3, 2),
             ),
@@ -1835,8 +1831,8 @@ class TestSum:
     )
     def test_forward(self, test_input, axis, keepdims, expected):
         f = Sum()
-        actual = f.forward(Variable(test_input), axis=axis, keepdims=keepdims)
-        expected_var = Variable(expected)
+        actual = f.forward(Tensor(test_input), axis=axis, keepdims=keepdims)
+        expected_var = Tensor(expected)
         assert actual.shape == expected_var.shape
         assert allclose(actual, expected_var)
 
@@ -1850,11 +1846,11 @@ class TestSum:
         ],
     )
     def test_backward(self, test_input_shape, axis, keepdims, dout, expected):
-        test_input = Variable(np.random.rand(*test_input_shape))
+        test_input = Tensor(np.random.rand(*test_input_shape))
         f = Sum()
         f(test_input, axis=axis, keepdims=keepdims)
-        actual = f.backward(Variable(dout))
-        expected_var = Variable(expected)
+        actual = f.backward(Tensor(dout))
+        expected_var = Tensor(expected)
         assert actual.shape == expected_var.shape
         assert allclose(actual, expected_var)
 
@@ -1868,10 +1864,10 @@ class TestSum:
         ],
     )
     def test_gradient_check(self, test_input_shape, axis, keepdims, dout, expected):
-        test_input = Variable(np.random.rand(*test_input_shape))
+        test_input = Tensor(np.random.rand(*test_input_shape))
         f = Sum()
         f(test_input, axis=axis, keepdims=keepdims)
-        actual = f.backward(Variable(dout))
+        actual = f.backward(Tensor(dout))
 
         expected = numerical_diff(f, test_input, axis=axis, keepdims=keepdims)
         assert actual.shape == expected.shape
@@ -1894,9 +1890,9 @@ class TestMatMul:
         ],
     )
     def test_forward(self, test_arr1, test_arr2, expected_arr):
-        test_input1 = Variable(test_arr1)
-        test_input2 = Variable(test_arr2)
-        expected = Variable(expected_arr)
+        test_input1 = Tensor(test_arr1)
+        test_input2 = Tensor(test_arr2)
+        expected = Tensor(expected_arr)
 
         f = MatMul()
         actual = f.forward(test_input1, test_input2)
@@ -1915,10 +1911,10 @@ class TestMatMul:
         ],
     )
     def test_backward(self, test_arr1, test_arr2, expected_dx0_arr, expected_dx1_arr):
-        x0 = Variable(test_arr1)
-        x1 = Variable(test_arr2)
+        x0 = Tensor(test_arr1)
+        x1 = Tensor(test_arr2)
 
-        dout = Variable([[1.0, 2.0], [2.0, 3.0]])
+        dout = Tensor([[1.0, 2.0], [2.0, 3.0]])
 
         f = MatMul()
         f(x0, x1)
@@ -1927,13 +1923,13 @@ class TestMatMul:
         assert x0.shape == actual_dx0.shape
         assert x1.shape == actual_dx1.shape
 
-        assert allclose(actual_dx0, Variable(expected_dx0_arr))
-        assert allclose(actual_dx1, Variable(expected_dx1_arr))
+        assert allclose(actual_dx0, Tensor(expected_dx0_arr))
+        assert allclose(actual_dx1, Tensor(expected_dx1_arr))
 
     def test_gradient_check(self):
-        x0 = Variable(np.random.rand(2, 3))
-        x1 = Variable(np.random.rand(3, 2))
-        dout = Variable([[1.0, 1.0], [1.0, 1.0]])
+        x0 = Tensor(np.random.rand(2, 3))
+        x1 = Tensor(np.random.rand(3, 2))
+        dout = Tensor([[1.0, 1.0], [1.0, 1.0]])
 
         f = MatMul()
         f(x0, x1)
@@ -1947,7 +1943,7 @@ class TestMatMul:
 
 
 def test_define_by_run():
-    test_input = Variable(np.array([0.1, 0.2]))
+    test_input = Tensor(np.array([0.1, 0.2]))
 
     f1 = Square()
     f2 = Exp()
@@ -1957,7 +1953,7 @@ def test_define_by_run():
     out2 = f2(out1)
     out3 = f3(out2)
 
-    dout3 = f3.backward(Variable(1.0))
+    dout3 = f3.backward(Tensor(1.0))
     dout2 = f2.backward(dout3)
     f1.backward(dout2)
 

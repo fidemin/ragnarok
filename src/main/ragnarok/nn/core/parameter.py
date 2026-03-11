@@ -1,5 +1,5 @@
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 
 
-class Parameter(Variable):
+class Parameter(Tensor):
     pass

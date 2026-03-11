@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.graph.graph import DotGraph
 from src.main.ragnarok.graph.plot import plot_graph
 
@@ -15,8 +15,8 @@ def goldstein_price(x, y):
     )
 
 
-x = Variable(np.array(1.0))
-y = Variable(np.array(1.0))
+x = Tensor(np.array(1.0))
+y = Tensor(np.array(1.0))
 z = goldstein_price(x, y)
 
 if __name__ == "__main__":

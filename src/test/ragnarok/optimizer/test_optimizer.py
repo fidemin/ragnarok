@@ -1,6 +1,6 @@
 from src.main.core.optimizer import Adam as AdamOld
 from src.main.ragnarok.core.util import allclose
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.nn.core.parameter import Parameter
 from src.main.ragnarok.nn.optimizer.optimizer import SGD, Momentum, Adam
 
@@ -10,8 +10,8 @@ class TestSGD:
         # Given
         param1 = Parameter([1.0, 2.0, 3.0])
         param2 = Parameter([4.0, 5.0, 6.0])
-        param1.grad = Variable([1.0, 2.0, 3.0])
-        param2.grad = Variable([4.0, 5.0, 6.0])
+        param1.grad = Tensor([1.0, 2.0, 3.0])
+        param2.grad = Tensor([4.0, 5.0, 6.0])
 
         # When
         optimizer = SGD(lr=0.01)
@@ -27,8 +27,8 @@ class TestMomentum:
         # Given
         param1 = Parameter([1.0, 2.0, 3.0])
         param2 = Parameter([4.0, 5.0, 6.0])
-        param1.grad = Variable([1.0, 2.0, 3.0])
-        param2.grad = Variable([4.0, 5.0, 6.0])
+        param1.grad = Tensor([1.0, 2.0, 3.0])
+        param2.grad = Tensor([4.0, 5.0, 6.0])
 
         # When: First update
         optimizer = Momentum(lr=0.01, momentum=0.9)
@@ -52,8 +52,8 @@ class TestAdam:
         # Given
         param1 = Parameter([1.0, 2.0, 3.0])
         param2 = Parameter([4.0, 5.0, 6.0])
-        param1.grad = Variable([1.0, 2.0, 3.0])
-        param2.grad = Variable([4.0, 5.0, 6.0])
+        param1.grad = Tensor([1.0, 2.0, 3.0])
+        param2.grad = Tensor([4.0, 5.0, 6.0])
 
         # When: First update
         optimizer = Adam(lr=0.01, beta1=0.9, beta2=0.999)
@@ -62,8 +62,8 @@ class TestAdam:
         old_optimizer = AdamOld(lr=0.01, beta1=0.9, beta2=0.999)
         param1_old = Parameter([1.0, 2.0, 3.0])
         param2_old = Parameter([4.0, 5.0, 6.0])
-        param1_old.grad = Variable([1.0, 2.0, 3.0])
-        param2_old.grad = Variable([4.0, 5.0, 6.0])
+        param1_old.grad = Tensor([1.0, 2.0, 3.0])
+        param2_old.grad = Tensor([4.0, 5.0, 6.0])
         old_optimizer.optimize(
             [param1_old.data, param2_old.data],
             [param1_old.grad.data, param2_old.grad.data],

@@ -2,7 +2,7 @@ from typing import List
 
 from src.main.ragnarok.core.function.math import MatMul
 from src.main.ragnarok.core.util import allclose
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.nn.function.activation import relu
 from src.main.ragnarok.nn.layer.activation import ReLU
 from src.main.ragnarok.nn.layer.linear import Linear
@@ -16,7 +16,7 @@ class MockModel(Model):
         self.layer_relu = ReLU()
         self.layer_linear_2 = Linear(4, 8, use_bias=False)
 
-    def predict(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
+    def predict(self, *variables: Tensor, **kwargs) -> Tensor | List[Tensor]:
         x = variables[0]
         h = self.layer_linear_1.forward(x)
         h = self.layer_relu.forward(h)
@@ -32,7 +32,7 @@ class TestModel:
             model.layer_linear_2.params["W"],
         ]
 
-        x = Variable([[1.0, 2.0, 3.0], [0.0, -1.0, 2.0]])
+        x = Tensor([[1.0, 2.0, 3.0], [0.0, -1.0, 2.0]])
 
         # to initialize first linear layer's parameter: Linear layer's param is lazily loaded without input size
         model.predict(x)
@@ -65,9 +65,7 @@ class TestSequential:
         layers = [layer1, layer2, layer3]
         model = Sequential(layers)
 
-        x = Variable(
-            [[1.0, 2.0, -1.0, 3.0], [0.0, -1.0, 2.0, 1.0], [2.0, 0.0, 1.0, 2.0]]
-        )
+        x = Tensor([[1.0, 2.0, -1.0, 3.0], [0.0, -1.0, 2.0, 1.0], [2.0, 0.0, 1.0, 2.0]])
         y = model.predict(x)
 
         expected = MatMul()(

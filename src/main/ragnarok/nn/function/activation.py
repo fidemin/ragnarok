@@ -2,77 +2,77 @@ import numpy as np
 
 from src.main.ragnarok.core.function.common import Function, FunctionVariableError
 from src.main.ragnarok.core.function.math import exp
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 
 
 class Sigmoid(Function):
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Tensor, **kwargs):
         x = variables[0]
         return 1 / (1 + exp(-x))
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         dout = douts[0]
         y = self._outputs()[0]
         return dout * y * (1.0 - y)
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         if len(variables) != 1:
-            raise ValueError("Sigmoid requires 1 variable")
+            raise ValueError("Sigmoid requires 1 tensor")
 
 
-def sigmoid(x: Variable) -> Variable:
+def sigmoid(x: Tensor) -> Tensor:
     return Sigmoid()(x)
 
 
 class Tanh(Function):
-    def forward(self, *variables: Variable):
+    def forward(self, *variables: Tensor):
         x = variables[0]
-        return Variable(np.tanh(x.data))
+        return Tensor(np.tanh(x.data))
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         dout = douts[0]
         y = self._outputs()[0]
         return (1 - y**2) * dout
 
-    def _validate_variables(self, *variables: Variable):
+    def _validate_variables(self, *variables: Tensor):
         var_length = len(variables)
         if var_length != 1:
             raise FunctionVariableError(
-                "There should be one input variable for Tanh function."
+                "There should be one input tensor for Tanh function."
             )
 
 
-def tanh(x: Variable) -> Variable:
+def tanh(x: Tensor) -> Tensor:
     return Tanh()(x)
 
 
 class ReLU(Function):
-    def forward(self, *variables: Variable):
+    def forward(self, *variables: Tensor):
         x = variables[0]
-        return Variable(np.maximum(0, x.data))
+        return Tensor(np.maximum(0, x.data))
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         dout = douts[0]
         y = self._outputs()[0]
         return (y > 0) * dout
 
-    def _validate_variables(self, *variables: Variable):
+    def _validate_variables(self, *variables: Tensor):
         var_length = len(variables)
         if var_length != 1:
             raise FunctionVariableError(
-                "There should be one input variable for ReLU function."
+                "There should be one input tensor for ReLU function."
             )
 
 
-def relu(x: Variable) -> Variable:
+def relu(x: Tensor) -> Tensor:
     return ReLU()(x)
 
 
 class Softmax(Function):
-    def forward(self, *variables: Variable):
+    def forward(self, *variables: Tensor):
         x = variables[0]
         out_data = self._inner_forward(x.data)
-        return Variable(out_data)
+        return Tensor(out_data)
 
     def _inner_forward(self, data: np.ndarray):
         dim_is_one = data.ndim == 1
@@ -96,7 +96,7 @@ class Softmax(Function):
 
         return result
 
-    def backward(self, *douts: Variable):
+    def backward(self, *douts: Tensor):
         # derivative equation: dx_k = dout_k * out_k - out_k * sum_over_element(dout * out)
         # reference: https://www.mldawn.com/back-propagation-with-cross-entropy-and-softmax
         dout = douts[0]
@@ -107,13 +107,13 @@ class Softmax(Function):
 
         return dx - out * dsum
 
-    def _validate_variables(self, *variables: Variable):
+    def _validate_variables(self, *variables: Tensor):
         var_length = len(variables)
         if var_length != 1:
             raise FunctionVariableError(
-                "There should be one input variable for Softmax function."
+                "There should be one input tensor for Softmax function."
             )
 
 
-def softmax(x: Variable) -> Variable:
+def softmax(x: Tensor) -> Tensor:
     return Softmax()(x)

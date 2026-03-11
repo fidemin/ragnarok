@@ -2,9 +2,9 @@ from typing import List
 
 import numpy as np
 
-from src.main.ragnarok.core.variable import Variable
-from src.main.ragnarok.core.variable.dtype import float32
-from src.main.ragnarok.core.variable.variable import zeros
+from src.main.ragnarok.core.tensor import Tensor
+from src.main.ragnarok.core.tensor.dtype import float32
+from src.main.ragnarok.core.tensor.tensor import zeros
 from src.main.ragnarok.nn.core.parameter import Parameter
 from src.main.ragnarok.nn.function.linear import linear
 from src.main.ragnarok.nn.layer.layer import Layer
@@ -43,8 +43,8 @@ class Linear(Layer):
             param_b = Parameter(data_b, name="b")
             self.params["b"] = param_b
 
-    def _forward(self, *variables: Variable, **kwargs) -> List[Variable]:
-        x = variables[0]
+    def _forward(self, *tensors: Tensor, **kwargs) -> List[Tensor]:
+        x = tensors[0]
         if self.in_size is None:
             self.in_size = x.shape[-1]  # last dimension of x
             self._init_params()

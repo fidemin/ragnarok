@@ -1,13 +1,13 @@
 import numpy as np
 
 from src.main.ragnarok.core.function.math import Square, Add
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.graph.graph import DotGraph
 
 
 class TestDotGraph:
     def test_draw_simple(self):
-        variable = Variable(
+        variable = Tensor(
             np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
         )
         dot_graph = DotGraph(variable)
@@ -20,10 +20,10 @@ class TestDotGraph:
         )
 
     def test_draw_one_function(self):
-        variable1 = Variable(
+        variable1 = Tensor(
             np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
         )
-        variable2 = Variable(
+        variable2 = Tensor(
             np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
         )
         function = Add()
@@ -45,7 +45,7 @@ class TestDotGraph:
         )
 
     def test_draw_one_func_with_same_input(self):
-        variable1 = Variable(
+        variable1 = Tensor(
             np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
         )
         function = Add()
@@ -66,10 +66,10 @@ class TestDotGraph:
         )
 
     def test_draw_complex(self):
-        variable1 = Variable(
+        variable1 = Tensor(
             np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
         )
-        variable2 = Variable(
+        variable2 = Tensor(
             np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
         )
         function1 = Add()

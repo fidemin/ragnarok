@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Optional, List
 
-from src.main.ragnarok.core.variable import Variable
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.nn.core.parameter import Parameter
 
 
@@ -16,10 +16,10 @@ class Layer(metaclass=ABCMeta):
         else:
             self.name = name
 
-    def forward(self, *variables: Variable, **kwargs) -> Variable | List[Variable]:
-        out_vars = self._forward(*variables, **kwargs)
+    def forward(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
+        out_vars = self._forward(*tensors, **kwargs)
         return out_vars[0] if len(out_vars) == 1 else out_vars
 
     @abstractmethod
-    def _forward(self, *variables: Variable, **kwargs) -> List[Variable]:
+    def _forward(self, *tensors: Tensor, **kwargs) -> List[Tensor]:
         pass

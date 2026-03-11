@@ -1,14 +1,23 @@
 import numpy as np
 
 from src.main.core.layer import Layer
-from src.main.language.layer import Embedding, GroupedLSTM, GroupedAffine, GroupedAttention
+from src.main.language.layer import (
+    Embedding,
+    GroupedLSTM,
+    GroupedAffine,
+    GroupedAttention,
+)
 
 
 class Encoder:
     def __init__(self, voca_size, wordvec_size, hidden_size):
         W_emb = np.random.randn(voca_size, wordvec_size) * 0.01
-        Wx_lstm = np.random.randn(wordvec_size, 4 * hidden_size) * (1 / np.sqrt(wordvec_size))
-        Wh_lstm = np.random.randn(hidden_size, 4 * hidden_size) * (1 / np.sqrt(hidden_size))
+        Wx_lstm = np.random.randn(wordvec_size, 4 * hidden_size) * (
+            1 / np.sqrt(wordvec_size)
+        )
+        Wh_lstm = np.random.randn(hidden_size, 4 * hidden_size) * (
+            1 / np.sqrt(hidden_size)
+        )
         b_lstm = np.zeros((1, 4 * hidden_size))
 
         embedding_layer = Embedding(W_emb)
@@ -38,8 +47,12 @@ class Encoder:
 class Decoder:
     def __init__(self, voca_size, wordvec_size, hidden_size):
         W_emb = np.random.randn(voca_size, wordvec_size) * 0.01
-        Wx_lstm = np.random.randn(wordvec_size, 4 * hidden_size) * (1 / np.sqrt(wordvec_size))
-        Wh_lstm = np.random.randn(hidden_size, 4 * hidden_size) * (1 / np.sqrt(hidden_size))
+        Wx_lstm = np.random.randn(wordvec_size, 4 * hidden_size) * (
+            1 / np.sqrt(wordvec_size)
+        )
+        Wh_lstm = np.random.randn(hidden_size, 4 * hidden_size) * (
+            1 / np.sqrt(hidden_size)
+        )
         b_lstm = np.zeros((1, 4 * hidden_size))
         W_affine = np.random.randn(hidden_size, voca_size) * (1 / np.sqrt(hidden_size))
         b_affine = np.zeros((1, voca_size))
@@ -52,11 +65,19 @@ class Decoder:
         self._lstm_layer = lstm_layer
         self._affine_layer = affine_layer
 
-        self.params = self._embedding_layer.params + self._lstm_layer.params + self._affine_layer.params
-        self.grads = self._embedding_layer.grads + self._lstm_layer.grads + self._affine_layer.grads
+        self.params = (
+            self._embedding_layer.params
+            + self._lstm_layer.params
+            + self._affine_layer.params
+        )
+        self.grads = (
+            self._embedding_layer.grads
+            + self._lstm_layer.grads
+            + self._affine_layer.grads
+        )
 
     def forward(self, xs: np.ndarray, h: np.ndarray):
-        # TODO: The way to insert to inner variable is required for Layer
+        # TODO: The way to insert to inner tensor is required for Layer
         self._set_lstm_state(h)
         out = self._embedding_layer.forward(xs)
         out = self._lstm_layer.forward(out)
@@ -73,7 +94,7 @@ class Decoder:
         dout = self._lstm_layer.backward(dout)
         self._embedding_layer.backward(dout)
 
-        # TODO: The way to insert to get variable is required for Layer
+        # TODO: The way to insert to get tensor is required for Layer
         return self._lstm_layer._dh
 
     def generate(self, start_id, h, sample_size):
@@ -98,10 +119,16 @@ class Decoder:
 class PeekyDecoder(Decoder):
     def __init__(self, voca_size, wordvec_size, hidden_size):
         W_emb = np.random.randn(voca_size, wordvec_size) * 0.01
-        Wx_lstm = np.random.randn(wordvec_size + hidden_size, 4 * hidden_size) * (1 / np.sqrt(wordvec_size))
-        Wh_lstm = np.random.randn(hidden_size, 4 * hidden_size) * (1 / np.sqrt(hidden_size))
+        Wx_lstm = np.random.randn(wordvec_size + hidden_size, 4 * hidden_size) * (
+            1 / np.sqrt(wordvec_size)
+        )
+        Wh_lstm = np.random.randn(hidden_size, 4 * hidden_size) * (
+            1 / np.sqrt(hidden_size)
+        )
         b_lstm = np.zeros((1, 4 * hidden_size))
-        W_affine = np.random.randn(hidden_size + hidden_size, voca_size) * (1 / np.sqrt(hidden_size))
+        W_affine = np.random.randn(hidden_size + hidden_size, voca_size) * (
+            1 / np.sqrt(hidden_size)
+        )
         b_affine = np.zeros((1, voca_size))
 
         embedding_layer = Embedding(W_emb)
@@ -113,14 +140,22 @@ class PeekyDecoder(Decoder):
         self._affine_layer = affine_layer
         self._hidden_size = hidden_size
 
-        self.params = self._embedding_layer.params + self._lstm_layer.params + self._affine_layer.params
-        self.grads = self._embedding_layer.grads + self._lstm_layer.grads + self._affine_layer.grads
+        self.params = (
+            self._embedding_layer.params
+            + self._lstm_layer.params
+            + self._affine_layer.params
+        )
+        self.grads = (
+            self._embedding_layer.grads
+            + self._lstm_layer.grads
+            + self._affine_layer.grads
+        )
 
     def forward(self, xs: np.ndarray, h: np.ndarray):
         N, T = xs.shape
         N, H = h.shape
 
-        # TODO: The way to insert to inner variable is required for Layer
+        # TODO: The way to insert to inner tensor is required for Layer
         self._set_lstm_state(h)
         out = self._embedding_layer.forward(xs)
 
@@ -141,7 +176,7 @@ class PeekyDecoder(Decoder):
         dh2 = dh2.sum(axis=1)
         self._embedding_layer.backward(dout)
 
-        # TODO: The way to insert to get variable is required for Layer
+        # TODO: The way to insert to get tensor is required for Layer
         return self._lstm_layer._dh + dh1 + dh2
 
     def generate(self, start_id, h, sample_size):
@@ -169,7 +204,7 @@ class PeekyDecoder(Decoder):
 
 
 class Seq2Seq(Layer):
-    decoder_xs_key = 'decoder_xs'
+    decoder_xs_key = "decoder_xs"
 
     def __init__(self, voca_size, wordvec_size, hidden_size):
         encoder = Encoder(voca_size, wordvec_size, hidden_size)
@@ -200,7 +235,7 @@ class Seq2Seq(Layer):
 
 
 class PeekySeq2Seq(Seq2Seq):
-    decoder_xs_key = 'decoder_xs'
+    decoder_xs_key = "decoder_xs"
 
     def __init__(self, voca_size, wordvec_size, hidden_size):
         encoder = Encoder(voca_size, wordvec_size, hidden_size)
@@ -229,10 +264,16 @@ class AttentionEncoder(Encoder):
 class AttentionDecoder(Decoder):
     def __init__(self, voca_size, wordvec_size, hidden_size):
         W_emb = np.random.randn(voca_size, wordvec_size) * 0.01
-        Wx_lstm = np.random.randn(wordvec_size, 4 * hidden_size) * (1 / np.sqrt(wordvec_size))
-        Wh_lstm = np.random.randn(hidden_size, 4 * hidden_size) * (1 / np.sqrt(hidden_size))
+        Wx_lstm = np.random.randn(wordvec_size, 4 * hidden_size) * (
+            1 / np.sqrt(wordvec_size)
+        )
+        Wh_lstm = np.random.randn(hidden_size, 4 * hidden_size) * (
+            1 / np.sqrt(hidden_size)
+        )
         b_lstm = np.zeros((1, 4 * hidden_size))
-        W_affine = np.random.randn(2 * hidden_size, voca_size) * (1 / np.sqrt(hidden_size))
+        W_affine = np.random.randn(2 * hidden_size, voca_size) * (
+            1 / np.sqrt(hidden_size)
+        )
         b_affine = np.zeros((1, voca_size))
 
         embedding_layer = Embedding(W_emb)
@@ -245,8 +286,16 @@ class AttentionDecoder(Decoder):
         self._attention_layer = attention_layer  # no params, grads
         self._affine_layer = affine_layer
 
-        self.params = self._embedding_layer.params + self._lstm_layer.params + self._affine_layer.params
-        self.grads = self._embedding_layer.grads + self._lstm_layer.grads + self._affine_layer.grads
+        self.params = (
+            self._embedding_layer.params
+            + self._lstm_layer.params
+            + self._affine_layer.params
+        )
+        self.grads = (
+            self._embedding_layer.grads
+            + self._lstm_layer.grads
+            + self._affine_layer.grads
+        )
 
     def forward(self, xs: np.ndarray, hs: np.ndarray):
         h = hs[:, -1, :]
@@ -268,7 +317,7 @@ class AttentionDecoder(Decoder):
         dout = self._lstm_layer.backward(dout + dhs_dec)
         self._embedding_layer.backward(dout)
 
-        # TODO: The way to insert to get variable is required for Layer
+        # TODO: The way to insert to get tensor is required for Layer
         dh = self._lstm_layer._dh
         dhs_enc[:, -1, :] += dh
 
@@ -297,7 +346,7 @@ class AttentionDecoder(Decoder):
 
 
 class AttentionSeq2Seq(Seq2Seq):
-    decoder_xs_key = 'decoder_xs'
+    decoder_xs_key = "decoder_xs"
 
     def __init__(self, voca_size, wordvec_size, hidden_size):
         encoder = AttentionEncoder(voca_size, wordvec_size, hidden_size)

@@ -4,12 +4,12 @@ from typing import List
 import numpy as np
 
 from src.main.ragnarok.core.config import Config
-from src.main.ragnarok.core.variable import Variable, to_variable
+from src.main.ragnarok.core.tensor import Tensor, to_variable
 
 
 class Function:
-    inputs: List[Variable] | None
-    outputs: List[Variable] | None
+    inputs: List[Tensor] | None
+    outputs: List[Tensor] | None
     gen: int | None
     _cache: dict
     kwargs: dict
@@ -22,8 +22,8 @@ class Function:
         self.kwargs = {}
 
     def __call__(
-        self, *inputs: int | float | np.ndarray | np.generic | Variable, **kwargs
-    ) -> Variable | List[Variable]:
+        self, *inputs: int | float | np.ndarray | np.generic | Tensor, **kwargs
+    ) -> Tensor | List[Tensor]:
         inputs = [to_variable(input_) for input_ in inputs]
 
         # _validate_variable
@@ -39,7 +39,7 @@ class Function:
             self.gen = this_gen
 
             for output in outputs:
-                # set strong reference to output variable
+                # set strong reference to output tensor
                 # self -> output: strong reference
                 output.set_creator(self)
 
@@ -54,16 +54,16 @@ class Function:
     def _outputs(self):
         return [output() for output in self.outputs]  # outputs are list of weakref
 
-    def backward(self, *douts: Variable):
-        # NOTE: backward should be implemented based on variable operation or other forward function
+    def backward(self, *douts: Tensor):
+        # NOTE: backward should be implemented based on tensor operation or other forward function
         #   to support high order differentiation
         # DO NOT use numpy operation here
         raise NotImplementedError("Function.backward is not implemented")
 
-    def forward(self, *variables: Variable, **kwargs):
+    def forward(self, *variables: Tensor, **kwargs):
         raise NotImplementedError("Function._forward is not implemented")
 
-    def _validate_variables(self, *variables: Variable, **kwargs):
+    def _validate_variables(self, *variables: Tensor, **kwargs):
         raise NotImplementedError("Function._validate_input is not implemented")
 
 

@@ -1,13 +1,13 @@
 import pytest
 
+from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.core.util import allclose
-from src.main.ragnarok.core.variable import Variable
 from src.main.ragnarok.nn.layer.layer import Layer
 
 
 class MockLayer(Layer):
-    def _forward(self, *variables: Variable, **kwargs):
-        return variables
+    def _forward(self, *tensors: Tensor, **kwargs):
+        return tensors
 
 
 class TestLayer:
@@ -24,20 +24,20 @@ class TestLayer:
         assert layer.params == {}
 
     @pytest.mark.parametrize(
-        "variables",
+        "tensors",
         [
-            [Variable([1, 2, 3])],
-            [Variable([1, 2, 3]), Variable([4, 5, 6])],
+            [Tensor([1, 2, 3])],
+            [Tensor([1, 2, 3]), Tensor([4, 5, 6])],
         ],
     )
-    def test_forward(self, variables):
+    def test_forward(self, tensors):
         layer = MockLayer()
 
-        # y can be a single Variable or a list of Variables
-        y = layer.forward(variables)
+        # y can be a single Tensor or a list of Variables
+        y = layer.forward(tensors)
 
         if not isinstance(y, list):
             y = [y]
 
-        for i, var in enumerate(variables):
+        for i, var in enumerate(tensors):
             assert allclose(y[i], var)

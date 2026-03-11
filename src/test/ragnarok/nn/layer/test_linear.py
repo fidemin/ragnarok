@@ -1,8 +1,8 @@
 import pytest
 
 from src.main.ragnarok.core.util import allclose
-from src.main.ragnarok.core.variable import Variable
-from src.main.ragnarok.core.variable.dtype import float32
+from src.main.ragnarok.core.tensor import Tensor
+from src.main.ragnarok.core.tensor.dtype import float32
 from src.main.ragnarok.nn.core.parameter import Parameter
 from src.main.ragnarok.nn.layer.linear import Linear
 
@@ -68,12 +68,12 @@ class TestLinear:
         if use_bias:
             affine.params["b"] = Parameter(b)
 
-        x = Variable(x)
+        x = Tensor(x)
 
         # When
         y = affine.forward(x)
         assert y.shape == (3, 2)
-        assert allclose(y, Variable(expected))
+        assert allclose(y, Tensor(expected))
 
     @pytest.mark.parametrize(
         "x, expected_shape",
@@ -85,7 +85,7 @@ class TestLinear:
     def test_forward_lazy_init(self, x, expected_shape):
         # Given
         layer = Linear(out_size=3)
-        x = Variable(x)
+        x = Tensor(x)
 
         # When
         y = layer.forward(x)

@@ -1,7 +1,7 @@
 import pytest
 
 from src.main.ragnarok.core.util import allclose, numerical_diff
-from src.main.ragnarok.core.variable import Variable, ones_like
+from src.main.ragnarok.core.tensor import Tensor, ones_like
 from src.main.ragnarok.nn.function.linear import Linear
 
 
@@ -18,10 +18,10 @@ class TestLayer:
         ],
     )
     def test_forward(self, x, W, b, expected):
-        x_var = Variable(x)
-        W_var = Variable(W)
-        b_var = Variable(b)
-        expected_var = Variable(expected)
+        x_var = Tensor(x)
+        W_var = Tensor(W)
+        b_var = Tensor(b)
+        expected_var = Tensor(expected)
 
         f = Linear()
         actual = f(x_var, W_var, b_var)
@@ -43,19 +43,19 @@ class TestLayer:
         ],
     )
     def test_backward(self, x, W, b, expected_dx, expected_dW, expected_db):
-        x_var = Variable(x)
-        W_var = Variable(W)
-        b_var = Variable(b)
+        x_var = Tensor(x)
+        W_var = Tensor(W)
+        b_var = Tensor(b)
 
         f = Linear()
         f(x_var, W_var, b_var)
         actual_dx, actual_dW, actual_db = f.backward(
-            Variable([[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]])
+            Tensor([[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]])
         )
 
-        assert allclose(actual_dx, Variable(expected_dx))
-        assert allclose(actual_dW, Variable(expected_dW))
-        assert allclose(actual_db, Variable(expected_db))
+        assert allclose(actual_dx, Tensor(expected_dx))
+        assert allclose(actual_dW, Tensor(expected_dW))
+        assert allclose(actual_db, Tensor(expected_db))
 
     @pytest.mark.parametrize(
         "x, W, b",
@@ -68,9 +68,9 @@ class TestLayer:
         ],
     )
     def test_gradient_check(self, x, W, b):
-        x_var = Variable(x)
-        W_var = Variable(W)
-        b_var = Variable(b)
+        x_var = Tensor(x)
+        W_var = Tensor(W)
+        b_var = Tensor(b)
 
         f = Linear()
         temp = f(x_var, W_var, b_var)
