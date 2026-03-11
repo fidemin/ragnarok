@@ -6,7 +6,7 @@ from src.main.ragnarok.core.util import allclose
 from src.main.ragnarok.nn.function.activation import relu
 from src.main.ragnarok.nn.layer.activation import ReLU
 from src.main.ragnarok.nn.layer.linear import Linear
-from src.main.ragnarok.nn.model.model import Sequential, Model
+from src.main.ragnarok.nn.model.model import Sequential, Model, MLP
 
 
 class MockModel(Model):
@@ -71,6 +71,34 @@ class TestSequential:
         expected = MatMul()(
             relu(MatMul()(x, layer1.params["W"]) + layer1.params["b"]),
             layer3.params["W"],
+        )
+
+        assert y.shape == (3, 2)
+        assert allclose(y, expected)
+
+
+class TestMLP:
+    def test_predict(self):
+        model = MLP(out_sizes=(8, 4, 2), activation="relu")
+
+        x = Tensor([[1.0, 2.0, -1.0, 3.0], [0.0, -1.0, 2.0, 1.0], [2.0, 0.0, 1.0, 2.0]])
+        y = model.predict(x)
+
+        expected = (
+            MatMul()(
+                relu(
+                    MatMul()(
+                        relu(
+                            MatMul()(x, model.layers_dict["linear_1"].params["W"])
+                            + model.layers_dict["linear_1"].params["b"]
+                        ),
+                        model.layers_dict["linear_2"].params["W"],
+                    )
+                    + model.layers_dict["linear_2"].params["b"]
+                ),
+                model.layers_dict["linear_3"].params["W"],
+            )
+            + model.layers_dict["linear_3"].params["b"]
         )
 
         assert y.shape == (3, 2)

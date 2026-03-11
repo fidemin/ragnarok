@@ -1,9 +1,11 @@
 from abc import abstractmethod, ABCMeta
-from typing import List, Iterable
+from typing import List, Iterable, Union
 
 from src.main.ragnarok.core.tensor import Tensor
 from src.main.ragnarok.nn.core.layer import Layer
 from src.main.ragnarok.nn.core.parameter import Parameter
+from src.main.ragnarok.nn.layer.activation import get_activation_layer
+from src.main.ragnarok.nn.layer.linear import Linear
 
 
 class Model(metaclass=ABCMeta):
@@ -55,3 +57,29 @@ class Sequential(Model):
                 tensors = [tensors]
             tensors = layer.forward(*tensors, **kwargs)
         return tensors
+
+
+class MLP(Model):
+    def __init__(
+        self,
+        *,
+        out_sizes: Union[list[int], tuple[int, ...]],
+        activation: str = "relu",
+    ):
+        super().__init__()
+        self._fc_output_sizes = out_sizes
+        self._activation_layer = get_activation_layer(activation)
+        self._layers = []
+
+        for i, output_size in enumerate(out_sizes, start=1):
+            layer_name = f"linear_{i}"
+            layer = Linear(out_size=output_size, name=layer_name)
+            super().__setattr__(layer_name, layer)
+            self._layers.append(layer)
+
+    def predict(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
+        x = tensors[0]
+        for layer in self._layers[:-1]:
+            x = layer(x)
+            x = self._activation_layer(x)
+        return self._layers[-1](x)

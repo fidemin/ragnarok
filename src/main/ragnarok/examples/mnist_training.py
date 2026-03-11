@@ -20,9 +20,9 @@ class MNISTModel(Model):
 
     def predict(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
         x = tensors[0]
-        h = self.fc1.forward(x)
-        h = self.sigmoid.forward(h)
-        y = self.fc2.forward(h)
+        h = self.fc1(x)
+        h = self.sigmoid(h)
+        y = self.fc2(h)
         return y
 
 

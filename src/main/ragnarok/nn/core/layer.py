@@ -23,3 +23,6 @@ class Layer(metaclass=ABCMeta):
     @abstractmethod
     def _forward(self, *tensors: Tensor, **kwargs) -> List[Tensor]:
         pass
+
+    def __call__(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
+        return self.forward(*tensors, **kwargs)
