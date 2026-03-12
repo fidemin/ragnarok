@@ -3,9 +3,9 @@ import numpy as np
 from ragnarok.core.function import (
     Function,
     FunctionVariableError,
-    sum_to,
     NotSupportedOperationException,
 )
+from ragnarok.core.function.matrix import sum_to
 from ragnarok.core.tensor import Tensor
 
 

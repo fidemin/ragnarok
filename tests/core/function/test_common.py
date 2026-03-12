@@ -2,7 +2,7 @@ import numpy as np
 
 from ragnarok.core.config import using_backprop
 from ragnarok.core.tensor import Tensor
-from tests.core.function.test_basic import FunctionForTest
+from tests.core.function.test_matrix import FunctionForTest
 
 
 class TestFunction:

@@ -1,2 +1,3 @@
-from .basic import *
-from .common import Function
+from .common import *
+from .math import *
+from .matrix import *

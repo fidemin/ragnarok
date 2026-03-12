@@ -266,3 +266,60 @@ class Sum(Function):
             raise FunctionVariableError(
                 "There should be one input tensor for Sum function."
             )
+
+
+class GetItem(Function):
+    def forward(self, *variables: Tensor, **kwargs):
+        x = variables[0]
+        index = kwargs["index"]
+        y = x.data[index]
+        return Tensor(y)
+
+    def backward(self, *douts: Tensor):
+        dout = douts[0]
+        dx = GetItemGrad()(
+            dout, to_shape=self.inputs[0].shape, index=self.kwargs["index"]
+        )
+        return dx
+
+    def _validate_variables(self, *variables: Tensor, **kwargs):
+        if len(variables) != 1:
+            raise FunctionVariableError(
+                "There should be one input tensor for GetItem function."
+            )
+
+        if "index" not in kwargs:
+            raise FunctionVariableError("`index` is required for GetItem function.")
+
+
+def get_item(x: Tensor, index) -> Tensor:
+    return GetItem()(x, index=index)
+
+
+class GetItemGrad(Function):
+    def forward(self, *variables: Tensor, **kwargs):
+        x = variables[0]
+        to_shape = kwargs["to_shape"]
+        index = kwargs["index"]
+
+        y = np.zeros(to_shape, dtype=x.dtype)
+        np.add.at(y, index, x.data)
+        return Tensor(y)
+
+    def backward(self, *douts: Tensor):
+        dout = douts[0]
+        return get_item(dout, index=self.kwargs["index"])
+
+    def _validate_variables(self, *variables: Tensor, **kwargs):
+        if len(variables) != 1:
+            raise FunctionVariableError(
+                "There should be one input tensor for GetItemGrad function."
+            )
+
+        if "to_shape" not in kwargs:
+            raise FunctionVariableError(
+                "`to_shape` is required for GetItemGrad function."
+            )
+
+        if "index" not in kwargs:
+            raise FunctionVariableError("`index` is required for GetItemGrad function.")
