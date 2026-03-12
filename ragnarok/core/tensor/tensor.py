@@ -128,6 +128,11 @@ class Tensor:
 
         return Comparison()(self, other, operator="ge")
 
+    def __getitem__(self, index):
+        from ragnarok.core.function.matrix import get_item
+
+        return get_item(self, index)
+
     def set_creator(self, creator):
         self._creator = creator
         self._gen = creator.gen + 1

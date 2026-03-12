@@ -624,6 +624,47 @@ class TestVariable:
         expected = Tensor(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]]))
         assert allclose(y, expected)
 
+    @pytest.mark.parametrize(
+        "test_input, item, expected",
+        [
+            ([1.0, 2.0, 3.0], 0, 1.0),
+            ([[1.0, 2.0], [3.0, 4.0]], (0, 1), 2.0),
+            ([[1.0, 2.0], [3.0, 4.0]], -1, [3.0, 4.0]),
+            ([[1.0, 2.0], [3.0, 4.0]], 1, [3.0, 4.0]),
+            ([[1.0, 2.0, 3.0], [3.0, 4.0, 5.0]], (1, slice(0, 2)), [3.0, 4.0]),
+        ],
+    )
+    def test__get__item__forward(self, test_input, item, expected):
+        x = Tensor(np.array(test_input))
+        actual = x[item]
+        expected = Tensor(np.array(expected))
+        assert allclose(actual, expected)
+
+    @pytest.mark.parametrize(
+        "test_input, item, expected",
+        [
+            ([1.0, 2.0, 3.0], 0, Tensor(np.array([1.0, 0.0, 0.0]))),
+            (
+                [[1.0, 2.0], [3.0, 4.0]],
+                (0, 1),
+                Tensor(np.array([[0.0, 1.0], [0.0, 0.0]])),
+            ),
+            ([[1.0, 2.0], [3.0, 4.0]], -1, Tensor(np.array([[0.0, 0.0], [1.0, 1.0]]))),
+            ([[1.0, 2.0], [3.0, 4.0]], 0, Tensor(np.array([[1.0, 1.0], [0.0, 0.0]]))),
+            (
+                [[1.0, 2.0, 3.0], [3.0, 4.0, 5.0]],
+                (1, slice(0, 2)),
+                Tensor(np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 0.0]])),
+            ),
+        ],
+    )
+    def test__get__item__backward(self, test_input, item, expected):
+        x = Tensor(np.array(test_input))
+        y = x[item]
+        y.backward()
+
+        assert allclose(x.grad, expected)
+
 
 @pytest.mark.parametrize(
     "input_value, expected_type",
