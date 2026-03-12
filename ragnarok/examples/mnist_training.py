@@ -9,7 +9,7 @@ from ragnarok.nn.layer.activation import Sigmoid
 from ragnarok.nn.layer.linear import Linear
 from ragnarok.nn.model.model import Model
 from ragnarok.nn.optimizer.optimizer import Adam
-from ragnarok.utils.dataset import Dataset
+from ragnarok.utils.data.dataset import Dataset
 
 
 class MNISTModel(Model):
