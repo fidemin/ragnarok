@@ -226,9 +226,17 @@ class Tensor:
 
         return Sum()(self, axis=axis, keepdims=keepdims)
 
+    def mean(self, axis=None, keepdims=False) -> "Tensor":
+        divisor = self.data.size if axis is None else self.shape[axis]
+        return self.sum(axis=axis, keepdims=keepdims) / divisor
+
     @property
     def T(self):
         return self.transpose()
+
+    def argmax(self, *, axis=None):
+        # TODO: implement argmax function
+        return Tensor(np.argmax(self.data, axis=axis))
 
     def backward(self, retain_grad=False, enable_double_backprop=False):
         """
