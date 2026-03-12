@@ -9,6 +9,7 @@ from ragnarok.nn.layer.activation import Sigmoid
 from ragnarok.nn.layer.linear import Linear
 from ragnarok.nn.model.model import Model
 from ragnarok.nn.optimizer.optimizer import Adam
+from ragnarok.utils.dataset import Dataset
 
 
 class MNISTModel(Model):
@@ -26,16 +27,32 @@ class MNISTModel(Model):
         return y
 
 
+class MNISTDataset(Dataset):
+    def __init__(self, train: bool = True):
+        (x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+        if train:
+            self.data = x_train.reshape(-1, 784).astype("float32") / 255.0
+            self.labels = np.eye(10)[y_train].astype("float32")
+        else:
+            self.data = x_test.reshape(-1, 784).astype("float32") / 255.0
+            self.labels = np.eye(10)[y_test].astype("float32")
+
+    def __getitem__(self, idx):
+        x = self.data[idx]
+        y = self.labels[idx]
+        return x, y
+
+    def __len__(self):
+        return len(self.data)
+
+
 if __name__ == "__main__":
+    dataset = MNISTDataset(train=True)
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-    x_train = x_train.reshape(-1, 784).astype("float32") / 255.0
-    y_train = np.eye(10)[y_train].astype("float32")
-    x_test = x_test.reshape(-1, 784).astype("float32") / 255.0
-    y_test = np.eye(10)[y_test].astype("float32")
-
     epochs = 20
-    batch_size = 100
+    batch_size = 128
     iter_num = len(x_train) // batch_size
 
     model = MNISTModel()
@@ -44,8 +61,12 @@ if __name__ == "__main__":
 
     for epoch in range(epochs):
         for i in range(iter_num):
-            x_batch = Tensor(x_train[batch_size * i : batch_size * (i + 1)])
-            t_batch = Tensor(y_train[batch_size * i : batch_size * (i + 1)])
+            x_batch = Tensor(
+                [dataset[j][0] for j in range(batch_size * i, batch_size * (i + 1))]
+            )
+            t_batch = Tensor(
+                [dataset[j][1] for j in range(batch_size * i, batch_size * (i + 1))]
+            )
 
             model.zero_grad()
             model.predict(x_batch)
