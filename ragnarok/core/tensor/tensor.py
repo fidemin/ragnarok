@@ -4,6 +4,7 @@ from typing import Optional
 import numpy as np
 
 from ragnarok.core.config import using_backprop
+from ragnarok.core.utils.id_generator import IncrementalIdGenerator
 
 
 class Tensor:
@@ -262,10 +263,11 @@ class Tensor:
         function_queue = []
         # idx used to prevent crash in heapq operation: if gen is same, use idx to compare (without idx, it raises error)
         # gen (generation) is always non-negative, so -gen is used to pop higher gen first
-        idx = 0
-        heapq.heappush(function_queue, ((-self.creator.gen, idx), self.creator))
+        id_generator = IncrementalIdGenerator()
+        heapq.heappush(
+            function_queue, ((-self.creator.gen, id_generator.next()), self.creator)
+        )
         visited = {self.creator}
-        idx += 1
 
         # DFS to iterate all related tensors: use pop and append
         while function_queue:
@@ -289,20 +291,21 @@ class Tensor:
                     if input_.grad is not None:
                         # For the function has more than one input and same inputs are used for the function
                         # e.g. Add()(x, x)
-                        # NOTE: do not use input_.grad += dinput, because it is inplace operation and may cause error in some cases
+                        # NOTE: do not use `input_.grad += dinput`, because it is inplace operation and may cause error in some cases
                         input_.grad = input_.grad + dinput
                     else:
                         input_.grad = dinput
 
                     if input_.creator is not None:
-                        next_creator = input_.creator
-                        if next_creator in visited:
+                        next_function = input_.creator
+                        if next_function in visited:
                             continue
                         heapq.heappush(
-                            function_queue, ((-next_creator.gen, idx), next_creator)
+                            function_queue,
+                            ((-next_function.gen, id_generator.next()), next_function),
                         )
-                        visited.add(next_creator)
-                        idx += 1
+                        visited.add(next_function)
+
             if not retain_grad:
                 # In general case, output grad is intermittent tensor and it can be released to save memory
                 for output in function.outputs:
