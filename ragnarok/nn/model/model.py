@@ -39,7 +39,7 @@ class Model(metaclass=ABCMeta):
 
 
 class Sequential(Model):
-    def __init__(self, layers: List[Layer]):
+    def __init__(self, layers: List[Module]):
         super().__init__()
         self.layers = []
 
@@ -49,7 +49,7 @@ class Sequential(Model):
             else:
                 layer_name = f"{layer.name}_{i}"
 
-            setattr(self, layer_name, layer)
+            super().__setattr__(layer_name, layer)
             self.layers.append(layer)
 
     def predict(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
