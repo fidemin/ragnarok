@@ -13,7 +13,7 @@ class TestDropout:
         dim2 = 100
         num_of_params = dim1 * dim2
         x = Tensor(np.random.rand(dim1, dim2))
-        x_avg = np.average(x.data)
+        x_avg = Tensor(np.average(x.data))
 
         dropout = Dropout(dropout_ratio=dropout_ratio)
 
