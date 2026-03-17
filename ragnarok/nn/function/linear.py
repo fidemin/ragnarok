@@ -4,8 +4,8 @@ from ragnarok.core.tensor import Tensor
 
 
 class Linear(Function):
-    def forward(self, *variables: Tensor, **kwargs):
-        x, W, b = variables
+    def forward(self, *tensors: Tensor, **kwargs):
+        x, W, b = tensors
 
         t = matmul(x, W)
         y = t + b
@@ -23,8 +23,8 @@ class Linear(Function):
 
         return dx, dW, db
 
-    def _validate_variables(self, *variables: Tensor, **kwargs):
-        if len(variables) != 3:
+    def _validate_tensors(self, *tensors: Tensor, **kwargs):
+        if len(tensors) != 3:
             raise ValueError("Linear requires 3 tensors")
 
 

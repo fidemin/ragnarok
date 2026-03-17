@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 
 from ragnarok.core.config import Config
-from ragnarok.core.tensor import Tensor, to_variable
+from ragnarok.core.tensor import Tensor, to_tensor
 
 
 class Function:
@@ -24,10 +24,9 @@ class Function:
     def __call__(
         self, *inputs: int | float | np.ndarray | np.generic | Tensor, **kwargs
     ) -> Tensor | List[Tensor]:
-        inputs = [to_variable(input_) for input_ in inputs]
+        inputs = [to_tensor(input_) for input_ in inputs]
 
-        # _validate_variable
-        self._validate_variables(*inputs, **kwargs)
+        self._validate_tensors(*inputs, **kwargs)
         outputs = self.forward(*inputs, **kwargs)
 
         if type(outputs) not in (tuple, list):
@@ -60,14 +59,14 @@ class Function:
         # DO NOT use numpy operation here
         raise NotImplementedError("Function.backward is not implemented")
 
-    def forward(self, *variables: Tensor, **kwargs):
+    def forward(self, *tensors: Tensor, **kwargs):
         raise NotImplementedError("Function._forward is not implemented")
 
-    def _validate_variables(self, *variables: Tensor, **kwargs):
+    def _validate_tensors(self, *tensors: Tensor, **kwargs):
         raise NotImplementedError("Function._validate_input is not implemented")
 
 
-class FunctionVariableError(Exception):
+class FunctionTensorError(Exception):
     pass
 
 

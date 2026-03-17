@@ -22,7 +22,7 @@ class Tensor:
         """
 
         if not (isinstance(data, (int, float, list, np.ndarray, np.generic))):
-            raise VariableError(
+            raise TensorError(
                 f"data should be numpy array or int or float. given: {type(data)}"
             )
 
@@ -251,7 +251,7 @@ class Tensor:
             None
         """
         if self._creator is None:
-            raise VariableError(
+            raise TensorError(
                 "The creator of this tensor is None. backward propagation is not supported."
             )
 
@@ -261,7 +261,7 @@ class Tensor:
 
         # higher generation popped first
         function_queue = []
-        # idx used to prevent crash in heapq operation: if gen is same, use idx to compare (without idx, it raises error)
+        # id_generator is used to prevent crash in heapq operation: if gen is same, use id to compare (without id, it raises error)
         # gen (generation) is always non-negative, so -gen is used to pop higher gen first
         id_generator = IncrementalIdGenerator()
         heapq.heappush(
@@ -312,11 +312,11 @@ class Tensor:
                     output().grad = None
 
 
-class VariableError(RuntimeError):
+class TensorError(RuntimeError):
     pass
 
 
-def to_variable(x: int | float | np.ndarray | np.generic | Tensor) -> Tensor:
+def to_tensor(x: int | float | np.ndarray | np.generic | Tensor) -> Tensor:
     if isinstance(x, Tensor):
         return x
     return Tensor(x)

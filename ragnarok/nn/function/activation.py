@@ -1,13 +1,13 @@
 import numpy as np
 
-from ragnarok.core.function.common import Function, FunctionVariableError
+from ragnarok.core.function.common import Function, FunctionTensorError
 from ragnarok.core.function.math import exp
 from ragnarok.core.tensor import Tensor
 
 
 class Sigmoid(Function):
-    def forward(self, *variables: Tensor, **kwargs):
-        x = variables[0]
+    def forward(self, *tensors: Tensor, **kwargs):
+        x = tensors[0]
         return 1 / (1 + exp(-x))
 
     def backward(self, *douts: Tensor):
@@ -15,8 +15,8 @@ class Sigmoid(Function):
         y = self._outputs()[0]
         return dout * y * (1.0 - y)
 
-    def _validate_variables(self, *variables: Tensor, **kwargs):
-        if len(variables) != 1:
+    def _validate_tensors(self, *tensors: Tensor, **kwargs):
+        if len(tensors) != 1:
             raise ValueError("Sigmoid requires 1 tensor")
 
 
@@ -25,8 +25,8 @@ def sigmoid(x: Tensor) -> Tensor:
 
 
 class Tanh(Function):
-    def forward(self, *variables: Tensor):
-        x = variables[0]
+    def forward(self, *tensors: Tensor):
+        x = tensors[0]
         return Tensor(np.tanh(x.data))
 
     def backward(self, *douts: Tensor):
@@ -34,10 +34,10 @@ class Tanh(Function):
         y = self._outputs()[0]
         return (1 - y**2) * dout
 
-    def _validate_variables(self, *variables: Tensor):
-        var_length = len(variables)
+    def _validate_tensors(self, *tensors: Tensor):
+        var_length = len(tensors)
         if var_length != 1:
-            raise FunctionVariableError(
+            raise FunctionTensorError(
                 "There should be one input tensor for Tanh function."
             )
 
@@ -47,8 +47,8 @@ def tanh(x: Tensor) -> Tensor:
 
 
 class ReLU(Function):
-    def forward(self, *variables: Tensor):
-        x = variables[0]
+    def forward(self, *tensors: Tensor):
+        x = tensors[0]
         return Tensor(np.maximum(0, x.data))
 
     def backward(self, *douts: Tensor):
@@ -56,10 +56,10 @@ class ReLU(Function):
         y = self._outputs()[0]
         return (y > 0) * dout
 
-    def _validate_variables(self, *variables: Tensor):
-        var_length = len(variables)
+    def _validate_tensors(self, *tensors: Tensor):
+        var_length = len(tensors)
         if var_length != 1:
-            raise FunctionVariableError(
+            raise FunctionTensorError(
                 "There should be one input tensor for ReLU function."
             )
 
@@ -69,8 +69,8 @@ def relu(x: Tensor) -> Tensor:
 
 
 class Softmax(Function):
-    def forward(self, *variables: Tensor):
-        x = variables[0]
+    def forward(self, *tensors: Tensor):
+        x = tensors[0]
         out_data = self._inner_forward(x.data)
         return Tensor(out_data)
 
@@ -107,10 +107,10 @@ class Softmax(Function):
 
         return dx - out * dsum
 
-    def _validate_variables(self, *variables: Tensor):
-        var_length = len(variables)
+    def _validate_tensors(self, *tensors: Tensor):
+        var_length = len(tensors)
         if var_length != 1:
-            raise FunctionVariableError(
+            raise FunctionTensorError(
                 "There should be one input tensor for Softmax function."
             )
 

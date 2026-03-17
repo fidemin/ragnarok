@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from ragnarok.core.function import (
-    FunctionVariableError,
+    FunctionTensorError,
     NotSupportedOperationException,
     GetItem,
     GetItemGrad,
@@ -26,10 +26,10 @@ class FunctionForTest(Function):
     def backward(self, *douts: Tensor):
         return douts[0]
 
-    def forward(self, *variables: Tensor, **kwargs):
-        return variables[0]
+    def forward(self, *tensors: Tensor, **kwargs):
+        return tensors[0]
 
-    def _validate_variables(self, *variables: Tensor):
+    def _validate_tensors(self, *tensors: Tensor):
         pass
 
 
@@ -87,7 +87,7 @@ class TestComparison:
             input_vars.append(Tensor(np.random.rand(*shape)))
 
         f = Comparison()
-        with pytest.raises(FunctionVariableError) as exc_info:
+        with pytest.raises(FunctionTensorError) as exc_info:
             f(*input_vars, operator=operator)
 
         print("error message: ", str(exc_info.value))
@@ -299,8 +299,8 @@ class TestTranspose:
             ),
         ],
     )
-    def test_validate_variables(self, test_input, transpose):
-        with pytest.raises(FunctionVariableError):
+    def test_validate_tensors(self, test_input, transpose):
+        with pytest.raises(FunctionTensorError):
             f = Transpose()(*test_input, transpose=transpose)
 
 
@@ -484,7 +484,7 @@ class TestBroadcastTo:
         ],
     )
     def test_forward_error(self, from_shape, to_shape):
-        with pytest.raises(FunctionVariableError) as exc_info:
+        with pytest.raises(FunctionTensorError) as exc_info:
             f = BroadcastTo()
             f.forward(Tensor(np.random.rand(*from_shape)), shape=to_shape)
 
@@ -684,7 +684,7 @@ class TestBroadcastTo:
 
         f(test_input, shape=(2, 3, 2))
 
-        variable = Tensor(
+        tensor = Tensor(
             np.array(
                 [
                     [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]],
@@ -693,7 +693,7 @@ class TestBroadcastTo:
             )
         )
 
-        actual = f.backward(variable)
+        actual = f.backward(tensor)
 
         expected = numerical_diff(f, test_input, shape=(2, 3, 2))
 
@@ -716,8 +716,8 @@ class TestBroadcastTo:
             ),
         ],
     )
-    def test_validate_variables(self, test_input, shape):
-        with pytest.raises(FunctionVariableError) as exc_info:
+    def test_validate_tensor(self, test_input, shape):
+        with pytest.raises(FunctionTensorError) as exc_info:
             f = BroadcastTo()
             if shape:
                 f(*test_input, shape=shape)
@@ -931,7 +931,7 @@ class TestSumTo:
     )
     def test_forward_error(self, from_shape, to_shape):
         test_input = Tensor(np.random.rand(*from_shape))
-        with pytest.raises(FunctionVariableError) as exc_info:
+        with pytest.raises(FunctionTensorError) as exc_info:
             f = SumTo()
             f.forward(test_input, shape=to_shape)
 
@@ -1109,13 +1109,13 @@ class TestSumTo:
 
         f(test_input, shape=(3, 2))
 
-        variable = Tensor(
+        tensor = Tensor(
             np.array(
                 [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]],
             )
         )
 
-        actual = f.backward(variable)
+        actual = f.backward(tensor)
 
         expected = numerical_diff(f, test_input, shape=(3, 2))
 
@@ -1138,8 +1138,8 @@ class TestSumTo:
             ),
         ],
     )
-    def test_validate_variables(self, test_input, shape):
-        with pytest.raises(FunctionVariableError) as exc_info:
+    def test_validate_tensor(self, test_input, shape):
+        with pytest.raises(FunctionTensorError) as exc_info:
             f = SumTo()
             if shape:
                 f(*test_input, shape=shape)

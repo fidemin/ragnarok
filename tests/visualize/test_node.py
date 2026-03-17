@@ -1,9 +1,9 @@
 import pytest
 
-from ragnarok.graph.node import DotVariableNode, DotFunctionNode
+from ragnarok.graph.node import DotTensorNode, DotFunctionNode
 
 
-class TestDotVariableNode:
+class TestDotTensorNode:
     @pytest.mark.parametrize(
         "id_, name, shape, dtype, expected",
         [
@@ -48,7 +48,7 @@ class TestDotVariableNode:
             kwargs["shape"] = shape
         if dtype is not None:
             kwargs["dtype"] = dtype
-        node = DotVariableNode(id_, **kwargs)
+        node = DotTensorNode(id_, **kwargs)
         assert node.to_str(verbose=True) == expected
 
     @pytest.mark.parametrize(
@@ -95,7 +95,7 @@ class TestDotVariableNode:
             kwargs["shape"] = shape
         if dtype is not None:
             kwargs["dtype"] = dtype
-        node = DotVariableNode(id_, **kwargs)
+        node = DotTensorNode(id_, **kwargs)
         assert node.draw(verbose=True) == expected
 
 

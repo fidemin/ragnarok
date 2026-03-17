@@ -7,8 +7,8 @@ from ragnarok.nn.function.activation import softmax
 
 
 class MeanSquaredError(Function):
-    def forward(self, *variables: Tensor, **kwargs) -> Tensor:
-        x0, x1 = variables
+    def forward(self, *tensors: Tensor, **kwargs) -> Tensor:
+        x0, x1 = tensors
         diff = x0 - x1
         length = len(diff) if diff.ndim > 0 else 1  # handle scalar
         return (diff**2).sum() / length
@@ -25,16 +25,16 @@ class MeanSquaredError(Function):
 
         return dx0, dx1
 
-    def _validate_variables(self, *variables: Tensor, **kwargs):
-        if len(variables) != 2:
+    def _validate_tensors(self, *tensors: Tensor, **kwargs):
+        if len(tensors) != 2:
             raise ValueError("MeanSquaredError requires 2 tensors")
-        if variables[0].shape != variables[1].shape:
+        if tensors[0].shape != tensors[1].shape:
             raise ValueError("MeanSquaredError requires the same shape tensors")
 
 
 class CrossEntropyError(Function):
-    def forward(self, *variables: Tensor, **kwargs):
-        y, t = variables
+    def forward(self, *tensors: Tensor, **kwargs):
+        y, t = tensors
         y_data = y.data
         t_data = t.data
 
@@ -62,11 +62,11 @@ class CrossEntropyError(Function):
 
         return dx, dt
 
-    def _validate_variables(self, *variables: Tensor, **kwargs):
-        if len(variables) != 2:
+    def _validate_tensors(self, *tensors: Tensor, **kwargs):
+        if len(tensors) != 2:
             raise ValueError("CrossEntropyError requires 2 tensors")
 
-        if variables[0].shape != variables[1].shape:
+        if tensors[0].shape != tensors[1].shape:
             raise ValueError("CrossEntropyError requires the same shape tensors")
 
 
@@ -75,10 +75,10 @@ def cross_entropy_error(y: Tensor, t: Tensor) -> Tensor:
 
 
 class SoftMaxLoss(Function):
-    def forward(self, *variables: Tensor, **kwargs):
-        y = softmax(variables[0])
+    def forward(self, *tensors: Tensor, **kwargs):
+        y = softmax(tensors[0])
         self._cache["y"] = y
-        t = variables[1]
+        t = tensors[1]
         return cross_entropy_error(y, t)
 
     def backward(self, *douts: Tensor):
@@ -95,6 +95,6 @@ class SoftMaxLoss(Function):
         dt = -dout * log(y) / batch_size
         return dy, dt
 
-    def _validate_variables(self, *variables: Tensor, **kwargs):
-        if len(variables) != 2:
+    def _validate_tensors(self, *tensors: Tensor, **kwargs):
+        if len(tensors) != 2:
             raise ValueError("SoftMaxLoss requires 2 tensors")

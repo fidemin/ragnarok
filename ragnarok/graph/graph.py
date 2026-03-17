@@ -2,15 +2,15 @@ from typing import List
 
 from ragnarok.core.function import Function
 from ragnarok.core.tensor import Tensor
-from ragnarok.graph.node import DotVariableNode, DotFunctionNode
+from ragnarok.graph.node import DotTensorNode, DotFunctionNode
 
 
-def draw_variable(variable: Tensor, verbose: bool) -> str:
-    return DotVariableNode(
-        id(variable),
-        name=variable.name,
-        shape=variable.shape,
-        dtype=variable.dtype,
+def draw_tensor(tensor: Tensor, verbose: bool) -> str:
+    return DotTensorNode(
+        id(tensor),
+        name=tensor.name,
+        shape=tensor.shape,
+        dtype=tensor.dtype,
     ).draw(verbose=verbose)
 
 
@@ -18,7 +18,7 @@ def draw_function(func: Function) -> str:
     return DotFunctionNode(
         id(func),
         name=func.__class__.__name__,
-        input_ids=[id(input_variable) for input_variable in func.inputs],
+        input_ids=[id(input_tensor) for input_tensor in func.inputs],
         output_ids=[id(output_weak()) for output_weak in func.outputs],
     ).draw()
 
@@ -28,7 +28,7 @@ class DotGraph:
         self._output = output
 
     def draw(self, verbose=False):
-        result_list = [draw_variable(self._output, verbose=verbose)]
+        result_list = [draw_tensor(self._output, verbose=verbose)]
 
         seen_funcs = set()
         drawn_vars = set()
@@ -45,12 +45,12 @@ class DotGraph:
             seen_funcs.add(func_id)
             result_list.append(draw_function(func))
 
-            for input_variable in func.inputs:
-                input_id = id(input_variable)
+            for input_tensor in func.inputs:
+                input_id = id(input_tensor)
                 if input_id not in drawn_vars:
-                    result_list.append(draw_variable(input_variable, verbose=verbose))
+                    result_list.append(draw_tensor(input_tensor, verbose=verbose))
                     drawn_vars.add(input_id)
-                if input_variable.creator is not None:
-                    func_stack.append(input_variable.creator)
+                if input_tensor.creator is not None:
+                    func_stack.append(input_tensor.creator)
 
         return "digraph G {\n" + "\n".join(result_list) + "\n}"

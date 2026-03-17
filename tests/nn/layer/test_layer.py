@@ -33,7 +33,7 @@ class TestLayer:
     def test_forward(self, tensors):
         layer = MockLayer()
 
-        # y can be a single Tensor or a list of Variables
+        # y can be a single Tensor or a list of Tensors
         y = layer.forward(tensors)
 
         if not isinstance(y, list):

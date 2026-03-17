@@ -1,7 +1,7 @@
 import numpy as np
 
 from ragnarok.core.config import Config
-from ragnarok.core.function import Function, FunctionVariableError
+from ragnarok.core.function import Function, FunctionTensorError
 from ragnarok.core.tensor import Tensor
 from ragnarok.core.tensor.dtype import int8
 
@@ -13,9 +13,9 @@ class Dropout(Function):
         super().__init__()
         self._freeze_mask = freeze_mask
 
-    def forward(self, *variables: Tensor, **kwargs):
+    def forward(self, *tensors: Tensor, **kwargs):
         dropout_ratio = kwargs[self._dropout_ratio_key]
-        x = variables[0]
+        x = tensors[0]
 
         if not (self._freeze_mask and "mask" in self._cache):
             self._cache["mask"] = (
@@ -33,15 +33,15 @@ class Dropout(Function):
         keep_ratio = 1 - self.kwargs[self._dropout_ratio_key]
         return dout * self._cache["mask"] / keep_ratio
 
-    def _validate_variables(self, *variables: Tensor, **kwargs):
-        if len(variables) != 1:
-            raise FunctionVariableError("Dropout requires 1 tensor")
+    def _validate_tensors(self, *tensors: Tensor, **kwargs):
+        if len(tensors) != 1:
+            raise FunctionTensorError("Dropout requires 1 tensor")
 
         if self._dropout_ratio_key not in kwargs:
-            raise FunctionVariableError("Dropout requires dropout_ratio in kwargs")
+            raise FunctionTensorError("Dropout requires dropout_ratio in kwargs")
 
         if not 0.0 <= kwargs[self._dropout_ratio_key] <= 1.0:
-            raise FunctionVariableError("Dropout ratio should be between 0 and 1")
+            raise FunctionTensorError("Dropout ratio should be between 0 and 1")
 
 
 def dropout(x: Tensor, *, dropout_ratio: float) -> Tensor:

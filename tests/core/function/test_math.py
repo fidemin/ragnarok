@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from ragnarok.core.function import (
-    FunctionVariableError,
+    FunctionTensorError,
 )
 from ragnarok.core.function.common import Function
 from ragnarok.core.function.math import (
@@ -27,10 +27,10 @@ class FunctionForTest(Function):
     def backward(self, *douts: Tensor):
         return douts[0]
 
-    def forward(self, *variables: Tensor, **kwargs):
-        return variables[0]
+    def forward(self, *tensors: Tensor, **kwargs):
+        return tensors[0]
 
-    def _validate_variables(self, *variables: Tensor):
+    def _validate_tensors(self, *tensors: Tensor):
         pass
 
 
@@ -79,8 +79,8 @@ class TestSquare:
             [],
         ],
     )
-    def test__validate_variables(self, test_input):
-        with pytest.raises(FunctionVariableError):
+    def test__validate_tensors(self, test_input):
+        with pytest.raises(FunctionTensorError):
             f = Square()
             f(*test_input)
 
@@ -140,8 +140,8 @@ class TestExp:
             [],
         ],
     )
-    def test__validate_variables(self, test_input):
-        with pytest.raises(FunctionVariableError):
+    def test__validate_tensors(self, test_input):
+        with pytest.raises(FunctionTensorError):
             f = Exp()
             f(*test_input)
 

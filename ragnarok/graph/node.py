@@ -1,7 +1,7 @@
 from typing import Optional
 
 
-class DotVariableNode:
+class DotTensorNode:
     def __init__(
         self, id_, *, name: str = "", shape: Optional[tuple] = None, dtype: str = None
     ):

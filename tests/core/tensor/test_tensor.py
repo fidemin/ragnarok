@@ -6,12 +6,12 @@ import pytest
 
 from ragnarok.core.function import Split
 from ragnarok.core.function.math import Square, Exp, Add
-from ragnarok.core.tensor import Tensor, VariableError, to_variable
+from ragnarok.core.tensor import Tensor, TensorError, to_tensor
 from ragnarok.core.tensor.dtype import int8
 from ragnarok.core.util import allclose, numerical_diff
 
 
-class TestVariable:
+class TestTensor:
     @pytest.mark.parametrize(
         "test_input,data,shape,ndim,dtype,length",
         [
@@ -38,16 +38,16 @@ class TestVariable:
         ],
     )
     def test_initialization(self, test_input, data, shape, ndim, dtype, length):
-        variable = Tensor(test_input)
+        tensor = Tensor(test_input)
         grad = Tensor(np.array([1.0, 2.0]))
-        variable.grad = grad
-        assert np.all(variable.data == data)
-        assert variable.grad == grad
-        assert variable.shape == shape
-        assert variable._name is None
-        assert variable.ndim == ndim
-        assert variable.dtype == dtype
-        assert len(variable) == length
+        tensor.grad = grad
+        assert np.all(tensor.data == data)
+        assert tensor.grad == grad
+        assert tensor.shape == shape
+        assert tensor._name is None
+        assert tensor.ndim == ndim
+        assert tensor.dtype == dtype
+        assert len(tensor) == length
 
     @pytest.mark.parametrize(
         "test_input,data,name",
@@ -60,18 +60,18 @@ class TestVariable:
         ],
     )
     def test_initialization_with_name(self, test_input, data, name):
-        variable = Tensor(test_input, name)
-        assert np.all(variable.data == data)
-        assert variable._name == name
+        tensor = Tensor(test_input, name)
+        assert np.all(tensor.data == data)
+        assert tensor._name == name
 
     @pytest.mark.parametrize("test_input", ["string", datetime.datetime.now()])
     def test_raise_error_for_wrong_data_type(self, test_input):
-        with pytest.raises(VariableError):
+        with pytest.raises(TensorError):
             Tensor(test_input)
 
     def test_astype(self):
-        variable = Tensor([True, False, True])
-        actual = variable.astype(int8)
+        tensor = Tensor([True, False, True])
+        actual = tensor.astype(int8)
         expected = Tensor(np.array([1, 0, 1], dtype=int8))
         assert allclose(actual, expected)
         assert actual.dtype == expected.dtype
@@ -173,8 +173,8 @@ class TestVariable:
         out = f3(out2_1, out2_2)
         out.backward()
 
-        def complex_function(*variables):
-            nout1_1, nout1_2 = f1(*variables, axis=0)
+        def complex_function(*tensors):
+            nout1_1, nout1_2 = f1(*tensors, axis=0)
             nout2_1 = f2_1(nout1_1)
             nout2_2 = f2_2(nout1_2)
             return f3(nout2_1, nout2_2)
@@ -675,13 +675,13 @@ class TestVariable:
         (np.float32(1.0), Tensor),
     ],
 )
-def test_to_variable(input_value, expected_type):
-    result = to_variable(input_value)
+def test_to_tensor(input_value, expected_type):
+    result = to_tensor(input_value)
     assert isinstance(result, expected_type)
     assert np.all(result.data == input_value)
 
 
-def test_to_variable__from_variable():
+def test_to_tensor__from_tensor():
     input_value = Tensor(np.array([1, 2, 3]))
-    result = to_variable(input_value)
+    result = to_tensor(input_value)
     assert result is input_value

@@ -1,6 +1,6 @@
 import numpy as np
 
-from ragnarok.core.function import Function, FunctionVariableError
+from ragnarok.core.function import Function, FunctionTensorError
 from ragnarok.core.function.math import matmul
 from ragnarok.core.tensor import Tensor
 
@@ -92,12 +92,12 @@ def col2fil(dcol_W: Tensor, *, FC: int, FH: int, FW: int) -> Tensor:
 
 
 class Conv2D(Function):
-    def forward(self, *variables: Tensor, **kwargs):
-        x_var = variables[0]
-        w_var = variables[1]
+    def forward(self, *tensors: Tensor, **kwargs):
+        x_var = tensors[0]
+        w_var = tensors[1]
 
         # FC X 1 X 1
-        b_var = variables[2]
+        b_var = tensors[2]
 
         N, C, H, W = x_var.shape
         self._cache["C"] = C
@@ -173,18 +173,18 @@ class Conv2D(Function):
 
         return dx, dW, db
 
-    def _validate_variables(self, *variables: Tensor, **kwargs):
-        if len(variables) != 3:
-            raise FunctionVariableError("Conv2D requires 2 tensors")
+    def _validate_tensors(self, *tensors: Tensor, **kwargs):
+        if len(tensors) != 3:
+            raise FunctionTensorError("Conv2D requires 2 tensors")
 
         if "padding" not in kwargs:
-            raise FunctionVariableError("Img2Col requires padding in kwargs")
+            raise FunctionTensorError("Img2Col requires padding in kwargs")
 
         if "stride" not in kwargs:
-            raise FunctionVariableError("Img2Col requires stride in kwargs")
+            raise FunctionTensorError("Img2Col requires stride in kwargs")
 
-        C = variables[0].shape[1]
-        FC = variables[1].shape[1]
+        C = tensors[0].shape[1]
+        FC = tensors[1].shape[1]
 
         if C != FC:
             raise Exception(
@@ -195,8 +195,8 @@ class Conv2D(Function):
 
 
 class Img2Col(Function):
-    def forward(self, *variables: Tensor, **kwargs):
-        x_var = variables[0]
+    def forward(self, *tensors: Tensor, **kwargs):
+        x_var = tensors[0]
         x_data = x_var.data
 
         N, C, H, W = x_data.shape
@@ -269,8 +269,8 @@ class Img2Col(Function):
         img_data = img[:, :, padding : H + padding, padding : W + padding]
         return Tensor(img_data)
 
-    def _validate_variables(self, *variables: Tensor, **kwargs):
-        if len(variables) != 1:
+    def _validate_tensors(self, *tensors: Tensor, **kwargs):
+        if len(tensors) != 1:
             raise ValueError("Img2Col requires 1 tensor")
 
         if "FH" not in kwargs:
