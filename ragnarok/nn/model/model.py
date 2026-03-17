@@ -3,6 +3,7 @@ from typing import List, Iterable, Union
 
 from ragnarok.core.tensor import Tensor
 from ragnarok.nn.core.layer import Layer
+from ragnarok.nn.core.module import Module
 from ragnarok.nn.core.parameter import Parameter
 from ragnarok.nn.layer.activation import get_activation_layer
 from ragnarok.nn.layer.linear import Linear
@@ -15,7 +16,7 @@ class Model(metaclass=ABCMeta):
         self.layers_dict = {}
 
     def __setattr__(self, key, value):
-        if isinstance(value, Layer):
+        if isinstance(value, Layer) or isinstance(value, Module):
             layer_name = f"{key}"
             # dictionary keeps its insertion order since python 3.7
             self.layers_dict[layer_name] = value

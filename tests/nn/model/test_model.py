@@ -9,7 +9,7 @@ from ragnarok.nn.layer.linear import Linear
 from ragnarok.nn.model.model import Sequential, Model, MLP
 
 
-class MockModel(Model):
+class ModelForTest(Model):
     def __init__(self):
         super().__init__()
         self.layer_linear_1 = Linear(8)
@@ -26,7 +26,7 @@ class MockModel(Model):
 
 class TestModel:
     def test_init(self):
-        model = MockModel()
+        model = ModelForTest()
 
         assert list(model.params) == [
             model.layer_linear_2.params["W"],

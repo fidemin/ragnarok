@@ -5,12 +5,12 @@ import numpy as np
 from ragnarok.core.tensor import Tensor
 from ragnarok.core.tensor.dtype import float32
 from ragnarok.core.tensor.tensor import zeros
-from ragnarok.nn.core.layer import Layer
+from ragnarok.nn.core.module import Module
 from ragnarok.nn.core.parameter import Parameter
 from ragnarok.nn.function.linear import linear
 
 
-class Linear(Layer):
+class Linear(Module):
     def __init__(
         self,
         out_size: int,
@@ -36,25 +36,25 @@ class Linear(Layer):
             dtype=self.dtype
         )
         param_W = Parameter(data_W, name="W")
-        self.params["W"] = param_W
+        self.W = param_W
 
         if self.use_bias:
             data_b = np.zeros(self.out_size).astype(dtype=self.dtype)
             param_b = Parameter(data_b, name="b")
-            self.params["b"] = param_b
+            self.b = param_b
 
-    def _forward(self, *tensors: Tensor, **kwargs) -> List[Tensor]:
+    def forward(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
         x = tensors[0]
         if self.in_size is None:
             self.in_size = x.shape[-1]  # last dimension of x
             self._init_params()
 
-        W = self.params["W"]
+        W = self.W
 
         if self.use_bias:
-            b = self.params["b"]
+            b = self.b
         else:
             b = zeros(self.out_size, dtype=self.dtype)
 
         out_var = linear(x, W, b)
-        return [out_var]
+        return out_var

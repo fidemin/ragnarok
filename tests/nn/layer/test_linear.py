@@ -61,17 +61,20 @@ class TestLinear:
     def test_forward(self, use_bias, x, W, b, expected):
         # Given
         param_W = Parameter(W, name="W")
+
         affine = Linear(
             out_size=param_W.shape[-1], in_size=param_W.shape[0], use_bias=use_bias
         )
-        affine.params["W"] = Parameter(W)
+
+        # set parameters directly for testing
+        affine.W = Parameter(W)
         if use_bias:
-            affine.params["b"] = Parameter(b)
+            affine.b = Parameter(b)
 
         x = Tensor(x)
 
         # When
-        y = affine.forward(x)
+        y = affine(x)
         assert y.shape == (3, 2)
         assert allclose(y, Tensor(expected))
 
@@ -88,7 +91,7 @@ class TestLinear:
         x = Tensor(x)
 
         # When
-        y = layer.forward(x)
+        y = layer(x)
 
         # Then
         assert y.shape == expected_shape
