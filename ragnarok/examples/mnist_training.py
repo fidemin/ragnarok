@@ -5,24 +5,24 @@ from keras.api.datasets import mnist
 
 from ragnarok.core.config import using_backprop
 from ragnarok.core.tensor import Tensor
+from ragnarok.nn.core.module import Module
 from ragnarok.nn.function.loss import SoftMaxLoss
 from ragnarok.nn.layer.activation import ReLU
 from ragnarok.nn.layer.linear import Linear
-from ragnarok.nn.model.model import Model
 from ragnarok.nn.optimizer.optimizer import Adam
 from ragnarok.nn.train.util import accuracy
 from ragnarok.utils.data.dataloader import DataLoader
 from ragnarok.utils.data.dataset import Dataset
 
 
-class MNISTModel(Model):
+class MNISTModel(Module):
     def __init__(self):
         super().__init__()
         self.fc1 = Linear(1000)
         self.relu = ReLU()
         self.fc2 = Linear(10)
 
-    def predict(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
+    def forward(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
         x = tensors[0]
         h = self.fc1(x)
         h = self.relu(h)
@@ -72,7 +72,7 @@ if __name__ == "__main__":
             x_batch = Tensor(train_x)
             t_batch = Tensor(train_t)
 
-            y_batch = model.predict(x_batch)  # Changed from forward to predict
+            y_batch = model(x_batch)  # Changed from forward to predict
             loss = loss_func(y_batch, t_batch)
 
             acc = accuracy(y_batch, t_batch)
@@ -98,7 +98,7 @@ if __name__ == "__main__":
                 x_batch = Tensor(test_x)
                 t_batch = Tensor(test_t)
 
-                y_batch = model.predict(x_batch)  # Changed from forward to predict
+                y_batch = model(x_batch)  # Changed from forward to predict
                 loss = loss_func(y_batch, t_batch)
 
                 acc = accuracy(y_batch, t_batch)

@@ -20,8 +20,9 @@ class TestModule:
                 return tensor * self.weight + self.bias
 
         layer = Layer()
-        assert layer.params["weight"] is layer.weight
-        assert layer.params["bias"] is layer.bias
+        assert layer._container["weight"] is layer.weight
+        assert layer._container["bias"] is layer.bias
+        assert layer.params == [layer.weight, layer.bias]
 
     def test_module_layer_only(self):
         class Layer(Module):
@@ -44,4 +45,5 @@ class TestModule:
                 return self.layer(tensor)
 
         model = Model()
-        assert model.modules["layer"] is model.layer
+        assert model._container["layer"] is model.layer
+        assert model.params == [model.layer.weight, model.layer.bias]

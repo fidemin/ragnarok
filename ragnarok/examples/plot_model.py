@@ -1,29 +1,9 @@
-from typing import List
-
 import numpy as np
 from keras.api.datasets import mnist
 
 from ragnarok.core.tensor import Tensor
 from ragnarok.graph.plot import plot_tensor_graph
-from ragnarok.nn.layer.activation import Sigmoid
-from ragnarok.nn.layer.linear import Linear
-from ragnarok.nn.model.model import Model, MLP
-
-
-class MNISTModel(Model):
-    def __init__(self):
-        super().__init__()
-        self.fc1 = Linear(1000)
-        self.sigmoid = Sigmoid()
-        self.fc2 = Linear(10)
-
-    def predict(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
-        x = tensors[0]
-        h = self.fc1(x)
-        h = self.sigmoid(h)
-        y = self.fc2(h)
-        return y
-
+from ragnarok.nn.model.model import MLP
 
 if __name__ == "__main__":
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -34,6 +14,6 @@ if __name__ == "__main__":
     y_test = np.eye(10)[y_test].astype("float32")
 
     model = MLP(out_sizes=[1000, 10], activation="sigmoid")
-    y = model.predict(Tensor(x_train[:1]))
+    y = model(Tensor(x_train[:1]))
 
     plot_tensor_graph(y, output_file="temp/mlp_model_graph.png", temp_dir="temp")

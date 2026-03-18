@@ -1,48 +1,56 @@
 from abc import abstractmethod, ABCMeta
-from typing import List, Optional
+from typing import List, Union
 
 from ragnarok.core.tensor import Tensor
 from ragnarok.nn.core.parameter import Parameter
 
 
 class Module(metaclass=ABCMeta):
-    _params: dict[str, Parameter]
-    _modules: dict[str, "Module"]
-    name: Optional[str]
+    _container: dict[str, Union[Parameter, "Module"]]
+    _name: str
 
     def __init__(self, name=None):
-        self._params = {}
-        self._modules = {}
+        self._container = {}
 
+        # TODO: check the name is necessary or not
         if name is None:
-            self.name = self.__class__.__name__
+            self._name = self.__class__.__name__
         else:
-            self.name = name
+            self._name = name
 
     @property
-    def params(self) -> dict[str, Parameter]:
-        return self._params
-
-    @property
-    def modules(self) -> dict[str, "Module"]:
-        return self._modules
+    def name(self) -> str:
+        return self._name
 
     def __setattr__(self, key, value):
         self._set_init(key, value)
         super().__setattr__(key, value)
 
     def _set_init(self, key, value):
-        # save parameters in the module's params dictionary with their full names
-        if isinstance(value, Parameter):
-            param_name = f"{key}"
-            self.params[param_name] = value
-
-        if isinstance(value, Module):
-            module_name = f"{key}"
-            self._modules[module_name] = value
+        # only register Parameter and Module to the container, other attributes are not registered
+        if isinstance(value, Parameter) or isinstance(value, Module):
+            key_str = f"{key}"
+            self._container[key_str] = value
 
     def __call__(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:
         return self.forward(*tensors, **kwargs)
+
+    @property
+    def params(self) -> List[Parameter]:
+        params = []
+        for module_or_param in self._container.values():
+            if isinstance(module_or_param, Parameter):
+                params.append(module_or_param)
+            elif isinstance(module_or_param, Module):
+                params.extend(module_or_param.params)
+        return params
+
+    def zero_grad(self):
+        for module_or_param in self._container.values():
+            if isinstance(module_or_param, Parameter):
+                module_or_param.clear_grad()
+            elif isinstance(module_or_param, Module):
+                module_or_param.zero_grad()
 
     @abstractmethod
     def forward(self, *tensors: Tensor, **kwargs) -> Tensor | List[Tensor]:

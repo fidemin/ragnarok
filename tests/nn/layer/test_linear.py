@@ -27,17 +27,17 @@ class TestLinear:
         assert affine.in_size is None
         assert affine.use_bias is True
         assert affine.dtype == float32
-        assert affine.params == {}
+        assert affine._container == {}
 
     def test_init_with_in_size(self):
         affine = Linear(out_size=3, in_size=2)
         assert affine.in_size == 2
         assert affine.use_bias is True
         assert affine.dtype == float32
-        assert "W" in affine.params
-        assert "b" in affine.params
-        assert affine.params["W"].shape == (2, 3)
-        assert affine.params["b"].shape == (3,)
+        assert "W" in affine._container
+        assert "b" in affine._container
+        assert affine._container["W"].shape == (2, 3)
+        assert affine._container["b"].shape == (3,)
 
     @pytest.mark.parametrize(
         "use_bias, x, W, b, expected",

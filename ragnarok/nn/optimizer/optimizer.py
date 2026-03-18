@@ -8,7 +8,7 @@ from ragnarok.nn.core.parameter import Parameter
 
 
 class Optimizer(metaclass=ABCMeta):
-    def update(self, params: Iterable[Parameter]):
+    def update(self, params: List[Parameter]):
         self._pre_update(params)
         for idx, param in enumerate(params):
             self._update_one(idx, param)

@@ -1,5 +1,5 @@
 from ragnarok.core.function import Function
-from ragnarok.nn.model.model import Model
+from ragnarok.nn.core.module import Module
 from ragnarok.nn.optimizer.optimizer import Optimizer
 
 
@@ -7,7 +7,7 @@ class Trainer:
     def __init__(
         self,
         *,
-        model: Model,
+        model: Module,
         loss_func: Function,
         optimizer: Optimizer,
         epochs: int,
@@ -27,7 +27,7 @@ class Trainer:
 
             self.model.zero_grad()
 
-            y = self.model.predict(x)  # Changed from forward to predict
+            y = self.model(x)  # Changed from forward to predict
             loss = self.loss_func(y, t)
 
             loss.backward()
