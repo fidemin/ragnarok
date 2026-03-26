@@ -176,5 +176,10 @@ downloads/**
 # macbook
 .DS_Store
 
-# temp directory
+# temp
 temp/
+temp_*
+temp-*
+
+# npz file
+*.npz
