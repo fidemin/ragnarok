@@ -5,31 +5,103 @@ from ragnarok.core.function.math import matmul
 from ragnarok.core.tensor import Tensor
 
 
-def img2col(x_var: Tensor, *, FH: int, FW: int, padding: int, stride: int) -> Tensor:
-    x_data = x_var.data
+class Img2Col(Function):
+    def forward(self, *tensors: Tensor, **kwargs):
+        # NOTE: This function uses numpy for implementation. High order differentiation is not supported.
+        x_var = tensors[0]
+        x_data = x_var.data
 
-    N, C, H, W = x_data.shape
+        N, C, H, W = x_data.shape
+        self._cache["N"] = N
+        self._cache["C"] = C
+        self._cache["H"] = H
+        self._cache["W"] = W
 
-    OH = (H + 2 * padding - FH) // stride + 1
-    OW = (W + 2 * padding - FW) // stride + 1
+        FH = kwargs["FH"]
+        FW = kwargs["FW"]
+        padding = kwargs["padding"]
+        stride = kwargs["stride"]
 
-    img = np.pad(x_data, ((0, 0), (0, 0), (padding, padding), (padding, padding)))
-    col_data = np.zeros((N, C, OH, OW, FH, FW))
+        OH = (H + 2 * padding - FH) // stride + 1
+        OW = (W + 2 * padding - FW) // stride + 1
 
-    for out_y in range(OH):
-        y = out_y * stride
-        y_max = y + FH
+        img = np.pad(x_data, ((0, 0), (0, 0), (padding, padding), (padding, padding)))
+        col_data = np.zeros((N, C, OH, OW, FH, FW))
 
-        for out_x in range(OW):
-            x_data = out_x * stride
-            x_max = x_data + FW
-            col_data[:, :, out_y, out_x, :, :] = img[:, :, y:y_max, x_data:x_max]
+        for out_y in range(OH):
+            y = out_y * stride
+            y_max = y + FH
 
-    # col.shape: (N, C, OH, OW, FH, FW) -> (N, OH, OW, C, FH, FW)
-    col_data = col_data.transpose((0, 2, 3, 1, 4, 5))
-    # col.shape: (N, OH, OW, C, FH, FW) -> (N * OH * OW, C * FH * FW)
-    col_data = col_data.reshape((N * OH * OW, -1))
-    return Tensor(col_data)
+            for out_x in range(OW):
+                x_data = out_x * stride
+                x_max = x_data + FW
+                col_data[:, :, out_y, out_x, :, :] = img[:, :, y:y_max, x_data:x_max]
+
+        # col.shape: (N, C, OH, OW, FH, FW) -> (N, OH, OW, C, FH, FW)
+        col_data = col_data.transpose((0, 2, 3, 1, 4, 5))
+        # col.shape: (N, OH, OW, C, FH, FW) -> (N * OH * OW, C * FH * FW)
+        col_data = col_data.reshape((N * OH * OW, -1))
+        return Tensor(col_data)
+
+    def backward(self, *douts: Tensor):
+        # NOTE: This function uses numpy for implementation. High order differentiation is not supported.
+        dout_var = douts[0]
+        dout_data = dout_var.data
+
+        N = self._cache["N"]
+        C = self._cache["C"]
+        H = self._cache["H"]
+        W = self._cache["W"]
+        FH = self.kwargs["FH"]
+        FW = self.kwargs["FW"]
+        padding = self.kwargs["padding"]
+        stride = self.kwargs["stride"]
+
+        OH = (H + 2 * padding - FH) // stride + 1
+        OW = (W + 2 * padding - FW) // stride + 1
+
+        col = dout_data.reshape((N, OH, OW, C, FH, FW))
+        # col.shape: (N, C, OH, OW, FH, FW)
+        col = col.transpose(0, 3, 1, 2, 4, 5)
+        img = np.pad(
+            np.zeros((N, C, H, W)),
+            ((0, 0), (0, 0), (padding, padding), (padding, padding)),
+        )
+
+        for out_y in range(OH):
+            y = out_y * stride
+            y_max = y + FH
+
+            for out_x in range(OW):
+                x = out_x * stride
+                x_max = x + FW
+                img[:, :, y:y_max, x:x_max] += col[:, :, out_y, out_x, :, :]
+
+        # target shape: (N, C, H, W)
+        img_data = img[:, :, padding : H + padding, padding : W + padding]
+        return Tensor(img_data)
+
+    def _validate_tensors(self, *tensors: Tensor, **kwargs):
+        if len(tensors) != 1:
+            raise ValueError("Img2Col requires 1 tensor")
+
+        if "FH" not in kwargs:
+            raise ValueError("Img2Col requires FH in kwargs")
+
+        if "FW" not in kwargs:
+            raise ValueError("Img2Col requires FW in kwargs")
+
+        if "padding" not in kwargs:
+            raise ValueError("Img2Col requires padding in kwargs")
+
+        if "stride" not in kwargs:
+            raise ValueError("Img2Col requires stride in kwargs")
+
+
+def img2col(x: Tensor, *, FH: int, FW: int, padding: int, stride: int) -> Tensor:
+    f = Img2Col()
+    out = f(x, FH=FH, FW=FW, padding=padding, stride=stride)
+    return out
 
 
 def col2img(
@@ -77,11 +149,11 @@ def col2img(
     return Tensor(img_data)
 
 
-def fil2col(w_var: Tensor) -> Tensor:
-    FN = w_var.shape[0]
+def fil2col(w_tensor: Tensor) -> Tensor:
+    FN = w_tensor.shape[0]
 
     # returns (FN, FC * FH * FW)
-    return w_var.reshape(FN, -1)
+    return w_tensor.reshape(FN, -1)
 
 
 def col2fil(dcol_W: Tensor, *, FC: int, FH: int, FW: int) -> Tensor:
@@ -192,95 +264,3 @@ class Conv2D(Function):
                     C, FC
                 )
             )
-
-
-class Img2Col(Function):
-    def forward(self, *tensors: Tensor, **kwargs):
-        x_var = tensors[0]
-        x_data = x_var.data
-
-        N, C, H, W = x_data.shape
-        self._cache["N"] = N
-        self._cache["C"] = C
-        self._cache["H"] = H
-        self._cache["W"] = W
-
-        FH = kwargs["FH"]
-        FW = kwargs["FW"]
-        padding = kwargs["padding"]
-        stride = kwargs["stride"]
-
-        OH = (H + 2 * padding - FH) // stride + 1
-        OW = (W + 2 * padding - FW) // stride + 1
-
-        img = np.pad(x_data, ((0, 0), (0, 0), (padding, padding), (padding, padding)))
-        col_data = np.zeros((N, C, OH, OW, FH, FW))
-
-        for out_y in range(OH):
-            y = out_y * stride
-            y_max = y + FH
-
-            for out_x in range(OW):
-                x_data = out_x * stride
-                x_max = x_data + FW
-                col_data[:, :, out_y, out_x, :, :] = img[:, :, y:y_max, x_data:x_max]
-
-        # col.shape: (N, C, OH, OW, FH, FW) -> (N, OH, OW, C, FH, FW)
-        col_data = col_data.transpose((0, 2, 3, 1, 4, 5))
-        # col.shape: (N, OH, OW, C, FH, FW) -> (N * OH * OW, C * FH * FW)
-        col_data = col_data.reshape((N * OH * OW, -1))
-        return Tensor(col_data)
-
-    def backward(self, *douts: Tensor):
-        # NOTE: This function uses numpy for implementation. High order differentiation is not supported.
-        dout_var = douts[0]
-        dout_data = dout_var.data
-
-        N = self._cache["N"]
-        C = self._cache["C"]
-        H = self._cache["H"]
-        W = self._cache["W"]
-        FH = self.kwargs["FH"]
-        FW = self.kwargs["FW"]
-        padding = self.kwargs["padding"]
-        stride = self.kwargs["stride"]
-
-        OH = (H + 2 * padding - FH) // stride + 1
-        OW = (W + 2 * padding - FW) // stride + 1
-
-        col = dout_data.reshape((N, OH, OW, C, FH, FW))
-        # col.shape: (N, C, OH, OW, FH, FW)
-        col = col.transpose(0, 3, 1, 2, 4, 5)
-        img = np.pad(
-            np.zeros((N, C, H, W)),
-            ((0, 0), (0, 0), (padding, padding), (padding, padding)),
-        )
-
-        for out_y in range(OH):
-            y = out_y * stride
-            y_max = y + FH
-
-            for out_x in range(OW):
-                x = out_x * stride
-                x_max = x + FW
-                img[:, :, y:y_max, x:x_max] += col[:, :, out_y, out_x, :, :]
-
-        # target shape: (N, C, H, W)
-        img_data = img[:, :, padding : H + padding, padding : W + padding]
-        return Tensor(img_data)
-
-    def _validate_tensors(self, *tensors: Tensor, **kwargs):
-        if len(tensors) != 1:
-            raise ValueError("Img2Col requires 1 tensor")
-
-        if "FH" not in kwargs:
-            raise ValueError("Img2Col requires FH in kwargs")
-
-        if "FW" not in kwargs:
-            raise ValueError("Img2Col requires FW in kwargs")
-
-        if "padding" not in kwargs:
-            raise ValueError("Img2Col requires padding in kwargs")
-
-        if "stride" not in kwargs:
-            raise ValueError("Img2Col requires stride in kwargs")
