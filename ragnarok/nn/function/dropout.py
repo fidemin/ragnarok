@@ -30,8 +30,12 @@ class Dropout(Function):
 
     def backward(self, *douts: Tensor):
         dout = douts[0]
-        keep_ratio = 1 - self.kwargs[self._dropout_ratio_key]
-        return dout * self._cache["mask"] / keep_ratio
+
+        if Config.train:
+            keep_ratio = 1 - self.kwargs[self._dropout_ratio_key]
+            return dout * self._cache["mask"] / keep_ratio
+        else:
+            return dout
 
     def _validate_tensors(self, *tensors: Tensor, **kwargs):
         if len(tensors) != 1:
