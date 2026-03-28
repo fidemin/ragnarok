@@ -323,3 +323,31 @@ class GetItemGrad(Function):
 
         if "index" not in kwargs:
             raise FunctionTensorError("`index` is required for GetItemGrad function.")
+
+
+class Padding(Function):
+    def forward(self, *tensors: Tensor, **kwargs):
+        tensor = tensors[0]
+        pad_width = kwargs["pad_width"]
+        self._cache["original_shape"] = tensor.shape
+        y_data = np.pad(tensor.data, pad_width)
+
+        return Tensor(y_data)
+
+    def backward(self, *douts: Tensor):
+        dout = douts[0]
+        pad_with = self.kwargs["pad_width"]
+        original_shape = self._cache["original_shape"]
+        indices = []
+        for i, (before_i, after_i) in enumerate(pad_with):
+            indices.append(slice(before_i, original_shape[i] + before_i))
+
+        dx = get_item(dout, tuple(indices))
+        return dx
+
+    def _validate_tensors(self, *tensors: Tensor, **kwargs):
+        var_length = len(tensors)
+        if var_length != 1:
+            raise FunctionTensorError(
+                "There should be one input tensor for Padding function."
+            )

@@ -6,6 +6,7 @@ from ragnarok.core.function import (
     NotSupportedOperationException,
     GetItem,
     GetItemGrad,
+    Padding,
 )
 from ragnarok.core.function import (
     Split,
@@ -1217,6 +1218,11 @@ class TestGetItem:
             ([[1.0, 2.0], [3.0, 4.0]], -1, [3.0, 4.0]),
             ([[1.0, 2.0], [3.0, 4.0]], 1, [3.0, 4.0]),
             ([[1.0, 2.0, 3.0], [3.0, 4.0, 5.0]], (1, slice(0, 2)), [3.0, 4.0]),
+            (
+                [[1.0, 2.0, 3.0], [3.0, 4.0, 5.0]],
+                (slice(1, 2), slice(0, 2)),
+                [[3.0, 4.0]],
+            ),
         ],
     )
     def test_forward(self, test_input, index, expected):
@@ -1333,3 +1339,75 @@ class TestGetItemGrad:
         expected = numerical_diff(f, x, to_shape=to_shape, index=index)
         assert actual.shape == expected.shape
         assert allclose(actual, expected)
+
+
+class TestPadding:
+    @pytest.mark.parametrize(
+        "test_input, pad_width, expected",
+        [
+            ([1.0, 2.0, 3.0], [(1, 1)], [0.0, 1.0, 2.0, 3.0, 0.0]),
+            (
+                [[1.0, 2.0], [3.0, 4.0]],
+                [(0, 0), (0, 0)],
+                [
+                    [1.0, 2.0],
+                    [3.0, 4.0],
+                ],
+            ),
+            (
+                [[1.0, 2.0], [3.0, 4.0]],
+                [(1, 1), (1, 2)],
+                [
+                    [0.0, 0.0, 0.0, 0.0, 0.0],
+                    [0.0, 1.0, 2.0, 0.0, 0.0],
+                    [0.0, 3.0, 4.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 0.0, 0.0],
+                ],
+            ),
+        ],
+    )
+    def test_forward(self, test_input, pad_width, expected):
+        f = Padding()
+        actual = f.forward(Tensor(test_input), pad_width=pad_width)
+        expected_var = Tensor(expected)
+        assert actual.shape == expected_var.shape
+        assert allclose(actual, expected_var)
+
+    @pytest.mark.parametrize(
+        "pad_width, dout, expected",
+        [
+            ([(1, 1)], [1.0, 2.0, 3.0, 4.0, 1.0], [2.0, 3.0, 4.0]),
+            (
+                [(0, 0), (0, 0)],
+                [
+                    [2.0, 3.0, 4.0],
+                    [5.0, 6.0, 1.0],
+                ],
+                [
+                    [2.0, 3.0, 4.0],
+                    [5.0, 6.0, 1.0],
+                ],
+            ),
+            (
+                [(1, 1), (1, 2)],
+                [
+                    [1.0, 1.0, 1.0, 1.0, 1.0],
+                    [1.0, 2.0, 3.0, 1.0, 1.0],
+                    [1.0, 4.0, 5.0, 1.0, 1.0],
+                    [1.0, 1.0, 1.0, 1.0, 1.0],
+                ],
+                [
+                    [2.0, 3.0],
+                    [4.0, 5.0],
+                ],
+            ),
+        ],
+    )
+    def test_backward(self, pad_width, dout, expected):
+        expected_tensor = Tensor(expected)
+        test_input = Tensor(np.random.rand(*expected_tensor.shape))
+        f = Padding()
+        f(test_input, pad_width=pad_width)
+        actual = f.backward(Tensor(dout))
+        assert actual.shape == expected_tensor.shape
+        assert allclose(actual, expected_tensor)
