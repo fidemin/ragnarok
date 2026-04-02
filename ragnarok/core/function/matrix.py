@@ -351,3 +351,7 @@ class Padding(Function):
             raise FunctionTensorError(
                 "There should be one input tensor for Padding function."
             )
+
+
+def pad(x: Tensor, pad_width) -> Tensor:
+    return Padding()(x, pad_width=pad_width)
