@@ -1,6 +1,6 @@
 from ragnarok.core.tensor import Tensor, ones_like
 from ragnarok.core.util import allclose, numerical_diff
-from ragnarok.nn.function.conv import img2col, fil2col, Conv2D, col2img, col2fil
+from ragnarok.nn.function.cnn.conv import img2col, fil2col, Conv2D, col2img, col2fil
 
 
 def test_img2col():

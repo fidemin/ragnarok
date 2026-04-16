@@ -1,34 +1,17 @@
-import numpy as np
-
 from ragnarok.core.function import Function, FunctionTensorError
 from ragnarok.core.function.math import matmul
 from ragnarok.core.tensor import Tensor
+from ragnarok.nn.function.cnn.util import _np_img2col, _np_col2img
 
 
 def img2col(x: Tensor, *, FH: int, FW: int, padding: int, stride: int) -> Tensor:
-    x_data = x.data
-
-    N, C, H, W = x_data.shape
-
-    OH = (H + 2 * padding - FH) // stride + 1
-    OW = (W + 2 * padding - FW) // stride + 1
-
-    img = np.pad(x_data, ((0, 0), (0, 0), (padding, padding), (padding, padding)))
-    col_data = np.zeros((N, C, OH, OW, FH, FW))
-
-    for out_y in range(OH):
-        y = out_y * stride
-        y_max = y + FH
-
-        for out_x in range(OW):
-            x_data = out_x * stride
-            x_max = x_data + FW
-            col_data[:, :, out_y, out_x, :, :] = img[:, :, y:y_max, x_data:x_max]
-
-    # col.shape: (N, C, OH, OW, FH, FW) -> (N, OH, OW, C, FH, FW)
-    col_data = col_data.transpose((0, 2, 3, 1, 4, 5))
-    # col.shape: (N, OH, OW, C, FH, FW) -> (N * OH * OW, C * FH * FW)
-    col_data = col_data.reshape((N * OH * OW, -1))
+    col_data = _np_img2col(
+        x.data,
+        FH=FH,
+        FW=FW,
+        padding=padding,
+        stride=stride,
+    )
     return Tensor(col_data)
 
 
@@ -44,36 +27,17 @@ def col2img(
     padding: int,
     stride: int
 ) -> Tensor:
-    # dcol_x.shape: (N * OH * OW, C * FH * FW)
-
-    OH = (H + 2 * padding - FH) // stride + 1
-    OW = (W + 2 * padding - FW) // stride + 1
-
-    # col_var.shape: (N, OH, OW, C, FH, FW)
-    col_var = dcol_x.reshape((N, OH, OW, C, FH, FW))
-
-    # col_var.shape: (N, C, OH, OW, FH, FW)
-    col_var = col_var.transpose(0, 3, 1, 2, 4, 5)
-
-    # img_data.shape: (N, C, H + 2 * padding, W + 2 * padding)
-    img_data_w_padding = np.pad(
-        np.zeros((N, C, H, W)),
-        ((0, 0), (0, 0), (padding, padding), (padding, padding)),
+    img_data = _np_col2img(
+        dcol_x.data,
+        N=N,
+        C=C,
+        H=H,
+        W=W,
+        FH=FH,
+        FW=FW,
+        padding=padding,
+        stride=stride,
     )
-
-    for out_y in range(OH):
-        y = out_y * stride
-        y_max = y + FH
-
-        for out_x in range(OW):
-            x = out_x * stride
-            x_max = x + FW
-            img_data_w_padding[:, :, y:y_max, x:x_max] += col_var.data[
-                :, :, out_y, out_x, :, :
-            ]
-
-    # img_data.shape: (N, C, H, W)
-    img_data = img_data_w_padding[:, :, padding : H + padding, padding : W + padding]
     return Tensor(img_data)
 
 
