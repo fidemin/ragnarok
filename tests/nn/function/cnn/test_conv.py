@@ -248,6 +248,6 @@ class TestConv2D:
             f2, x_var, w_var, b_var, padding=2, stride=1
         )
 
-        allclose(actual_dx, expected_dx)
-        allclose(actual_dw, expected_dw)
-        allclose(actual_db, expected_db)
+        assert allclose(actual_dx, expected_dx)
+        assert allclose(actual_dw, expected_dw)
+        assert allclose(actual_db, expected_db)

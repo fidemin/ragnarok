@@ -87,7 +87,6 @@ class MaxPooling(Function):
 
         PH = kwargs["pool_h"]
         PW = kwargs["pool_w"]
-
         padding = kwargs["padding"]
         stride = kwargs["stride"]
 
